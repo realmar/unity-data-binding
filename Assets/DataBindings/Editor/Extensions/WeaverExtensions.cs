@@ -9,7 +9,7 @@ using Mono.Collections.Generic;
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using ICustomAttributeProvider = Mono.Cecil.ICustomAttributeProvider;
 
-namespace Realmar.DataBindingsEditor.Extensions
+namespace Realmar.DataBindings.Editor.Extensions
 {
 	internal static class WeaverExtensions
 	{

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
-using Realmar.DataBindingsEditor.Extensions;
+using Realmar.DataBindings.Editor.Extensions;
 
-namespace DataBindings.Editor.Misc
+namespace Realmar.DataBindings.Editor.Misc
 {
 	internal class AttributeResolver
 	{

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Realmar.DataBindingsEditor.Extensions
+namespace Realmar.DataBindings.Editor.Extensions
 {
 	public static class DataExtensions
 	{

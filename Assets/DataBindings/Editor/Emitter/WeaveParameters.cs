@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Mono.Cecil;
 
-namespace Realmar.DataBindingsEditor.Emitter
+namespace Realmar.DataBindings.Editor.Emitter
 {
 	internal class WeaveParameters
 	{

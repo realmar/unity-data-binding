@@ -1,10 +1,10 @@
 using Mono.Cecil;
-using Realmar.DataBindingsEditor.Emitter;
-using Realmar.DataBindingsEditor.Exceptions;
-using Realmar.DataBindingsEditor.Extensions;
-using static Realmar.DataBindingsEditor.WeaverHelpers;
+using Realmar.DataBindings.Editor.Emitter;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Extensions;
+using static Realmar.DataBindings.Editor.WeaverHelpers;
 
-namespace Realmar.DataBindingsEditor.Binder
+namespace Realmar.DataBindings.Editor.Binder
 {
 	internal class FromTargetBinder : IBinder
 	{

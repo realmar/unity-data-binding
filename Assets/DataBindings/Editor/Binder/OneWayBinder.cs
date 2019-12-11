@@ -1,9 +1,9 @@
 using System.CodeDom;
 using Mono.Cecil;
-using Realmar.DataBindingsEditor.Emitter;
-using static Realmar.DataBindingsEditor.WeaverHelpers;
+using Realmar.DataBindings.Editor.Emitter;
+using static Realmar.DataBindings.Editor.WeaverHelpers;
 
-namespace Realmar.DataBindingsEditor.Binder
+namespace Realmar.DataBindings.Editor.Binder
 {
 	internal class OneWayBinder : IBinder
 	{

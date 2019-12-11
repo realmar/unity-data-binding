@@ -2,10 +2,10 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Mono.Cecil;
-using Realmar.DataBindingsEditor.Exceptions;
-using Realmar.DataBindingsEditor.Extensions;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Extensions;
 
-namespace Realmar.DataBindingsEditor
+namespace Realmar.DataBindings.Editor
 {
 	internal static class YeetHelpers
 	{

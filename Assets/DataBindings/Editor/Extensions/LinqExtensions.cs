@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Realmar.DataBindingsEditor.Extensions
+namespace Realmar.DataBindings.Editor.Extensions
 {
 	internal static class LinqExtensions
 	{

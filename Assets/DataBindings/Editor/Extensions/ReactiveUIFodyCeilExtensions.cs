@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Mono.Cecil;
 
-namespace Realmar.DataBindingsEditor.Extensions
+namespace Realmar.DataBindings.Editor.Extensions
 {
 	// Source: ReactiveUI.Fody
 	// License: MIT

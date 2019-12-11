@@ -3,11 +3,11 @@ using System.Linq;
 using System.Text;
 using Mono.Cecil;
 using Realmar.DataBindings;
-using Realmar.DataBindingsEditor.Exceptions;
-using Realmar.DataBindingsEditor.Extensions;
-using static Realmar.DataBindingsEditor.YeetHelpers;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Extensions;
+using static Realmar.DataBindings.Editor.YeetHelpers;
 
-namespace Realmar.DataBindingsEditor
+namespace Realmar.DataBindings.Editor
 {
 	internal static class WeaverHelpers
 	{

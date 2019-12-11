@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Realmar.DataBindingsEditor.BCL.System;
+using Realmar.DataBindings.Editor.BCL.System;
 
-namespace DataBindings.Editor.Misc
+namespace Realmar.DataBindings.Editor.Misc
 {
 	internal class Cache
 	{

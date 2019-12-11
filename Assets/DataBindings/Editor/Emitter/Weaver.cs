@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Mono.Cecil;
-using Realmar.DataBindingsEditor.Exceptions;
-using Realmar.DataBindingsEditor.Extensions;
-using static Realmar.DataBindingsEditor.WeaverHelpers;
-using static Realmar.DataBindingsEditor.YeetHelpers;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Extensions;
+using static Realmar.DataBindings.Editor.WeaverHelpers;
+using static Realmar.DataBindings.Editor.YeetHelpers;
 
-namespace Realmar.DataBindingsEditor.Emitter
+namespace Realmar.DataBindings.Editor.Emitter
 {
 	internal class Weaver
 	{

@@ -1,9 +1,9 @@
 using System;
 using System.Reflection;
-using DataBindings.Editor.Misc;
+using Realmar.DataBindings.Editor.Misc;
 using Mono.Cecil;
 
-namespace Realmar.DataBindingsEditor
+namespace Realmar.DataBindings.Editor
 {
 	public class CachedReflectionImporter : DefaultReflectionImporter
 	{

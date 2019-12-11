@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DataBindings.Editor.Misc
+namespace Realmar.DataBindings.Editor.Misc
 {
 	internal class Pool<T>
 	{

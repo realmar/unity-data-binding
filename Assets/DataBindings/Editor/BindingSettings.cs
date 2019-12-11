@@ -1,6 +1,6 @@
 using Realmar.DataBindings;
 
-namespace Realmar.DataBindingsEditor
+namespace Realmar.DataBindings.Editor
 {
 	internal struct BindingSettings
 	{

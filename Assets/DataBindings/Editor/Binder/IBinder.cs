@@ -1,6 +1,6 @@
 using Mono.Cecil;
 
-namespace Realmar.DataBindingsEditor.Binder
+namespace Realmar.DataBindings.Editor.Binder
 {
 	internal interface IBinder
 	{

@@ -6,11 +6,11 @@ using Boo.Lang;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
-using Realmar.DataBindingsEditor.Extensions;
-using static Realmar.DataBindingsEditor.WeaverHelpers;
-using static Realmar.DataBindingsEditor.YeetHelpers;
+using Realmar.DataBindings.Editor.Extensions;
+using static Realmar.DataBindings.Editor.WeaverHelpers;
+using static Realmar.DataBindings.Editor.YeetHelpers;
 
-namespace Realmar.DataBindingsEditor.Emitter
+namespace Realmar.DataBindings.Editor.Emitter
 {
 	internal class ILEmitter
 	{

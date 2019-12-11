@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 
-namespace Realmar.DataBindingsEditor
+namespace Realmar.DataBindings.Editor
 {
 	internal class UnityAssemblyResolver : BaseAssemblyResolver
 	{

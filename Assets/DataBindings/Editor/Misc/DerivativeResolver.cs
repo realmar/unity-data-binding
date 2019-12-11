@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using DataBindings.Editor.Misc;
+using Realmar.DataBindings.Editor.Misc;
 using Mono.Cecil;
-using Realmar.DataBindingsEditor.Extensions;
+using Realmar.DataBindings.Editor.Extensions;
 
-namespace Realmar.DataBindingsEditor
+namespace Realmar.DataBindings.Editor
 {
 	internal class DerivativeResolver
 	{

@@ -1,6 +1,6 @@
 using System;
 
-namespace Realmar.DataBindingsEditor.Exceptions
+namespace Realmar.DataBindings.Editor.Exceptions
 {
 	public class MissingBindingTargetException : Exception
 	{

@@ -8,7 +8,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace Realmar.DataBindingsEditor.BCL.System.Numerics
+namespace Realmar.DataBindings.Editor.BCL.System.Numerics
 {
     // NOTE: This class is a copy from src\Common\src\CoreLib\System\Numerics\BitOperations.cs only for HashCode purposes.
     // Any changes to the BitOperations class should be done in there instead.

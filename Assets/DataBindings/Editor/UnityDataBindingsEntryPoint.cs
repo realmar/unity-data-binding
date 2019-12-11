@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using DataBindings.Editor.Misc;
+using Realmar.DataBindings.Editor.Misc;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Realmar.DataBindings;
-using Realmar.DataBindingsEditor.Binder;
-using Realmar.DataBindingsEditor.Exceptions;
-using Realmar.DataBindingsEditor.Extensions;
+using Realmar.DataBindings.Editor.Binder;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Extensions;
 using UnityEditor;
 
-namespace Realmar.DataBindingsEditor
+namespace Realmar.DataBindings.Editor
 {
 	[InitializeOnLoad]
 	internal class UnityDataBindingsEntryPoint

@@ -47,9 +47,9 @@ https://raw.githubusercontent.com/Cyan4973/xxHash/5c174cfa4e45a42f94082dc0d4539b
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Realmar.DataBindingsEditor.BCL.System.Numerics;
+using Realmar.DataBindings.Editor.BCL.System.Numerics;
 
-namespace Realmar.DataBindingsEditor.BCL.System
+namespace Realmar.DataBindings.Editor.BCL.System
 {
     // xxHash32 is used for the hash code.
     // https://github.com/Cyan4973/xxHash
