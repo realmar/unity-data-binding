@@ -10,7 +10,7 @@ namespace Realmar.DataBindings.Example
 
 		[SerializeField] private BaseVirtualView2 _view;
 
-		// [BindingTarget]
+		[BindingTarget]
 		public override BaseVirtualView2 View
 		{
 			get => _view;
@@ -36,11 +36,11 @@ namespace Realmar.DataBindings.Example
 		private string _text2;
 
 		// [Binding(targetId: 1, targetPropertyName: "Text")]
-		/*[Binding(
-			BindingType = BindingType.OneWayFromTarget,
-			TargetId = 1,
-			TargetPropertyName = nameof(BaseVirtualView2.Text),
-			EmitNullCheck = true)]*/
+		[Binding(
+			bindingType: BindingType.OneWayFromTarget,
+			// targetId: 1,
+			targetPropertyName: nameof(BaseVirtualView2.Text),
+			emitNullCheck: true)]
 		public string Text2
 		{
 			get => _text2;

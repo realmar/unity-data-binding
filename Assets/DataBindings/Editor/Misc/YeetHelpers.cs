@@ -9,6 +9,7 @@ namespace Realmar.DataBindings.Editor
 {
 	internal static class YeetHelpers
 	{
+		[DebuggerHidden]
 		internal static void YeetIfInaccessible(IMemberDefinition member, TypeDefinition type)
 		{
 			if (member.IsAccessibleFrom(type) == false)
@@ -17,6 +18,7 @@ namespace Realmar.DataBindings.Editor
 			}
 		}
 
+		[DebuggerHidden]
 		internal static void YeetIfNoBindingInitializer(MethodDefinition initializer, TypeDefinition type)
 		{
 			if (initializer == null)
@@ -26,11 +28,21 @@ namespace Realmar.DataBindings.Editor
 			}
 		}
 
+		[DebuggerHidden]
 		internal static void YeetIfFieldExists(TypeDefinition type, string fieldName)
 		{
 			if (type.Fields.Any(field => field.Name == fieldName))
 			{
 				throw new ArgumentException($"Field {fieldName} already exists in the type {type.FullName}");
+			}
+		}
+
+		[DebuggerHidden]
+		internal static void YeetIfNull(object obj, string name)
+		{
+			if (obj == null)
+			{
+				throw new ArgumentNullException(name);
 			}
 		}
 	}

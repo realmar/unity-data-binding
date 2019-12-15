@@ -10,6 +10,7 @@ using static Realmar.DataBindings.Editor.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Emitter
 {
+	// TODO Weave across assembly boundaries
 	internal class Weaver
 	{
 		private readonly HashSet<TypeDefinition> _affectedTypesCache = new HashSet<TypeDefinition>();
