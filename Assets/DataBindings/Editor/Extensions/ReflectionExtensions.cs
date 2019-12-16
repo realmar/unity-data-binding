@@ -138,27 +138,6 @@ namespace Realmar.DataBindings.Editor.Extensions
 			});
 		}
 
-		internal static Type GetTypeWithAttributeInType<TAttribute>(this Type type)
-			where TAttribute : Attribute
-		{
-			if (type.GetCustomAttribute<TAttribute>() != null)
-			{
-				return type;
-			}
-			else
-			{
-				var baseType = type.BaseType;
-				if (baseType == null)
-				{
-					return null;
-				}
-				else
-				{
-					return baseType.GetTypeWithAttributeInType<TAttribute>();
-				}
-			}
-		}
-
 		internal static MemberInfo GetMemberWithAttributeInType<TAttribute>(this Type type)
 			where TAttribute : Attribute
 		{
@@ -186,36 +165,45 @@ namespace Realmar.DataBindings.Editor.Extensions
 
 		internal static List<MemberInfo> GetMembersWithAttributesInType(this Type type, params Type[] attributes)
 		{
-			if (attributes.Length == 0)
-			{
-				return new List<MemberInfo>();
-			}
+			return GetMembersWithAttributesInType(type, attributes, collection => true);
+		}
 
-			List<MemberInfo> list;
+		internal static List<MemberInfo> GetMembersWithAttributesInType(this Type type,
+			Type[] attributes,
+			Predicate<IReadOnlyCollection<Attribute>> predicate)
+		{
+			var localPredicate = predicate;
 
-			if (type.BaseType == null)
+			bool Filter(MemberInfo info)
 			{
-				list = new List<MemberInfo>();
-			}
-			else
-			{
-				list = type.BaseType.GetMembersWithAttributesInType(attributes);
-			}
-
-			list.AddRange(
-				type.GetMembers(ALL_NO_FLAT)
-					.Where(info =>
+				var attributeInstances = new List<Attribute>();
+				foreach (var attribute in attributes)
+				{
+					var attributeInstance = info.GetCustomAttribute(attribute);
+					if (attributeInstance == null)
 					{
-						foreach (var attribute in attributes)
-						{
-							if (info.GetCustomAttribute(attribute) == null)
-							{
-								return false;
-							}
-						}
+						return false;
+					}
 
-						return true;
-					}));
+					attributeInstances.Add(attributeInstance);
+				}
+
+				return localPredicate.Invoke(attributeInstances);
+			}
+
+			var list = new List<MemberInfo>();
+			if (attributes.Length > 0)
+			{
+				list.AddRange(type.GetInterfaces().SelectMany(t => t.GetMembers()).Where(Filter));
+
+				var currentType = type;
+				while (currentType != null)
+				{
+					var members = currentType.GetMembers(ALL_NO_FLAT);
+					list.AddRange(members.Where(Filter));
+					currentType = currentType.BaseType;
+				}
+			}
 
 			return list;
 		}

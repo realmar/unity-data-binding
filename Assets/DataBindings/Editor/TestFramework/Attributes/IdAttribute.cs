@@ -19,7 +19,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Attributes
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return base.Equals(other) && Id == other.Id;
+			return Id == other.Id;
 		}
 
 		public override bool Equals(object obj)

@@ -136,7 +136,8 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayMultipleBindingsAndTargets
 }
 
 
-/*namespace UnitsUnderTest.NonVirtualTests.TESTI
+/*
+namespace UnitsUnderTest.NonVirtualTests.TESTI
 {
 	// this will be used as SourceType (compile time type) for all set and get against source
 	// there is every only once source in a conceptional binding (but not in reality
@@ -144,10 +145,12 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayMultipleBindingsAndTargets
 	[Source, CompileTimeType]
 	public interface ISource
 	{
-		[BindingTarget, Id(11)] ITarget BT1_1 { get; }
-		[BindingTarget, Id(12)] ITarget BT1_2 { get; }
+		// the testframework requires BindingTargets to have setters, however this is not a requirement
+		// of the data binding framework
+		[BindingTarget, Id(11)] ITarget BT1_1 { get; set; }
+		[BindingTarget, Id(12)] ITarget BT1_2 { get; set; }
 
-		[BindingTarget(id: 2), Id(21)] Target BT2_1 { get; }
+		[BindingTarget(id: 2), Id(21)] Target BT2_1 { get; set; }
 
 		// bindings need setters
 		[Binding] string Text1_1 { get; set; }
@@ -198,4 +201,5 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayMultipleBindingsAndTargets
 	public class DerivedTarget : Target
 	{
 	}
-}*/
+}
+*/
