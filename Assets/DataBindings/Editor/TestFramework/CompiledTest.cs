@@ -16,13 +16,18 @@ namespace Realmar.DataBindings.Editor.TestFramework
 		private Compiler _compiler;
 		private CodeProvider _codeProvider;
 		protected string WeavedPath { get; private set; }
+		protected Type TestType { get; set; }
 
 		[OneTimeSetUp]
 		public virtual void SetupFixture()
 		{
-			var type = GetType();
+			if (TestType == null)
+			{
+				TestType = GetType();
+			}
+
 			_compiler = new Compiler();
-			_codeProvider = new CodeProvider(type);
+			_codeProvider = new CodeProvider(TestType);
 		}
 
 		[OneTimeTearDown]
@@ -95,7 +100,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 		protected string GetNamespaceForTest(string testName)
 		{
-			return $"{_codeProvider.UUTNamespace}.{GetType().Name}.{testName}";
+			return $"{_codeProvider.UUTNamespace}.{TestType.Name}.{testName}";
 		}
 
 		private string WeaveAssembly(string path)

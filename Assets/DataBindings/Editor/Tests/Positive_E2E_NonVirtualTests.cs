@@ -26,7 +26,10 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void OneWay_NonDefaultBindingTarget() => RunTest();
 
 		[Test]
-		public void OneWay_MultipleBindingsAndTargets() => RunTest();
+		public void OneWay_ManyToOne() => RunTest();
+
+		[Test]
+		public void OneWay_OneToMany() => RunTest();
 
 		// [Test]
 		// public void TESTI() => RunTest();

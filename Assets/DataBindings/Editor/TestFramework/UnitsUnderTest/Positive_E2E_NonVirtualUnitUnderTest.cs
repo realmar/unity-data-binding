@@ -113,25 +113,43 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NonDefaultBindingTa
 	}
 }
 
-namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_MultipleBindingsAndTargets
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_ManyToOne
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
 	{
 		[BindingTarget, Id(1)] public Target BT1 { get; set; }
-		[BindingTarget(id: 2), Id(2)] public Target BT2 { get; set; }
 
-		[Binding] public string Text { get; set; }
-		[Binding(targetId: 2)] public string Text2 { get; set; }
-		[Binding(targetId: 2)] public string Text3 { get; set; }
+		[Binding] public string Text1 { get; set; }
+		[Binding] public string Text2 { get; set; }
+		[Binding] public string Text3 { get; set; }
 	}
 
-	[Target, Target(Id = 2), Id(1), Id(2)]
+	[Target, Id(1)]
+	internal class Target
+	{
+		public string Text1 { get; set; }
+		public string Text2 { get; set; }
+		public string Text3 { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_OneToMany
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1)] public Target BT1 { get; set; }
+		[BindingTarget, Id(2)] public Target BT2 { get; set; }
+		[BindingTarget, Id(3)] public Target BT3 { get; set; }
+
+		[Binding] public string Text { get; set; }
+	}
+
+	[Target, Id(1), Id(2), Id(3)]
 	internal class Target
 	{
 		public string Text { get; set; }
-		public string Text2 { get; set; }
-		public string Text3 { get; set; }
 	}
 }
 

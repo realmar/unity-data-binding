@@ -11,6 +11,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 	{
 		private UUTSandboxFactory _uutSandboxFactory;
 		private IUnitUnderTestSandbox _sandbox;
+		private readonly Random _random = new Random();
 
 		public override void SetupFixture()
 		{
@@ -49,15 +50,22 @@ namespace Realmar.DataBindings.Editor.TestFramework
 			_sandbox.InitializeSandbox(WeavedPath);
 		}
 
+		protected IUnitUnderTestSandbox GetSandboxForTest([CallerMemberName] string testName = null)
+		{
+			YeetIfNull(testName, nameof(testName));
+			ConfigureSandboxFor(testName);
+
+			return _sandbox;
+		}
+
 		protected void RunTest([CallerMemberName] string testName = null)
 		{
 			YeetIfNull(testName, nameof(testName));
 			ConfigureSandboxFor(testName);
 
-			var bindings = _sandbox.GetBindings();
 			_sandbox.RunBindingInitializer();
 
-			foreach (var binding in bindings)
+			foreach (var binding in _sandbox.Bindings)
 			{
 				switch (binding.BindingAttribute.BindingType)
 				{
@@ -77,7 +85,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 		private void AssertOneWayFromTarget(IBinding binding)
 		{
-			var expected = "Example Sample";
+			var expected = _random.Next().ToString();
 			binding.SetTargetProperty(expected);
 			var actual = binding.GetSourceProperty();
 
@@ -86,7 +94,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 		private void AssertOneWay(IBinding binding)
 		{
-			var expected = "Hello World";
+			var expected = _random.Next().ToString();
 			binding.SetSourceProperty(expected);
 			var actual = binding.GetTargetProperty();
 

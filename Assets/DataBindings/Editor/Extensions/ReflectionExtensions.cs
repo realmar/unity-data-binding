@@ -158,6 +158,15 @@ namespace Realmar.DataBindings.Editor.Extensions
 			return GetMembersWithAttributesInType(type, typeof(TAttribute));
 		}
 
+		internal static List<MemberInfo> GetMembersWithAttributeInType<TAttribute>(this Type type,
+			Predicate<TAttribute> predicate)
+			where TAttribute : Attribute
+		{
+			return GetMembersWithAttributeInType<TAttribute>(type)
+				.Where(info => predicate.Invoke(info.GetCustomAttribute<TAttribute>()))
+				.ToList();
+		}
+
 		internal static MemberInfo GetMemberWithAttributesInType(this Type type, params Type[] attributes)
 		{
 			return GetMembersWithAttributesInType(type, attributes).FirstOrDefault();

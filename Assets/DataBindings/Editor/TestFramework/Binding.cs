@@ -1,6 +1,7 @@
+using Realmar.DataBindings.Editor.Extensions;
 using System;
 using System.Reflection;
-using Realmar.DataBindings.Editor.Extensions;
+using System.Text;
 
 namespace Realmar.DataBindings.Editor.TestFramework
 {
@@ -43,6 +44,22 @@ namespace Realmar.DataBindings.Editor.TestFramework
 		public object GetTargetProperty()
 		{
 			return _arguments.TargetProperty.GetFieldOrPropertyValue(_arguments.Target);
+		}
+
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+
+			sb.Append(
+				$"{_arguments.SourceProperty.DeclaringType.FullName}::{_arguments.SourceProperty.Name} ({_arguments.SourceProperty.GetHashCode()}) ");
+			sb.Append(
+				$"--> {_arguments.TargetProperty.DeclaringType.FullName}::{_arguments.TargetProperty.Name} ({_arguments.TargetProperty.GetHashCode()})");
+			sb.AppendLine("ID = {_arguments.BindingAttribute.TargetId}");
+			sb.AppendLine($"Type = {_arguments.BindingAttribute.BindingType}");
+			sb.AppendLine($"Source = {_arguments.Source.GetHashCode()}");
+			sb.AppendLine($"Target = {_arguments.Target.GetHashCode()}");
+
+			return sb.ToString();
 		}
 	}
 }

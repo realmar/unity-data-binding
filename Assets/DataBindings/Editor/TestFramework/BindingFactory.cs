@@ -32,7 +32,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 			var bindings = new List<IBinding>();
 			foreach (var bindingSymbol in bindingSymbols)
 			{
-				bindings.Add(CreateBindingFrom(sourceCompileTimeType, sourceObject, bindingSymbol));
+				bindings.AddRange(CreateBindingsFrom(sourceCompileTimeType, sourceObject, bindingSymbol));
 			}
 
 			var bindingInitializer =
@@ -49,7 +49,8 @@ namespace Realmar.DataBindings.Editor.TestFramework
 				if (colletion.Count == 0)
 				{
 					throw new Exception(
-						$"Cannot find set of {nameof(TargetAttribute)} (ID = {bindingTargetAttribute.Id}) and {nameof(IdAttribute)} (ID = {mappingId.Id}) on {sourceType.FullName}.");
+						$"Cannot find set of {nameof(TargetAttribute)} (ID = {bindingTargetAttribute.Id}) " +
+						$"and {nameof(IdAttribute)} (ID = {mappingId.Id}) on {sourceType.FullName}.");
 				}
 			}
 
@@ -59,7 +60,8 @@ namespace Realmar.DataBindings.Editor.TestFramework
 				if (colletion.Count > 1)
 				{
 					throw new AmbiguousMatchException(
-						$"Found multiple types with the same set of {nameof(TargetAttribute)} (ID = {bindingTargetAttribute.Id}) and {nameof(IdAttribute)} (ID = {mappingId.Id}) on {sourceType.FullName}.");
+						$"Found multiple types with the same set of {nameof(TargetAttribute)} (ID = {bindingTargetAttribute.Id}) " +
+						$"and {nameof(IdAttribute)} (ID = {mappingId.Id}) on {sourceType.FullName}.");
 				}
 			}
 
@@ -70,7 +72,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 				var mappingId = bindingTarget.GetCustomAttribute<IdAttribute>();
 
 				var runtimeTypes = _types.GetTypesWithAttributes(
-						new[] {typeof(TargetAttribute), typeof(IdAttribute)},
+						new[] { typeof(TargetAttribute), typeof(IdAttribute) },
 						attributes => ContainsMatchingTargetAndIdPair(attributes, bindingTargetAttribute, mappingId))
 					.ToList();
 
@@ -79,7 +81,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 				var targetObject = Activator.CreateInstance(runtimeTypes[0]);
 				var targetBindingSymbols = sourceType.GetMembersWithAttributesInType(
-						new[] {typeof(BindingTargetAttribute), typeof(IdAttribute)},
+						new[] { typeof(BindingTargetAttribute), typeof(IdAttribute) },
 						attributes => ContainsMatchingTargetAndIdPair(attributes, bindingTargetAttribute, mappingId))
 					.ToArray();
 
@@ -136,26 +138,30 @@ namespace Realmar.DataBindings.Editor.TestFramework
 			return validTargetId && validMappingId;
 		}
 
-		private Binding CreateBindingFrom(Type sourceType, object sourceObject, MemberInfo bindingSymbol)
+		private IEnumerable<Binding> CreateBindingsFrom(Type sourceType, object sourceObject, MemberInfo bindingSymbol)
 		{
 			var bindingAttribute = bindingSymbol.GetCustomAttribute<BindingAttribute>();
-			var bindingTargetSymbol =
-				sourceType.GetMemberWithAttributeInType<BindingTargetAttribute>(attribute =>
+			var bindingTargetSymbols =
+				sourceType.GetMembersWithAttributeInType<BindingTargetAttribute>(attribute =>
 					attribute.Id == bindingAttribute.TargetId);
-			var targetObject = bindingTargetSymbol.GetFieldOrPropertyValue(sourceObject);
-			var targetSymbol = targetObject.GetType()
-				.GetFieldOrPropertyInfo(bindingAttribute.TargetPropertyName ?? bindingSymbol.Name);
 
-			var arguments = new Binding.Arguments
+			foreach (var bindingTargetSymbol in bindingTargetSymbols)
 			{
-				BindingAttribute = bindingAttribute,
-				SourceProperty = bindingSymbol,
-				TargetProperty = targetSymbol,
-				Source = sourceObject,
-				Target = targetObject
-			};
+				var targetObject = bindingTargetSymbol.GetFieldOrPropertyValue(sourceObject);
+				var targetSymbol = targetObject.GetType()
+					.GetFieldOrPropertyInfo(bindingAttribute.TargetPropertyName ?? bindingSymbol.Name);
 
-			return new Binding(arguments);
+				var arguments = new Binding.Arguments
+				{
+					BindingAttribute = bindingAttribute,
+					SourceProperty = bindingSymbol,
+					TargetProperty = targetSymbol,
+					Source = sourceObject,
+					Target = targetObject
+				};
+
+				yield return new Binding(arguments);
+			}
 		}
 	}
 }

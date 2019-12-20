@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,6 +10,8 @@ namespace Realmar.DataBindings.Editor.TestFramework
 	{
 		private Assembly _context;
 		private BindingCollection _bindingCollection;
+
+		public IReadOnlyCollection<IBinding> Bindings => _bindingCollection?.Bindings;
 
 		public void InitializeSandbox(string assemblyPath)
 		{
@@ -39,11 +42,6 @@ namespace Realmar.DataBindings.Editor.TestFramework
 		{
 			_bindingCollection.BindingInitializer
 				?.Invoke(_bindingCollection.BindingInitializerObject, Array.Empty<object>());
-		}
-
-		public IBinding[] GetBindings()
-		{
-			return _bindingCollection.Bindings;
 		}
 	}
 }
