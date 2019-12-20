@@ -43,10 +43,10 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 		private void ConfigureTargets(Type sourceType, object sourceObject)
 		{
-			void ThrowIfNoMatches<T>(IReadOnlyCollection<T> colletion,
+			void ThrowIfNoMatches<T>(IReadOnlyCollection<T> collection,
 				BindingTargetAttribute bindingTargetAttribute, IdAttribute mappingId)
 			{
-				if (colletion.Count == 0)
+				if (collection.Count == 0)
 				{
 					throw new Exception(
 						$"Cannot find set of {nameof(TargetAttribute)} (ID = {bindingTargetAttribute.Id}) " +
@@ -54,10 +54,10 @@ namespace Realmar.DataBindings.Editor.TestFramework
 				}
 			}
 
-			void ThrowIfMultipleMatches<T>(IReadOnlyCollection<T> colletion,
+			void ThrowIfMultipleMatches<T>(IReadOnlyCollection<T> collection,
 				BindingTargetAttribute bindingTargetAttribute, IdAttribute mappingId)
 			{
-				if (colletion.Count > 1)
+				if (collection.Count > 1)
 				{
 					throw new AmbiguousMatchException(
 						$"Found multiple types with the same set of {nameof(TargetAttribute)} (ID = {bindingTargetAttribute.Id}) " +
@@ -140,27 +140,30 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 		private IEnumerable<Binding> CreateBindingsFrom(Type sourceType, object sourceObject, MemberInfo bindingSymbol)
 		{
-			var bindingAttribute = bindingSymbol.GetCustomAttribute<BindingAttribute>();
-			var bindingTargetSymbols =
-				sourceType.GetMembersWithAttributeInType<BindingTargetAttribute>(attribute =>
-					attribute.Id == bindingAttribute.TargetId);
-
-			foreach (var bindingTargetSymbol in bindingTargetSymbols)
+			var bindingAttributes = bindingSymbol.GetCustomAttributes<BindingAttribute>().ToArray();
+			foreach (var bindingAttribute in bindingAttributes)
 			{
-				var targetObject = bindingTargetSymbol.GetFieldOrPropertyValue(sourceObject);
-				var targetSymbol = targetObject.GetType()
-					.GetFieldOrPropertyInfo(bindingAttribute.TargetPropertyName ?? bindingSymbol.Name);
+				var bindingTargetSymbols =
+					sourceType.GetMembersWithAttributeInType<BindingTargetAttribute>(
+						attribute => attribute.Id == bindingAttribute.TargetId);
 
-				var arguments = new Binding.Arguments
+				foreach (var bindingTargetSymbol in bindingTargetSymbols)
 				{
-					BindingAttribute = bindingAttribute,
-					SourceProperty = bindingSymbol,
-					TargetProperty = targetSymbol,
-					Source = sourceObject,
-					Target = targetObject
-				};
+					var targetObject = bindingTargetSymbol.GetFieldOrPropertyValue(sourceObject);
+					var targetSymbol = targetObject.GetType()
+						.GetFieldOrPropertyInfo(bindingAttribute.TargetPropertyName ?? bindingSymbol.Name);
 
-				yield return new Binding(arguments);
+					var arguments = new Binding.Arguments
+					{
+						BindingAttribute = bindingAttribute,
+						SourceProperty = bindingSymbol,
+						TargetProperty = targetSymbol,
+						Source = sourceObject,
+						Target = targetObject
+					};
+
+					yield return new Binding(arguments);
+				}
 			}
 		}
 	}

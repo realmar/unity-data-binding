@@ -31,6 +31,12 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void OneWay_OneToMany() => RunTest();
 
+		[Test]
+		public void OneWay_ManyToMany() => RunTest();
+
+		[Test]
+		public void OneWay_MultipleBindingsPerSource() => RunTest();
+
 		// [Test]
 		// public void TESTI() => RunTest();
 	}

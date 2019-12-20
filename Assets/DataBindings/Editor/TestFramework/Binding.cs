@@ -1,4 +1,3 @@
-using Realmar.DataBindings.Editor.Extensions;
 using System;
 using System.Reflection;
 using System.Text;
@@ -18,32 +17,16 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 		private Arguments _arguments;
 
+		public IAccessSymbol Target { get; }
+		public IAccessSymbol Source { get; }
 		public BindingAttribute BindingAttribute => _arguments.BindingAttribute;
 
 
 		public Binding(Arguments arguments)
 		{
 			_arguments = arguments;
-		}
-
-		public void SetSourceProperty(object value)
-		{
-			_arguments.SourceProperty.SetFieldOrPropertyValue(_arguments.Source, value);
-		}
-
-		public void SetTargetProperty(object value)
-		{
-			_arguments.TargetProperty.SetFieldOrPropertyValue(_arguments.Target, value);
-		}
-
-		public object GetSourceProperty()
-		{
-			return _arguments.SourceProperty.GetFieldOrPropertyValue(_arguments.Source);
-		}
-
-		public object GetTargetProperty()
-		{
-			return _arguments.TargetProperty.GetFieldOrPropertyValue(_arguments.Target);
+			Target = new AccessSymbol(_arguments.TargetProperty, _arguments.Target);
+			Source = new AccessSymbol(_arguments.SourceProperty, _arguments.Source);
 		}
 
 		public override string ToString()

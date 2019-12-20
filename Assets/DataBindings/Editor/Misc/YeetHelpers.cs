@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.Extensions;
@@ -42,6 +43,15 @@ namespace Realmar.DataBindings.Editor
 			if (obj == null)
 			{
 				throw new ArgumentNullException(name);
+			}
+		}
+
+		[DebuggerHidden]
+		internal static void YeetIfNotPropertyOrField(MemberInfo info)
+		{
+			if (info is FieldInfo == false && info is PropertyInfo == false)
+			{
+				throw new ArgumentException("Symbol is not a property nor a field.", nameof(info));
 			}
 		}
 	}

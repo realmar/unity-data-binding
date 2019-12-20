@@ -60,6 +60,11 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 		protected void RunTest([CallerMemberName] string testName = null)
 		{
+			RunTest(null, testName);
+		}
+
+		protected void RunTest(Action<IBinding, object> customAssertion, [CallerMemberName] string testName = null)
+		{
 			YeetIfNull(testName, nameof(testName));
 			ConfigureSandboxFor(testName);
 
@@ -67,38 +72,49 @@ namespace Realmar.DataBindings.Editor.TestFramework
 
 			foreach (var binding in _sandbox.Bindings)
 			{
+				object expected;
+
 				switch (binding.BindingAttribute.BindingType)
 				{
 					case BindingType.OneWay:
-						AssertOneWay(binding);
+						expected = AssertOneWay(binding);
 						break;
 					case BindingType.TwoWay:
 						AssertOneWay(binding);
-						AssertOneWayFromTarget(binding);
+						expected = AssertOneWayFromTarget(binding);
 						break;
 					case BindingType.OneWayFromTarget:
-						AssertOneWayFromTarget(binding);
+						expected = AssertOneWayFromTarget(binding);
 						break;
+					default:
+						throw new NotSupportedException(
+							$"TestFramework does not support {nameof(BindingType)} {binding.BindingAttribute.BindingType}");
 				}
+
+				customAssertion?.Invoke(binding, expected);
 			}
 		}
 
-		private void AssertOneWayFromTarget(IBinding binding)
+		private object AssertOneWayFromTarget(IBinding binding)
 		{
 			var expected = _random.Next().ToString();
-			binding.SetTargetProperty(expected);
-			var actual = binding.GetSourceProperty();
+			binding.Target.BindingValue = expected;
+			var actual = binding.Source.BindingValue;
 
-			Assert.That(expected, Is.EqualTo(actual));
+			Assert.That(actual, Is.EqualTo(expected));
+
+			return expected;
 		}
 
-		private void AssertOneWay(IBinding binding)
+		private object AssertOneWay(IBinding binding)
 		{
 			var expected = _random.Next().ToString();
-			binding.SetSourceProperty(expected);
-			var actual = binding.GetTargetProperty();
+			binding.Source.BindingValue = expected;
+			var actual = binding.Target.BindingValue;
 
-			Assert.That(expected, Is.EqualTo(actual));
+			Assert.That(actual, Is.EqualTo(expected));
+
+			return expected;
 		}
 
 		private void ConfigureSandboxFor(string testName)

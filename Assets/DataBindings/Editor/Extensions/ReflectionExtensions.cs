@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using static Realmar.DataBindings.Editor.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Extensions
 {
@@ -21,12 +22,13 @@ namespace Realmar.DataBindings.Editor.Extensions
 				throw new ArgumentException($"{name} cannot be found in {type.Name}");
 			}
 
-			info.SetFieldOrPropertyValue(target, value, flags);
+			info.SetFieldOrPropertyValue(target, value);
 		}
 
-		internal static void SetFieldOrPropertyValue(this MemberInfo info,
-			object target, object value, BindingFlags flags = ALL)
+		internal static void SetFieldOrPropertyValue(this MemberInfo info, object target, object value)
 		{
+			YeetIfNotPropertyOrField(info);
+
 			switch (info)
 			{
 				case FieldInfo fieldInfo:
@@ -50,8 +52,10 @@ namespace Realmar.DataBindings.Editor.Extensions
 			return info.GetFieldOrPropertyValue(target);
 		}
 
-		internal static object GetFieldOrPropertyValue(this MemberInfo info, object target, BindingFlags flags = ALL)
+		internal static object GetFieldOrPropertyValue(this MemberInfo info, object target)
 		{
+			YeetIfNotPropertyOrField(info);
+
 			object result = null;
 
 			if (info != null)
@@ -188,13 +192,13 @@ namespace Realmar.DataBindings.Editor.Extensions
 				var attributeInstances = new List<Attribute>();
 				foreach (var attribute in attributes)
 				{
-					var attributeInstance = info.GetCustomAttribute(attribute);
-					if (attributeInstance == null)
+					var attributeInstance = info.GetCustomAttributes(attribute).ToArray();
+					if (attributeInstance.Any() == false)
 					{
 						return false;
 					}
 
-					attributeInstances.Add(attributeInstance);
+					attributeInstances.AddRange(attributeInstance);
 				}
 
 				return localPredicate.Invoke(attributeInstances);
