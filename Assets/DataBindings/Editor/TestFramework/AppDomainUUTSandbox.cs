@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Realmar.DataBindings.Editor.TestFramework
 {
 	internal class AppDomainUUTSandbox : MarshalByRefObject, IUnitUnderTestSandbox
 	{
+		private readonly Regex _namespaceRegex = new Regex(@"", RegexOptions.Compiled);
+
 		private Assembly _context;
 		private BindingCollection _bindingCollection;
 
@@ -31,7 +34,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 			}
 
 			var types = _context.GetTypes()
-				.Where(type => type.Namespace != null && type.Namespace.StartsWith(@namespace))
+				.Where(type => type.Namespace != null && type.Namespace == @namespace)
 				.ToArray();
 
 			var bindingFactory = new BindingFactory(types);

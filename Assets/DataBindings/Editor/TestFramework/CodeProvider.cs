@@ -87,6 +87,8 @@ namespace Realmar.DataBindings.Editor.TestFramework
 		{
 			return sourceCode
 				.Replace("internal class", "public class")
+				.Replace("internal abstract class", "public abstract class")
+				.Replace("internal new class", "public new class")
 				.Replace("internal interface", "public interface");
 		}
 	}
