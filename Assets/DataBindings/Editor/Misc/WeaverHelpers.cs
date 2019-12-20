@@ -1,10 +1,9 @@
+using Mono.Cecil;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Extensions;
 using System;
 using System.Linq;
 using System.Text;
-using Mono.Cecil;
-using Realmar.DataBindings;
-using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Extensions;
 using static Realmar.DataBindings.Editor.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor
@@ -23,25 +22,10 @@ namespace Realmar.DataBindings.Editor
 			var targetProperty = targetType.GetProperty(saneTargetPropertyName);
 			if (targetProperty == null)
 			{
-				throw new MissingSymbolException(
-					$"BindingTarget {targetType.FullName} does not have property {saneTargetPropertyName}, cannot weave binding");
+				throw new MissingTargetPropertyException(targetType.FullName, saneTargetPropertyName);
 			}
 
 			return targetProperty;
-		}
-
-		internal static (MethodDefinition setMethod, MethodDefinition getMethod) GetGetAndSetMethod(
-			PropertyDefinition property)
-		{
-			var setMethod = property.SetMethod;
-			var getMethod = property.GetMethod;
-			if (setMethod == null || getMethod == null)
-			{
-				throw new MissingSymbolException(
-					$"{property.FullName} does not have a setter or getter, cannot weave binding");
-			}
-
-			return (getMethod, setMethod);
 		}
 
 		internal static MethodDefinition GetSetHelperMethod(PropertyDefinition property, TypeDefinition type)
@@ -50,8 +34,7 @@ namespace Realmar.DataBindings.Editor
 			var targetSetHelperMethod = type.GetMethod(targetSetHelperMethodName);
 			if (targetSetHelperMethod == null)
 			{
-				throw new MissingSymbolException(
-					$"{property.FullName} does not have a getter, cannot weave binding");
+				throw new MissingGetterException(property.FullName);
 			}
 
 			return targetSetHelperMethod;

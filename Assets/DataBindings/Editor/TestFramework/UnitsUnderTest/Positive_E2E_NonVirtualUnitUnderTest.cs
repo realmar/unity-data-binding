@@ -1,7 +1,7 @@
 using Realmar.DataBindings;
 using Realmar.DataBindings.Editor.TestFramework.Attributes;
 
-namespace UnitsUnderTest.NonVirtualTests.OneWayPropertyToProperty
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_PropertyToProperty
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -17,7 +17,7 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayPropertyToProperty
 	}
 }
 
-namespace UnitsUnderTest.NonVirtualTests.OneWayFieldBindingTarget
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_FieldBindingTarget
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -33,7 +33,7 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayFieldBindingTarget
 	}
 }
 
-namespace UnitsUnderTest.NonVirtualTests.OneWayFromTarget
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_FromTarget
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -56,7 +56,7 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayFromTarget
 	}
 }
 
-namespace UnitsUnderTest.NonVirtualTests.TwoWay
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_PropertyToProperty
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -78,7 +78,7 @@ namespace UnitsUnderTest.NonVirtualTests.TwoWay
 	}
 }
 
-namespace UnitsUnderTest.NonVirtualTests.OneWayNonDefaultBindingName
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NonDefaultBindingName
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -96,7 +96,7 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayNonDefaultBindingName
 	}
 }
 
-namespace UnitsUnderTest.NonVirtualTests.OneWayNonDefaultBindingTarget
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NonDefaultBindingTarget
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -113,7 +113,7 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayNonDefaultBindingTarget
 	}
 }
 
-namespace UnitsUnderTest.NonVirtualTests.OneWayMultipleBindingsAndTargets
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_MultipleBindingsAndTargets
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -137,7 +137,7 @@ namespace UnitsUnderTest.NonVirtualTests.OneWayMultipleBindingsAndTargets
 
 
 /*
-namespace UnitsUnderTest.NonVirtualTests.TESTI
+namespace UnitsUnderTest.Positive_NonVirtualTests.TESTI
 {
 	// this will be used as SourceType (compile time type) for all set and get against source
 	// there is every only once source in a conceptional binding (but not in reality

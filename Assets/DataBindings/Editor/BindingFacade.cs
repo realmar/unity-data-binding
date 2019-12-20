@@ -86,21 +86,21 @@ namespace Realmar.DataBindings.Editor
 			}
 		}
 
-		private void BindProperty(PropertyDefinition propertyDefinition)
+		private void BindProperty(PropertyDefinition sourceProperty)
 		{
-			foreach (var bindingAttribute in propertyDefinition.GetCustomAttributes<BindingAttribute>())
+			foreach (var bindingAttribute in sourceProperty.GetCustomAttributes<BindingAttribute>())
 			{
-				var declaringType = propertyDefinition.DeclaringType;
+				var declaringType = sourceProperty.DeclaringType;
 				var settings = GetBindingSettings(bindingAttribute);
 				var allBindingTargets = GetBindingTargets(declaringType);
-				var bindingTargets = FilterBindingsTargets(propertyDefinition, settings, allBindingTargets);
+				var bindingTargets = FilterBindingsTargets(settings, allBindingTargets);
 
 				if (bindingTargets.Length == 0)
 				{
-					throw new MissingBindingTargetException(declaringType.Name);
+					throw new MissingBindingTargetException(sourceProperty.FullName, settings.TargetId);
 				}
 
-				_binders[settings.Type].Bind(propertyDefinition, settings, bindingTargets);
+				_binders[settings.Type].Bind(sourceProperty, settings, bindingTargets);
 			}
 		}
 
@@ -144,20 +144,9 @@ namespace Realmar.DataBindings.Editor
 			};
 		}
 
-		private static BindingTarget[] FilterBindingsTargets(
-			PropertyDefinition sourceProperty,
-			BindingSettings settings,
-			BindingTarget[] targets)
+		private static BindingTarget[] FilterBindingsTargets(BindingSettings settings, BindingTarget[] targets)
 		{
-			var bindingTargets =
-				targets.Where(bindingTarget => bindingTarget.Id == settings.TargetId).ToArray();
-			if (bindingTargets.Length == 0)
-			{
-				throw new MissingSymbolException(
-					$"Cannot find BindingTarget with ID {settings.TargetId} for property {sourceProperty.FullName}");
-			}
-
-			return bindingTargets;
+			return targets.Where(bindingTarget => bindingTarget.Id == settings.TargetId).ToArray();
 		}
 	}
 }

@@ -53,7 +53,7 @@ namespace Realmar.DataBindings.Editor.Emitter
 		{
 			if (fromProperty != null)
 			{
-				WeaveBindingSingle(new WeaveParameters(parameters) { FromProperty = fromProperty });
+				WeaveBindingSingle(new WeaveParameters(parameters) {FromProperty = fromProperty});
 
 				if (fromProperty.GetSetMethodOrYeet().IsAbstract == false)
 				{
@@ -139,6 +139,7 @@ namespace Realmar.DataBindings.Editor.Emitter
 
 				if (found == false)
 				{
+					// TODO - ABSTRACT - Exception
 					throw new MissingSymbolException(
 						$"Could not find overriding non-abstract binding target for {bindingTarget.FullName}");
 				}
@@ -158,7 +159,9 @@ namespace Realmar.DataBindings.Editor.Emitter
 			WeaveSetHelpers(parameters.FromProperty.DeclaringType);
 
 			// WEAVE BINDING
-			var (fromGetMethod, fromSetMethod) = GetGetAndSetMethod(parameters.FromProperty);
+			var fromGetMethod = parameters.FromProperty.GetGetMethodOrYeet();
+			var fromSetMethod = parameters.FromProperty.GetSetMethodOrYeet();
+
 			if (fromSetMethod.IsAbstract == false)
 			{
 				var toSetHelperMethod = GetSetHelperMethod(parameters.ToProperty, parameters.ToType);
@@ -271,6 +274,7 @@ namespace Realmar.DataBindings.Editor.Emitter
 			sb.Append("nor in derived types. However, the property has been found in a base type." +
 			          "This binding configuration is not possible, property must be in the same type or derived types but not base types.");
 
+			// TODO - ABSTRACT - Exception
 			throw new MissingSymbolException(sb.ToString());
 		}
 	}

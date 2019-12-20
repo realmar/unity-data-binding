@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 namespace Realmar.DataBindings.Editor.TestFramework
@@ -12,39 +13,74 @@ namespace Realmar.DataBindings.Editor.TestFramework
 		private readonly string UUTFolderPath =
 			Path.Combine(Application.dataPath, "DataBindings", "Editor", "TestFramework", "UnitsUnderTest");
 
+		private Type _testClass;
+
+		public CodeProvider(Type testClass)
+		{
+			_testClass = testClass;
+		}
+
 		internal string UUTNamespace { get; } = "UnitsUnderTest";
 
-		internal string GetCode(Type testClass)
+		private string UUTName
 		{
-			var uutName = GetUUTName(testClass);
-			var uutFilePath = GetUUTFilePath(uutName);
-
-			if (File.Exists(uutFilePath) == false)
+			get
 			{
+				var name = _testClass.Name;
+				if (name.EndsWith(TestClassSuffix) == false)
+					throw new ArgumentException(
+						$"Unit test classes need to have \"{TestClassSuffix}\" suffix. Class {name} is missing this suffix.");
+
+				return name.Substring(0, name.Length - TestClassSuffix.Length);
+			}
+		}
+
+		private string UUTFilePath => Path.Combine(UUTFolderPath, $"{UUTName}{UUTSuffix}.cs");
+
+		internal string GetCode()
+		{
+			if (File.Exists(UUTFilePath) == false)
 				throw new ArgumentException(
-					$"Could not find UUT for test {testClass.Name} at path {uutFilePath}." +
+					$"Could not find UUT for test {_testClass.Name} at path {UUTFilePath}." +
 					$"UUT files must be placed in the {UUTFolderPath} folder and have the same name as the corresponding unit test class but with the {UUTSuffix} suffix." +
 					$"Eg. unit test class name: \"Example{TestClassSuffix}\" the UUT filename should be \"Example{UUTSuffix}.cs\"");
-			}
 
-			return ExposeSymbols(File.ReadAllText(uutFilePath));
+			return ExposeSymbols(File.ReadAllText(UUTFilePath));
 		}
 
-		private string GetUUTName(Type testClass)
+		internal string FilterNamespace(string @namespace)
 		{
-			var name = testClass.Name;
-			if (name.EndsWith(TestClassSuffix) == false)
+			var code = GetCode();
+			var sb = new StringBuilder();
+
+			using (var reader = new StringReader(code))
 			{
-				throw new ArgumentException(
-					$"Unit test classes need to have \"{TestClassSuffix}\" suffix. Class {name} is missing this suffix.");
+				var withinTargetNamespace = false;
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (line.StartsWith("using "))
+					{
+						sb.AppendLine(line);
+					}
+					else if (line.StartsWith($"namespace {@namespace}"))
+					{
+						sb.AppendLine(line);
+						withinTargetNamespace = true;
+					}
+					else if (withinTargetNamespace && line.StartsWith("}"))
+					{
+						sb.AppendLine(line);
+						break;
+					}
+					else if (withinTargetNamespace)
+					{
+						sb.AppendLine(line);
+					}
+				}
 			}
 
-			return name.Substring(0, name.Length - TestClassSuffix.Length);
-		}
-
-		private string GetUUTFilePath(string uutName)
-		{
-			return Path.Combine(UUTFolderPath, $"{uutName}{UUTSuffix}.cs");
+			return sb.ToString();
 		}
 
 		private string ExposeSymbols(string sourceCode)

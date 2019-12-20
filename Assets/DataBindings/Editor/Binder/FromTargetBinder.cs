@@ -28,8 +28,7 @@ namespace Realmar.DataBindings.Editor.Binder
 
 				if (targetProperty == null)
 				{
-					throw new MissingSymbolException(
-						$"BindingTarget {targetType.FullName} does not have property {targetPropertyName}, cannot weave binding");
+					throw new MissingTargetPropertyException(sourceType.FullName, targetPropertyName);
 				}
 
 				var targetToSourceProperty =

@@ -23,8 +23,7 @@ namespace Realmar.DataBindings.Editor
 		{
 			if (initializer == null)
 			{
-				throw new MissingSymbolException(
-					$"Cannot find binding initializer in type {type.FullName}. Annotate one method with the [BindingInitializer] attribute.");
+				throw new MissingBindingInitializerException(type.FullName);
 			}
 		}
 

@@ -1,19 +1,13 @@
-using System;
-
 namespace Realmar.DataBindings.Editor.Exceptions
 {
-	public class MissingBindingTargetException : Exception
+	internal class MissingBindingTargetException : MissingSymbolException
 	{
-		public string TypeName { get; }
+		public int TargetId { get; }
+		public override string Message => $"{SymbolName} is missing a BindingTarget with TargetId {TargetId}.";
 
-		public MissingBindingTargetException(string typeName)
+		public MissingBindingTargetException(string symbolName, int targetId) : base(symbolName)
 		{
-			TypeName = typeName;
-		}
-
-		public override string ToString()
-		{
-			return $"{TypeName} is missing a BindingTarget" + "\n" + base.ToString();
+			TargetId = targetId;
 		}
 	}
 }
