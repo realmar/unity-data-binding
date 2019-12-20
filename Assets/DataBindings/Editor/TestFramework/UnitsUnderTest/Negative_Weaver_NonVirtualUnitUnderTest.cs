@@ -97,3 +97,63 @@ namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.FromTarget_NoTargetGett
 		}
 	}
 }
+
+namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoBindingTarget
+{
+	internal class Source
+	{
+		[Binding] public string Text { get; set; }
+	}
+
+	internal class Target
+	{
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_PartiallyNoBindingTarget
+{
+	internal class Source
+	{
+		[BindingTarget] public Target BindingTarget { get; set; }
+
+		[Binding] public string Text_0 { get; set; }
+		[Binding(targetId: 1)] public string Text_1 { get; set; }
+	}
+
+	internal class Target
+	{
+		public string Text_0 { get; set; }
+		public string Text_1 { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoTargetProperty
+{
+	internal class Source
+	{
+		[BindingTarget] public Target BindingTarget { get; set; }
+
+		[Binding] public string Text { get; set; }
+	}
+
+	internal class Target
+	{
+	}
+}
+
+namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoTargetPropertyWithCustomName
+{
+	internal class Source
+	{
+		[BindingTarget] public Target BindingTarget { get; set; }
+
+		[Binding(targetPropertyName: "TextCustomName")]
+		public string Text { get; set; }
+	}
+
+	internal class Target
+	{
+		public string Text { get; set; }
+	}
+}

@@ -7,6 +7,7 @@ namespace Realmar.DataBindings.Editor.Exceptions
 
 		public MissingTargetPropertyException(string sourceType, string symbolName) : base(symbolName)
 		{
+			SourceType = sourceType;
 		}
 	}
 }

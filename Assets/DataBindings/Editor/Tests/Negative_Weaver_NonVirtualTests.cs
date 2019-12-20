@@ -18,6 +18,33 @@ namespace Realmar.DataBindings.Editor.Tests
 				"System.String UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoSetterSource.Source::TextNoSetter()");
 
 		[Test]
+		public void OneWay_NoBindingTarget() =>
+			AssertMissingSymbolExceptionThrown<MissingBindingTargetException>(
+				"System.String UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoBindingTarget.Source::Text()",
+				exception => Assert.That(exception.TargetId, Is.EqualTo(0)));
+
+		[Test]
+		public void OneWay_PartiallyNoBindingTarget() =>
+			AssertMissingSymbolExceptionThrown<MissingBindingTargetException>(
+				"System.String UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_PartiallyNoBindingTarget.Source::Text_1()",
+				exception => Assert.That(exception.TargetId, Is.EqualTo(1)));
+
+		[Test]
+		public void OneWay_NoTargetProperty() =>
+			AssertMissingSymbolExceptionThrown<MissingTargetPropertyException>(
+				"Text",
+				exception => Assert.That(exception.SourceType,
+					Is.EqualTo("UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoTargetProperty.Target")));
+
+		[Test]
+		public void OneWay_NoTargetPropertyWithCustomName() =>
+			AssertMissingSymbolExceptionThrown<MissingTargetPropertyException>(
+				"TextCustomName",
+				exception => Assert.That(exception.SourceType,
+					Is.EqualTo(
+						"UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoTargetPropertyWithCustomName.Target")));
+
+		[Test]
 		public void FromTarget_NoBindingInitializer() =>
 			AssertMissingSymbolExceptionThrown<MissingBindingInitializerException>(
 				"UnitsUnderTest.Negative_Weaver_NonVirtualTests.FromTarget_NoBindingInitializer.Source");

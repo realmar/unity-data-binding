@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.Exceptions;
+using System;
 using System.CodeDom.Compiler;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -35,10 +36,20 @@ namespace Realmar.DataBindings.Editor.TestFramework
 			[CallerMemberName] string testName = null)
 			where TException : MissingSymbolException
 		{
+			AssertMissingSymbolExceptionThrown<TException>(fullSymbolName, null, testName);
+		}
+
+		protected void AssertMissingSymbolExceptionThrown<TException>(
+			string fullSymbolName,
+			Action<TException> customAssertions,
+			[CallerMemberName] string testName = null)
+			where TException : MissingSymbolException
+		{
 			YeetIfNull(testName, nameof(testName));
 
 			var exception = Assert.Throws<TException>(() => CompileAndWeave(testName));
 			Assert.That(exception.SymbolName, Is.EqualTo(fullSymbolName));
+			customAssertions?.Invoke(exception);
 		}
 
 		protected void CompileAndWeave([CallerMemberName] string testName = null)
