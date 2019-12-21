@@ -1,6 +1,6 @@
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.TestFramework;
+using Realmar.DataBindings.Editor.TestFramework.BaseTests;
 
 namespace Realmar.DataBindings.Editor.Tests
 {

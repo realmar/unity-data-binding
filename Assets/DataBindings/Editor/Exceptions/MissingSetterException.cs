@@ -4,7 +4,7 @@ namespace Realmar.DataBindings.Editor.Exceptions
 	{
 		public override string Message => $"{SymbolName} is missing a setter.";
 
-		public MissingSetterException(string symbolName) : base(symbolName)
+		internal MissingSetterException(string symbolName) : base(symbolName)
 		{
 		}
 	}

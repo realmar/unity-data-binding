@@ -38,7 +38,6 @@ namespace Realmar.DataBindings.Editor
 
 		private void Main()
 		{
-			var stopwatch = Stopwatch.StartNew();
 			UnityEngine.Debug.Log("Start weaving assemblies");
 
 			// TODO Proper solution
@@ -48,14 +47,15 @@ namespace Realmar.DataBindings.Editor
 				.Where(p => !p.IsDynamic).First(assembly => assembly.FullName.Contains("Assembly-CSharp")).Location;
 
 			var facade = new BindingFacade();
+
+			var stopwatch = Stopwatch.StartNew();
 			facade.WeaveAssembly(assemblyPath);
+			stopwatch.Stop();
 
 			AssetDatabase.Refresh();
 
-			stopwatch.Stop();
 			UnityEngine.Debug.Log($"Finished weaving assemblies in {stopwatch.Elapsed.TotalSeconds} seconds");
 		}
-
 
 		private static void DirtyAllScripts()
 		{

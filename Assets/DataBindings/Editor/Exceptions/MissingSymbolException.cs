@@ -6,7 +6,7 @@ namespace Realmar.DataBindings.Editor.Exceptions
 	{
 		internal string SymbolName { get; }
 
-		public MissingSymbolException(string symbolName)
+		internal MissingSymbolException(string symbolName)
 		{
 			SymbolName = symbolName;
 		}

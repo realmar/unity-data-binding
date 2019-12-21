@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
-using Realmar.DataBindings.Editor.Binder;
+using Realmar.DataBindings.Editor.Binding;
+using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.Extensions;
-using Realmar.DataBindings.Editor.Misc;
+using Realmar.DataBindings.Editor.Utils;
+using Realmar.DataBindings.Editor.Utils.Cecil;
 
 namespace Realmar.DataBindings.Editor
 {

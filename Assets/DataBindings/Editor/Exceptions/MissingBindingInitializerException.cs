@@ -6,7 +6,7 @@ namespace Realmar.DataBindings.Editor.Exceptions
 			$"{SymbolName} is missing a binding initializer which is required for " +
 			$"{BindingType.OneWayFromTarget} and {BindingType.TwoWay} bindings.";
 
-		public MissingBindingInitializerException(string symbolName) : base(symbolName)
+		internal MissingBindingInitializerException(string symbolName) : base(symbolName)
 		{
 		}
 	}

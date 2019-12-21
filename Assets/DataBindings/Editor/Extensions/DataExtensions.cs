@@ -2,14 +2,14 @@ using System.Collections.Generic;
 
 namespace Realmar.DataBindings.Editor.Extensions
 {
-	public static class DataExtensions
+	internal static class DataExtensions
 	{
-		public static void AddRange<T>(this HashSet<T> set, List<T> data)
+		internal static void AddRange<T>(this HashSet<T> set, List<T> data)
 		{
 			AddRange(set, (IReadOnlyList<T>) data);
 		}
 
-		public static void AddRange<T>(this HashSet<T> set, IReadOnlyList<T> data)
+		internal static void AddRange<T>(this HashSet<T> set, IReadOnlyList<T> data)
 		{
 			for (var i = data.Count - 1; i >= 0; i--)
 			{
@@ -17,7 +17,7 @@ namespace Realmar.DataBindings.Editor.Extensions
 			}
 		}
 
-		public static void AddRange<T>(this HashSet<T> set, IEnumerable<T> data)
+		internal static void AddRange<T>(this HashSet<T> set, IEnumerable<T> data)
 		{
 			foreach (var item in data)
 			{
@@ -25,7 +25,7 @@ namespace Realmar.DataBindings.Editor.Extensions
 			}
 		}
 
-		public static HashSet<T> ToHashSet<T>(this IEnumerable<T> data)
+		internal static HashSet<T> ToHashSet<T>(this IEnumerable<T> data)
 		{
 			return new HashSet<T>(data);
 		}

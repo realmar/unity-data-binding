@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using static Realmar.DataBindings.Editor.YeetHelpers;
+using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Extensions
 {

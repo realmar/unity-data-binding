@@ -4,7 +4,7 @@ namespace Realmar.DataBindings.Editor.Exceptions
 	{
 		public override string Message => $"{SymbolName} is missing a getter.";
 
-		public MissingGetterException(string symbolName) : base(symbolName)
+		internal MissingGetterException(string symbolName) : base(symbolName)
 		{
 		}
 	}

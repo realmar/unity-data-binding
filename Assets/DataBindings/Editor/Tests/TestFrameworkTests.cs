@@ -1,5 +1,6 @@
 using NUnit.Framework;
-using Realmar.DataBindings.Editor.TestFramework;
+using Realmar.DataBindings.Editor.TestFramework.BaseTests;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;

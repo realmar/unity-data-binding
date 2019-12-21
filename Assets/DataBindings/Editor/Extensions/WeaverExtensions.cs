@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Mono.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using ICustomAttributeProvider = Mono.Cecil.ICustomAttributeProvider;
 

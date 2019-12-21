@@ -6,7 +6,7 @@ namespace Realmar.DataBindings.Editor.Exceptions
 {
 	internal class FatalException : Exception
 	{
-		public FatalException()
+		internal FatalException()
 		{
 		}
 
@@ -14,11 +14,11 @@ namespace Realmar.DataBindings.Editor.Exceptions
 		{
 		}
 
-		public FatalException(string message) : base(message)
+		internal FatalException(string message) : base(message)
 		{
 		}
 
-		public FatalException(string message, Exception innerException) : base(message, innerException)
+		internal FatalException(string message, Exception innerException) : base(message, innerException)
 		{
 		}
 	}
