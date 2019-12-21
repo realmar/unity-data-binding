@@ -455,7 +455,7 @@ namespace UnitsUnderTest.Positive_E2E_AbstractTests.TwoWay_AbstractToAbstract_Ab
 	}
 }
 
-namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_AbstractToAbstract_MultipleAbstracts
+/* namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_AbstractToAbstract_MultipleAbstractsInHierarchy
 {
 	[Source, CompileTimeType]
 	internal abstract class BaseSource
@@ -485,6 +485,147 @@ namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_AbstractToAbstract_Mu
 
 	[Target, Id(1)]
 	internal class DerivedTarget : Target
+	{
+		public override string Text { get; set; }
+	}
+} */
+
+namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_AbstractBindingTarget
+{
+	[Source, CompileTimeType]
+	internal abstract class BaseSource
+	{
+		[BindingTarget, Id(1)] public abstract Target BindingTarget { get; set; }
+		[Binding] public string Text { get; set; }
+	}
+
+	[Source, RunTimeType]
+	internal class Source : BaseSource
+	{
+		public override Target BindingTarget { get; set; }
+	}
+
+	[Target, Id(1)]
+	internal class Target
+	{
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_PropertyToManyOverrides
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class BaseSource
+	{
+		[BindingTarget, Id(1)] public BaseTarget BindingTarget1 { get; set; }
+		[BindingTarget, Id(2)] public BaseTarget BindingTarget2 { get; set; }
+		[BindingTarget, Id(3)] public BaseTarget BindingTarget3 { get; set; }
+		[Binding] public string Text { get; set; }
+	}
+
+	internal abstract class BaseTarget
+	{
+		public abstract string Text { get; set; }
+	}
+
+	[Target, Id(1)]
+	internal class Target1 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	[Target, Id(2)]
+	internal class Target2 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	[Target, Id(3)]
+	internal class Target3 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_AbstractTests.FromTarget_PropertyToManyOverrides
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class BaseSource
+	{
+		[BindingTarget, Id(1)] public BaseTarget BindingTarget1 { get; set; }
+		[BindingTarget, Id(2)] public BaseTarget BindingTarget2 { get; set; }
+		[BindingTarget, Id(3)] public BaseTarget BindingTarget3 { get; set; }
+
+		[Binding(BindingType.OneWayFromTarget)]
+		public string Text { get; set; }
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	internal abstract class BaseTarget
+	{
+		public abstract string Text { get; set; }
+	}
+
+	[Target, Id(1)]
+	internal class Target1 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	[Target, Id(2)]
+	internal class Target2 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	[Target, Id(3)]
+	internal class Target3 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_AbstractTests.TwoWay_PropertyToManyOverrides
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class BaseSource
+	{
+		[BindingTarget, Id(1)] public BaseTarget BindingTarget1 { get; set; }
+		[BindingTarget, Id(2)] public BaseTarget BindingTarget2 { get; set; }
+		[BindingTarget, Id(3)] public BaseTarget BindingTarget3 { get; set; }
+
+		[Binding(BindingType.TwoWay)]
+		public string Text { get; set; }
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	internal abstract class BaseTarget
+	{
+		public abstract string Text { get; set; }
+	}
+
+	[Target, Id(1)]
+	internal class Target1 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	[Target, Id(2)]
+	internal class Target2 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	[Target, Id(3)]
+	internal class Target3 : BaseTarget
 	{
 		public override string Text { get; set; }
 	}

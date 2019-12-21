@@ -15,10 +15,18 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void OneWay_VirtualToOverride() => RunTest(AssertCustomSymbol);
 
-
 		// TODO this fails because source is overriden and thus base impl is never called. Because of that target will never be set.
 		[Test]
 		public void OneWay_OverrideToOverride() => RunTest(AssertCustomSymbol);
+
+		[Test]
+		public void OneWay_PropertyToManyOverride() => RunTest();
+
+		[Test]
+		public void FromTarget_PropertyToManyOverride() => RunTest();
+
+		[Test]
+		public void TwoWay_PropertyToManyOverride() => RunTest();
 
 		[Test]
 		public void TwoWay_PropertyToOverride() => RunTest(AssertCustomSymbol);
