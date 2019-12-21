@@ -23,7 +23,7 @@ namespace Realmar.DataBindings.Editor
 
 		private static bool _requestedWeaving;
 
-		[MenuItem("_______/___")]
+		[MenuItem("DataBindings/Weave")]
 		private static void ManuallyExecuteWeaving()
 		{
 			_requestedWeaving = true;
