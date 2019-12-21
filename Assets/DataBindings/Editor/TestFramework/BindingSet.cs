@@ -1,12 +1,27 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace Realmar.DataBindings.Editor.TestFramework
 {
-	[Serializable]
-	public struct BindingSet
+	internal class BindingSet : MarshalByRefObject, IBindingSet
 	{
-		internal int BindingTargetId { get; set; }
-		internal int SourceId { get; set; }
-		internal int TargetId { get; set; }
+		private MethodInfo _bindingInitializer;
+
+		private object _bindingInitializerObject;
+
+		public BindingSet(IBinding[] bindings, MethodInfo bindingInitializer, object bindingInitializerObject)
+		{
+			Bindings = bindings;
+			_bindingInitializer = bindingInitializer;
+			_bindingInitializerObject = bindingInitializerObject;
+		}
+
+		public IReadOnlyCollection<IBinding> Bindings { get; }
+
+		public void RunBindingInitializer()
+		{
+			_bindingInitializer?.Invoke(_bindingInitializerObject, Array.Empty<object>());
+		}
 	}
 }

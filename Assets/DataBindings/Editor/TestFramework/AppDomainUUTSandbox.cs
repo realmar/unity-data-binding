@@ -3,18 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace Realmar.DataBindings.Editor.TestFramework
 {
 	internal class AppDomainUUTSandbox : MarshalByRefObject, IUnitUnderTestSandbox
 	{
-		private readonly Regex _namespaceRegex = new Regex(@"", RegexOptions.Compiled);
-
 		private Assembly _context;
-		private BindingCollection _bindingCollection;
 
-		public IReadOnlyCollection<IBinding> Bindings => _bindingCollection?.Bindings;
+		public IReadOnlyCollection<IBindingSet> BindingSets { get; private set; }
 
 		public void InitializeSandbox(string assemblyPath)
 		{
@@ -38,13 +34,7 @@ namespace Realmar.DataBindings.Editor.TestFramework
 				.ToArray();
 
 			var bindingFactory = new BindingFactory(types);
-			_bindingCollection = bindingFactory.CreateBindings();
-		}
-
-		public void RunBindingInitializer()
-		{
-			_bindingCollection.BindingInitializer
-				?.Invoke(_bindingCollection.BindingInitializerObject, Array.Empty<object>());
+			BindingSets = bindingFactory.CreateBindings();
 		}
 	}
 }

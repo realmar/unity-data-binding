@@ -208,8 +208,7 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_ManyToMany
 	}
 }
 
-/*
-namespace UnitsUnderTest.Positive_NonVirtualTests.TESTI
+/* namespace UnitsUnderTest.Positive_NonVirtualTests.TESTI
 {
 	// this will be used as SourceType (compile time type) for all set and get against source
 	// there is every only once source in a conceptional binding (but not in reality
@@ -233,6 +232,28 @@ namespace UnitsUnderTest.Positive_NonVirtualTests.TESTI
 	public interface ITarget
 	{
 		string Text1_1 { get; }
+	}
+
+	[Source, RunTimeType]
+	public class Source1 : ISource
+	{
+		public ITarget BT1_1 { get; set; }
+		public ITarget BT1_2 { get; set; }
+		public Target BT2_1 { get; set; }
+		public string Text1_1 { get; set; }
+		public string Text2_1 { get; set; }
+		public string Text2_2 { get; set; }
+	}
+
+	[Source, RunTimeType]
+	public class Source2 : ISource
+	{
+		public ITarget BT1_1 { get; set; }
+		public ITarget BT1_2 { get; set; }
+		public Target BT2_1 { get; set; }
+		public string Text1_1 { get; set; }
+		public string Text2_1 { get; set; }
+		public string Text2_2 { get; set; }
 	}
 
 	public abstract class BaseSource : ISource
@@ -273,5 +294,4 @@ namespace UnitsUnderTest.Positive_NonVirtualTests.TESTI
 	public class DerivedTarget : Target
 	{
 	}
-}
-*/
+} */

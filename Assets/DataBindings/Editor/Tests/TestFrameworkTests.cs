@@ -1,55 +1,78 @@
-using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.TestFramework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Realmar.DataBindings.Editor.Tests
 {
 	[TestFixture]
 	internal class TestFrameworkTests : SandboxedTest
 	{
-		public override void SetupFixture()
-		{
-			TestType = typeof(Positive_E2E_NonVirtualTests);
-			base.SetupFixture();
-		}
+		private readonly Type _testType = typeof(Positive_E2E_NonVirtualTests);
 
 		[Test]
 		public void VerifyBindingCount_OneToOne()
 		{
-			AssertBindingCount("OneWay_PropertyToProperty", 1);
+			AssertBindingCount(nameof(Positive_E2E_NonVirtualTests.OneWay_PropertyToProperty), 1);
 		}
 
 		[Test]
 		public void VerifyBindingCount_OneToMany()
 		{
-			AssertBindingCount("OneWay_OneToMany", 3);
+			AssertBindingCount(nameof(Positive_E2E_NonVirtualTests.OneWay_OneToMany), 3);
 		}
 
 		[Test]
 		public void VerifyBindingCount_ManyToOne()
 		{
-			AssertBindingCount("OneWay_ManyToOne", 3);
+			AssertBindingCount(nameof(Positive_E2E_NonVirtualTests.OneWay_ManyToOne), 3);
 		}
 
 		[Test]
 		public void VerifyBindingCount_MultipleBindingSources()
 		{
-			AssertBindingCount("OneWay_MultipleBindingsPerSource", 3);
+			AssertBindingCount(nameof(Positive_E2E_NonVirtualTests.OneWay_MultipleBindingsPerSource), 3);
+		}
+
+		[Test]
+		public void VerifyBindingCount_MultipleSourceImplementations()
+		{
+			var sandbox = AssertBindingCount(
+				nameof(Positive_E2E_InterfaceTests.TwoWay_InterfaceToProperty_MultipleSources),
+				3,
+				typeof(Positive_E2E_InterfaceTests));
+
+			Assert.That(sandbox.BindingSets.Count, Is.EqualTo(3));
+		}
+
+		[Test]
+		public void VerifyBindingCount_MultipleSourceImplementations_CheckNames()
+		{
+			var sandbox = GetSandboxForTest(
+				nameof(Positive_E2E_InterfaceTests.TwoWay_InterfaceToProperty_MultipleSources),
+				typeof(Positive_E2E_InterfaceTests));
+
+			var sourceTypeCount = sandbox.BindingSets
+				.SelectMany(set => set.Bindings)
+				.Select(binding => binding.Source.DeclaringTypeFQDN)
+				.Count();
+
+			Assert.That(sourceTypeCount, Is.EqualTo(3));
 		}
 
 		[Test]
 		public void VerifyDifferentBindingTargetObjects_OneToMany_CheckHashCode()
 		{
-			var sandbox = GetSandboxForTest("OneWay_OneToMany");
-			AssertDifferentBindingTargetObjects(sandbox.Bindings);
+			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_OneToMany), _testType);
+			AssertDifferentBindingTargetObjects(FlattenBindings(sandbox.BindingSets));
 		}
 
 		[Test]
 		public void VerifyBindingSetup_MultipleBindings()
 		{
-			var sandbox = GetSandboxForTest("OneWay_ManyToMany");
-			var bindings = sandbox.Bindings.ToArray();
+			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_ManyToMany), _testType);
+			var bindings = FlattenBindings(sandbox.BindingSets).ToArray();
 
 			Assert.That(bindings.Count, Is.EqualTo(3));
 			AssertDifferentBindingTargetObjects(bindings);
@@ -68,7 +91,7 @@ namespace Realmar.DataBindings.Editor.Tests
 			}
 		}
 
-		private static void AssertDifferentBindingTargetObjects(IReadOnlyCollection<IBinding> bindings)
+		private static void AssertDifferentBindingTargetObjects(IEnumerable<IBinding> bindings)
 		{
 			var targets = new HashSet<int>();
 
@@ -80,12 +103,17 @@ namespace Realmar.DataBindings.Editor.Tests
 			}
 		}
 
-		private void AssertBindingCount(string testName, int expected)
+		private IUnitUnderTestSandbox AssertBindingCount(string testName, int expected, Type testType = null)
 		{
-			var sandbox = GetSandboxForTest(testName);
-			var bindings = sandbox.Bindings;
+			var sandbox = GetSandboxForTest(testName, testType ?? _testType);
+			var bindings = FlattenBindings(sandbox.BindingSets);
 
 			Assert.That(bindings.Count, Is.EqualTo(expected));
+
+			return sandbox;
 		}
+
+		private IEnumerable<IBinding> FlattenBindings(IReadOnlyCollection<IBindingSet> bindingSets)
+			=> bindingSets.SelectMany(set => set.Bindings);
 	}
 }

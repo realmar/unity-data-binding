@@ -16,29 +16,36 @@ namespace Realmar.DataBindings.Editor.TestFramework
 			_types = types;
 		}
 
-		public BindingCollection CreateBindings()
+		public IReadOnlyCollection<BindingSet> CreateBindings()
 		{
+			var bindingSets = new List<BindingSet>();
+
 			var sourceCompileTimeType =
 				_types.GetTypesWithAttributes(typeof(SourceAttribute), typeof(CompileTimeTypeAttribute)).Single();
 
-			var sourceRunTimeType =
-				_types.GetTypesWithAttributes(typeof(SourceAttribute), typeof(RunTimeTypeAttribute)).Single();
+			var sourceRunTimeTypes =
+				_types.GetTypesWithAttributes(typeof(SourceAttribute), typeof(RunTimeTypeAttribute));
 
-			var sourceObject = Activator.CreateInstance(sourceRunTimeType);
-
-			ConfigureTargets(sourceCompileTimeType, sourceObject);
-
-			var bindingSymbols = sourceCompileTimeType.GetMembersWithAttributeInType<BindingAttribute>();
-			var bindings = new List<IBinding>();
-			foreach (var bindingSymbol in bindingSymbols)
+			foreach (var sourceRunTimeType in sourceRunTimeTypes)
 			{
-				bindings.AddRange(CreateBindingsFrom(sourceCompileTimeType, sourceObject, bindingSymbol));
+				var sourceObject = Activator.CreateInstance(sourceRunTimeType);
+
+				ConfigureTargets(sourceCompileTimeType, sourceObject);
+
+				var bindingSymbols = sourceCompileTimeType.GetMembersWithAttributeInType<BindingAttribute>();
+				var bindings = new List<IBinding>();
+				foreach (var bindingSymbol in bindingSymbols)
+				{
+					bindings.AddRange(CreateBindingsFrom(sourceCompileTimeType, sourceObject, bindingSymbol));
+				}
+
+				var bindingInitializer =
+					(MethodInfo) sourceCompileTimeType.GetMemberWithAttributeInType<BindingInitializerAttribute>();
+
+				bindingSets.Add(new BindingSet(bindings.ToArray(), bindingInitializer, sourceObject));
 			}
 
-			var bindingInitializer =
-				(MethodInfo) sourceCompileTimeType.GetMemberWithAttributeInType<BindingInitializerAttribute>();
-
-			return new BindingCollection(bindings.ToArray(), bindingInitializer, sourceObject);
+			return bindingSets;
 		}
 
 		private void ConfigureTargets(Type sourceType, object sourceObject)

@@ -457,3 +457,55 @@ namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface
 		public override string Text { get; set; }
 	}
 } */
+
+namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToProperty_MultipleSources
+{
+	[Source, CompileTimeType]
+	internal interface ISource
+	{
+		[BindingTarget, Id(1)] Target BindingTarget { get; set; }
+		[Binding(BindingType.TwoWay)] string Text { get; set; }
+
+		[BindingInitializer]
+		void InitializeBindings();
+	}
+
+	[Source, RunTimeType]
+	internal class Source1 : ISource
+	{
+		public Target BindingTarget { get; set; }
+		public string Text { get; set; }
+
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Source, RunTimeType]
+	internal class Source2 : ISource
+	{
+		public Target BindingTarget { get; set; }
+		public string Text { get; set; }
+
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Source, RunTimeType]
+	internal class Source3 : ISource
+	{
+		public Target BindingTarget { get; set; }
+		public string Text { get; set; }
+
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target, Id(1)]
+	internal class Target
+	{
+		public string Text { get; set; }
+	}
+}

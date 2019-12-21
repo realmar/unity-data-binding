@@ -5,7 +5,7 @@ using Realmar.DataBindings.Editor.TestFramework;
 namespace Realmar.DataBindings.Editor.Tests
 {
 	[TestFixture]
-	internal class Negative_Weaver_NonVirtualTests : CompiledTest
+	internal class Negative_Weaver_NonVirtualTests : WeaverTest
 	{
 		[Test]
 		public void OneWay_NoGetterSource() =>

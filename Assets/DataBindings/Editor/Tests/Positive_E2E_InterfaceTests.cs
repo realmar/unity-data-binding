@@ -46,5 +46,8 @@ namespace Realmar.DataBindings.Editor.Tests
 		// TODO breaks weaver
 		// [Test]
 		// public void TwoWay_InterfaceToAbstractToInterfaceToAbstract() => RunTest();
+
+		[Test]
+		public void TwoWay_InterfaceToProperty_MultipleSources() => RunTest();
 	}
 }

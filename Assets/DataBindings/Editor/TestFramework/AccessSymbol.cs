@@ -15,6 +15,8 @@ namespace Realmar.DataBindings.Editor.TestFramework
 			_obj = obj;
 		}
 
+		public string DeclaringTypeFQDN => _obj.GetType().AssemblyQualifiedName;
+
 		public object BindingValue
 		{
 			get => _info.GetFieldOrPropertyValue(_obj);

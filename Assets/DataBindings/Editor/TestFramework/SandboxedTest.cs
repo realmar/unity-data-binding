@@ -2,60 +2,32 @@ using NUnit.Framework;
 using System;
 using System.Runtime.CompilerServices;
 using static Realmar.DataBindings.Editor.YeetHelpers;
-using static UnityEngine.Debug;
 using Assert = NUnit.Framework.Assert;
 
 namespace Realmar.DataBindings.Editor.TestFramework
 {
-	internal class SandboxedTest : CompiledTest
+	internal class SandboxedTest
 	{
-		private UUTSandboxFactory _uutSandboxFactory;
-		private IUnitUnderTestSandbox _sandbox;
+		private readonly SandboxTestFacade _sandboxTestFacade = new SandboxTestFacade();
 		private readonly Random _random = new Random();
 
-		public override void SetupFixture()
+		[OneTimeSetUp]
+		public virtual void SetupFixture()
 		{
-			base.SetupFixture();
-
-			try
-			{
-				CompileAndWeave();
-				CreateSandbox();
-			}
-			catch (Exception e)
-			{
-				LogException(e);
-				throw;
-			}
 		}
 
-		public override void TeardownFixture()
+		[OneTimeTearDown]
+		public virtual void TeardownFixture()
 		{
-			base.TeardownFixture();
-			DisposeSandbox();
+			_sandboxTestFacade?.Dispose();
 		}
 
-		private void DisposeSandbox()
-		{
-			_sandbox = null;
-			_uutSandboxFactory?.Dispose();
-		}
-
-		private void CreateSandbox()
-		{
-			DisposeSandbox();
-
-			_uutSandboxFactory = new UUTSandboxFactory();
-			_sandbox = _uutSandboxFactory.CreateSandbox();
-			_sandbox.InitializeSandbox(WeavedPath);
-		}
-
-		protected IUnitUnderTestSandbox GetSandboxForTest([CallerMemberName] string testName = null)
+		protected IUnitUnderTestSandbox GetSandboxForTest([CallerMemberName] string testName = null, Type testType = null)
 		{
 			YeetIfNull(testName, nameof(testName));
-			ConfigureSandboxFor(testName);
+			var type = testType ?? GetType();
 
-			return _sandbox;
+			return _sandboxTestFacade.GetSandboxForTest(type, testName);
 		}
 
 		protected void RunTest([CallerMemberName] string testName = null)
@@ -66,32 +38,35 @@ namespace Realmar.DataBindings.Editor.TestFramework
 		protected void RunTest(Action<IBinding, object> customAssertion, [CallerMemberName] string testName = null)
 		{
 			YeetIfNull(testName, nameof(testName));
-			ConfigureSandboxFor(testName);
+			var sandbox = _sandboxTestFacade.GetSandboxForTest(GetType(), testName);
 
-			_sandbox.RunBindingInitializer();
-
-			foreach (var binding in _sandbox.Bindings)
+			foreach (var bindingSet in sandbox.BindingSets)
 			{
-				object expected;
+				bindingSet.RunBindingInitializer();
 
-				switch (binding.BindingAttribute.BindingType)
+				foreach (var binding in bindingSet.Bindings)
 				{
-					case BindingType.OneWay:
-						expected = AssertOneWay(binding);
-						break;
-					case BindingType.TwoWay:
-						AssertOneWay(binding);
-						expected = AssertOneWayFromTarget(binding);
-						break;
-					case BindingType.OneWayFromTarget:
-						expected = AssertOneWayFromTarget(binding);
-						break;
-					default:
-						throw new NotSupportedException(
-							$"TestFramework does not support {nameof(BindingType)} {binding.BindingAttribute.BindingType}");
-				}
+					object expected;
 
-				customAssertion?.Invoke(binding, expected);
+					switch (binding.BindingAttribute.BindingType)
+					{
+						case BindingType.OneWay:
+							expected = AssertOneWay(binding);
+							break;
+						case BindingType.TwoWay:
+							AssertOneWay(binding);
+							expected = AssertOneWayFromTarget(binding);
+							break;
+						case BindingType.OneWayFromTarget:
+							expected = AssertOneWayFromTarget(binding);
+							break;
+						default:
+							throw new NotSupportedException(
+								$"TestFramework does not support {nameof(BindingType)} {binding.BindingAttribute.BindingType}");
+					}
+
+					customAssertion?.Invoke(binding, expected);
+				}
 			}
 		}
 
@@ -115,11 +90,6 @@ namespace Realmar.DataBindings.Editor.TestFramework
 			Assert.That(actual, Is.EqualTo(expected));
 
 			return expected;
-		}
-
-		private void ConfigureSandboxFor(string testName)
-		{
-			_sandbox.ChangeNamespace(GetNamespaceForTest(testName));
 		}
 	}
 }
