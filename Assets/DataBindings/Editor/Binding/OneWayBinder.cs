@@ -1,19 +1,12 @@
 using Mono.Cecil;
-using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Weaving;
+using Realmar.DataBindings.Editor.Weaving.Commands;
 using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
 
 namespace Realmar.DataBindings.Editor.Binding
 {
 	internal class OneWayBinder : IBinder
 	{
-		private readonly Weaver _weaver;
-
-		internal OneWayBinder(DerivativeResolver derivativeResolver)
-		{
-			_weaver = new Weaver(derivativeResolver);
-		}
-
 		public void Bind(PropertyDefinition sourceProperty, BindingSettings settings, BindingTarget[] targets)
 		{
 			foreach (var bindingTarget in targets)
@@ -23,7 +16,7 @@ namespace Realmar.DataBindings.Editor.Binding
 				var targetType = GetReturnType(bindingTargetProperty);
 				var targetProperty = GetTargetProperty(sourceProperty, targetType, settings.TargetPropertyName);
 
-				_weaver.WeaveBinding(
+				var command = WeaveBindingRootCommand.Create(
 					new WeaveParameters
 					{
 						FromProperty = sourceProperty,
@@ -32,6 +25,7 @@ namespace Realmar.DataBindings.Editor.Binding
 						BindingTarget = bindingTarget.Source,
 						EmitNullCheck = settings.EmitNullCheck
 					});
+				command.Execute();
 			}
 		}
 	}

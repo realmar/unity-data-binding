@@ -29,5 +29,13 @@ namespace Realmar.DataBindings.Editor.Extensions
 		{
 			return new HashSet<T>(data);
 		}
+
+		internal static void AddRange<T>(this Stack<T> stack, IEnumerable<T> data)
+		{
+			foreach (var d in data)
+			{
+				stack.Push(d);
+			}
+		}
 	}
 }

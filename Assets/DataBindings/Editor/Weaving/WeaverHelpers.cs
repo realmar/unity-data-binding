@@ -71,5 +71,29 @@ namespace Realmar.DataBindings.Editor.Weaving
 					throw new ArgumentException("Only fields, properties, events or methods can have return types.");
 			}
 		}
+
+		internal static PropertyDefinition GetAccessorProperty(TypeDefinition sourceType, TypeDefinition targetType)
+		{
+			var injectedSourceName = GetAccessorPropertyName(sourceType);
+			var properties = targetType.GetPropertiesInHierarchy(injectedSourceName);
+
+			if (properties.Count == 0)
+			{
+				return null;
+			}
+			else if (properties.Count > 1)
+			{
+				throw new FatalException("FATAL ERROR: Cannot weave assembly because multiple target to source fields of the same type are found on the target");
+			}
+			else
+			{
+				return properties[0];
+			}
+		}
+
+		internal static string GetAccessorPropertyName(TypeDefinition sourceType)
+		{
+			return sourceType.FullName.Replace(".", "");
+		}
 	}
 }

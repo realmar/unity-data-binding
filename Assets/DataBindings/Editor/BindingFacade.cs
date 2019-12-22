@@ -1,13 +1,13 @@
-using System.Collections.Generic;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Realmar.DataBindings.Editor.Binding;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.Extensions;
-using Realmar.DataBindings.Editor.Utils;
 using Realmar.DataBindings.Editor.Utils.Cecil;
+using System.Collections.Generic;
+using System.Linq;
+using Realmar.DataBindings.Editor.Utils;
 
 namespace Realmar.DataBindings.Editor
 {
@@ -31,9 +31,8 @@ namespace Realmar.DataBindings.Editor
 
 		public BindingFacade(Options options)
 		{
-			var derivativeResolver = new DerivativeResolver();
-			var oneWayBinder = new OneWayBinder(derivativeResolver);
-			var fromTargetBinder = new FromTargetBinder(derivativeResolver);
+			var oneWayBinder = new OneWayBinder();
+			var fromTargetBinder = new FromTargetBinder();
 			var twoWayBinder = new TwoWayBinder(oneWayBinder, fromTargetBinder);
 
 			_options = options;
@@ -50,6 +49,7 @@ namespace Realmar.DataBindings.Editor
 		// TODO add overload for Stream
 		public void WeaveAssembly(string assemblyPath, string outputPath = null)
 		{
+			ConfigureServiceLocator();
 			// TODO what if the assembly which needs to be weaved is not the one provided here? --> weave beyond assembly boundaries!!
 			using (var assemblyResolver = new UnityAssemblyResolver())
 			{
@@ -149,6 +149,15 @@ namespace Realmar.DataBindings.Editor
 		private static BindingTarget[] FilterBindingsTargets(BindingSettings settings, BindingTarget[] targets)
 		{
 			return targets.Where(bindingTarget => bindingTarget.Id == settings.TargetId).ToArray();
+		}
+
+		private static void ConfigureServiceLocator()
+		{
+			ServiceLocator.Reset();
+			var locator = ServiceLocator.Current;
+
+			locator.RegisterType<DerivativeResolver>(ServiceLifetime.Singleton);
+			locator.RegisterType<HashSet<MethodDefinition>>(ServiceLifetime.Singleton, "WovenSetHelpers");
 		}
 	}
 }
