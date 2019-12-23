@@ -2,8 +2,6 @@ using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Commands;
 using Realmar.DataBindings.Editor.Emitting.Command;
-using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Extensions;
 using Realmar.DataBindings.Editor.Utils;
 using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
 
@@ -21,8 +19,8 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 			IMemberDefinition bindingTarget,
 			MethodDefinition bindingInitializer)
 		{
-			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
 			var command = new WeaveTargetToSourceAccessorCommand();
+			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
 			var targetToSourceSymbol = GetAccessorProperty(sourceType, targetType);
 			var accessorSymbolMediator = new DataMediator<IMemberDefinition>();
 
@@ -46,27 +44,7 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 
 			if (bindingInitializer.IsAbstract)
 			{
-				var originType = bindingInitializer.DeclaringType;
-				var derivedTypes = derivativeResolver.GetDirectlyDerivedTypes(originType);
-				var found = false;
-
-				for (var i = derivedTypes.Count - 1; i >= 0; i--)
-				{
-					var derivedType = derivedTypes[i];
-					var initializer = derivedType.GetMethod(bindingInitializer.Name);
-					if (initializer != null)
-					{
-						command.AddChild(EmitAccessorInitializationCommand.Create(initializer, bindingTarget, accessorSymbolMediator));
-						found = true;
-					}
-				}
-
-				if (found == false)
-				{
-					// TODO - ABSTRACT - Exception
-					throw new MissingSymbolException(
-						$"Could not find overriding non-abstract binding target for {bindingTarget.FullName}");
-				}
+				command.AddChild(WeaveAbstractAccessorInitializationCommand.Create(accessorSymbolMediator, bindingInitializer, bindingTarget));
 			}
 			else
 			{
