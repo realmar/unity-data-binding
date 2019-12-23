@@ -27,6 +27,11 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 
 			foreach (var typeDefinition in derivedTypes)
 			{
+				if (typeDefinition == originType)
+				{
+					continue;
+				}
+
 				var properties = typeDefinition.Properties;
 				foreach (var property in properties)
 				{

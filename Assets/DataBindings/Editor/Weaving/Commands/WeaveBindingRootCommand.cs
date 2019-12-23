@@ -18,9 +18,10 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 			YeetIfInaccessible(parameters.ToProperty.SetMethod, fromPropertyDeclaringType);
 			YeetIfInaccessible(parameters.BindingTarget, fromPropertyDeclaringType);
 
+			command.AddChild(WeaveSetHelperForTypes.Create(parameters.ToType, parameters.FromProperty.DeclaringType));
 			if (parameters.FromProperty.GetSetMethodOrYeet().IsVirtual == false)
 			{
-				command.AddChild(WeaveBindingDirectCommand.Create(parameters));
+				command.AddChild(WeaveNonAbstractBindingCommand.Create(parameters));
 			}
 			else
 			{

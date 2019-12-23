@@ -62,6 +62,10 @@ namespace Realmar.DataBindings.Editor.TestFramework.EditorTools
 				if (GUILayout.Button("Confirm"))
 				{
 					_callback?.Invoke(_types[_type], _testNames[_test]);
+				}
+
+				if (GUILayout.Button("Close"))
+				{
 					Close();
 				}
 			}

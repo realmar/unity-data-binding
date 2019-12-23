@@ -1,10 +1,8 @@
-using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Commands;
 using Realmar.DataBindings.Editor.Extensions;
 using Realmar.DataBindings.Editor.Utils;
 using System;
-using System.Collections.Generic;
 
 namespace Realmar.DataBindings.Editor.Weaving.Commands
 {
@@ -21,29 +19,21 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 
 			var foundNonAbstract = false;
 			var fromProperty = parameters.FromProperty;
-			var derivedTypes = derivativeResolver.GetDirectlyDerivedTypes(fromProperty.DeclaringType);
-			var allTypes = new Stack<TypeDefinition>();
+			var fromPropertyName = fromProperty.Name;
+			var derivedTypes = derivativeResolver.GetDerivedTypes(fromProperty.DeclaringType);
 
-			allTypes.Push(fromProperty.DeclaringType);
-			allTypes.AddRange(derivedTypes);
-
-			while (allTypes.Count > 0)
+			foreach (var typeDefinition in derivedTypes)
 			{
-				command.AddChild(WeaveBindingDirectCommand.Create(new WeaveParameters(parameters)
+				var property = typeDefinition.GetProperty(fromPropertyName);
+				if (property != null && property.GetSetMethodOrYeet().IsAbstract == false)
 				{
-					FromProperty = fromProperty
-				}));
+					command.AddChild(WeaveNonAbstractBindingCommand.Create(new WeaveParameters(parameters)
+					{
+						FromProperty = property
+					}));
 
-				if (fromProperty.GetSetMethodOrYeet().IsAbstract == false)
-				{
 					foundNonAbstract = true;
 				}
-
-				var nextType = allTypes.Pop();
-				var propertyName = fromProperty.Name;
-				fromProperty = nextType.GetProperty(propertyName);
-
-				allTypes.AddRange(derivativeResolver.GetDirectlyDerivedTypes(fromProperty.DeclaringType));
 			}
 
 			if (foundNonAbstract == false)

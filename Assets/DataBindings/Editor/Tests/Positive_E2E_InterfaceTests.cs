@@ -49,5 +49,8 @@ namespace Realmar.DataBindings.Editor.Tests
 
 		[Test]
 		public void TwoWay_InterfaceToProperty_MultipleSources() => RunTest();
+
+		[Test]
+		public void TwoWay_InterfaceToInterface_With_InterfaceInheritance() => RunTest();
 	}
 }

@@ -22,9 +22,8 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 			var derivedTypes = derivativeResolver.GetDirectlyDerivedTypes(originType);
 			var found = false;
 
-			for (var i = derivedTypes.Count - 1; i >= 0; i--)
+			foreach (var derivedType in derivedTypes)
 			{
-				var derivedType = derivedTypes[i];
 				var initializer = derivedType.GetMethod(bindingInitializer.Name);
 				if (initializer != null)
 				{

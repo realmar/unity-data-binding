@@ -509,3 +509,48 @@ namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToProperty_
 		public string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface_With_InterfaceInheritance
+{
+	[Source, CompileTimeType]
+	internal interface ISource
+	{
+		[BindingTarget, Id(1)] ITarget BindingTarget { get; set; }
+
+		[Binding(BindingType.TwoWay)]
+		string Text { get; set; }
+
+		[BindingInitializer]
+		void InitializeBindings();
+	}
+
+	internal interface IBetterSource : ISource
+	{
+	}
+
+	[Source, RunTimeType]
+	internal class Source : IBetterSource
+	{
+		public ITarget BindingTarget { get; set; }
+		public string Text { get; set; }
+
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	internal interface ITarget
+	{
+		string Text { get; set; }
+	}
+
+	internal interface IBetterTarget : ITarget
+	{
+	}
+
+	[Target, Id(1)]
+	internal class Target : IBetterTarget
+	{
+		public string Text { get; set; }
+	}
+}

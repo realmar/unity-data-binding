@@ -10,22 +10,21 @@ namespace Realmar.DataBindings.Editor.Extensions
 	//   - Removed code which I didn't use
 	//   - Removed logger
 	//   - Little bit of code formatting to align with the rest of my code
-	internal class ReactiveUIFodyCeilExtensions
+	internal static class ReactiveUIFodyCeilExtensions
 	{
-		private readonly Queue<TypeDefinition> _queueCache = new Queue<TypeDefinition>();
-
-		internal bool IsAssignableFrom(TypeReference baseType, TypeReference type)
+		internal static bool IsAssignableFrom(this TypeReference baseType, TypeReference type)
 		{
 			return IsAssignableFrom(baseType.Resolve(), type.Resolve());
 		}
 
-		internal bool IsAssignableFrom(TypeDefinition baseType, TypeDefinition type)
+		internal static bool IsAssignableFrom(this TypeDefinition baseType, TypeDefinition type)
 		{
-			_queueCache.Enqueue(type);
+			var queueCache = new Queue<TypeDefinition>();
+			queueCache.Enqueue(type);
 
-			while (_queueCache.Count > 0)
+			while (queueCache.Count > 0)
 			{
-				var current = _queueCache.Dequeue();
+				var current = queueCache.Dequeue();
 
 				if (baseType.FullName == current.FullName)
 				{
@@ -34,13 +33,13 @@ namespace Realmar.DataBindings.Editor.Extensions
 
 				if (current.BaseType != null)
 				{
-					_queueCache.Enqueue(current.BaseType.Resolve());
+					queueCache.Enqueue(current.BaseType.Resolve());
 				}
 
 				for (var i = current.Interfaces.Count - 1; i >= 0; i--)
 				{
 					var @interface = current.Interfaces[i];
-					_queueCache.Enqueue(@interface.InterfaceType.Resolve());
+					queueCache.Enqueue(@interface.InterfaceType.Resolve());
 				}
 			}
 

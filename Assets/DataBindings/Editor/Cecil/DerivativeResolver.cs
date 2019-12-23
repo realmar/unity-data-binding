@@ -1,15 +1,13 @@
-using System.Collections.Generic;
-using System.Linq;
-using Realmar.DataBindings.Editor.Utils;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Utils;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Realmar.DataBindings.Editor.Cecil
 {
 	internal class DerivativeResolver
 	{
-		private readonly ReactiveUIFodyCeilExtensions _fodyCeilExtensions = new ReactiveUIFodyCeilExtensions();
-
 		private readonly Cache _cache = new Cache();
 		private readonly Cache _directlyDerivedCache = new Cache();
 
@@ -30,7 +28,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 			// TODO resolve across assembly boundaries
 			foreach (var typeDefinition in originType.Module.Types)
 			{
-				if (_fodyCeilExtensions.IsAssignableFrom(originType, typeDefinition) && typeDefinition != originType)
+				if (typeDefinition.EnumerateBaseClasses().Any(definition => TypeInBaseHierarchy(definition, originType)))
 				{
 					types.Add(typeDefinition);
 				}
@@ -44,9 +42,19 @@ namespace Realmar.DataBindings.Editor.Cecil
 			return GetDerivedTypes_Internal(originType)
 				.Where(type =>
 					type.BaseType == originType ||
-					type.Interfaces != null &&
-					type.Interfaces.Any(iface => iface.InterfaceType.Resolve() == originType))
+					TypePartOfInterfaces(type, originType))
 				.ToList();
+		}
+
+		private bool TypeInBaseHierarchy(TypeDefinition definition, TypeDefinition originType)
+		{
+			return definition == originType || TypePartOfInterfaces(definition, originType);
+		}
+
+		private bool TypePartOfInterfaces(TypeDefinition definition, TypeDefinition originType)
+		{
+			return definition.Interfaces != null &&
+			       definition.Interfaces.Any(iface => iface.InterfaceType.Resolve() == originType);
 		}
 	}
 }
