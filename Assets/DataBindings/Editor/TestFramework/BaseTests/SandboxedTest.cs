@@ -32,15 +32,25 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			return _sandboxTestFacade.GetSandboxForTest(type, testName);
 		}
 
+		protected void RunTest(Type testType, string testName)
+		{
+			RunTest(testType, testName, null);
+		}
+
 		protected void RunTest([CallerMemberName] string testName = null)
 		{
-			RunTest(null, testName);
+			RunTest(GetType(), testName, null);
 		}
 
 		protected void RunTest(Action<IBinding, object> customAssertion, [CallerMemberName] string testName = null)
 		{
+			RunTest(GetType(), testName, customAssertion);
+		}
+
+		protected void RunTest(Type testType, string testName, Action<IBinding, object> customAssertion)
+		{
 			YeetIfNull(testName, nameof(testName));
-			var sandbox = _sandboxTestFacade.GetSandboxForTest(GetType(), testName);
+			var sandbox = _sandboxTestFacade.GetSandboxForTest(testType, testName);
 
 			foreach (var bindingSet in sandbox.BindingSets)
 			{
