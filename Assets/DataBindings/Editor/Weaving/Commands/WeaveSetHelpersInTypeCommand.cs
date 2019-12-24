@@ -1,7 +1,6 @@
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Commands;
 using Realmar.DataBindings.Editor.Extensions;
-using Realmar.DataBindings.Editor.Utils;
 using System.Linq;
 
 namespace Realmar.DataBindings.Editor.Weaving.Commands
@@ -15,8 +14,7 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 		internal static ICommand Create(TypeDefinition type)
 		{
 			var command = new WeaveSetHelpersInTypeCommand();
-			var setMethods = type.Properties.Select(definition => definition.SetMethod).WhereNotNull();
-			var wovenSetHelpers = ServiceLocator.Current.GetWovenSetHelpers();
+			var setMethods = type.GetPropertiesInBaseHierarchy().Select(definition => definition.SetMethod).WhereNotNull();
 
 			foreach (var setMethod in setMethods)
 			{

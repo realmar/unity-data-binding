@@ -554,3 +554,97 @@ namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface
 		public string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface_MultipleInterfaceInheritance_With_InterfaceInheritance
+{
+	[Source, CompileTimeType]
+	internal interface ISource
+	{
+		[BindingTarget, Id(1)] ITarget1 BindingTarget1 { get; set; }
+		[BindingTarget(id: 2), Id(2)] ITarget2_1 BindingTarget2 { get; set; }
+		[BindingTarget(id: 3), Id(3)] ITarget3 BindingTarget3 { get; set; }
+
+		[Binding(BindingType.TwoWay)]
+		[Binding(BindingType.TwoWay, targetId: 3)]
+		string Text1 { get; set; }
+
+		[Binding(BindingType.TwoWay, targetId: 2)]
+		[Binding(BindingType.TwoWay, targetId: 3)]
+		string Text2 { get; set; }
+
+		[Binding(BindingType.TwoWay, targetId: 3)]
+		string Text1_1 { get; set; }
+
+		[Binding(BindingType.TwoWay, targetId: 3)]
+		string Text2_2 { get; set; }
+
+		[BindingInitializer]
+		void InitializeBindings();
+	}
+
+	[Source, RunTimeType]
+	internal class Source : ISource
+	{
+		public ITarget1 BindingTarget1 { get; set; }
+		public ITarget2_1 BindingTarget2 { get; set; }
+		public ITarget3 BindingTarget3 { get; set; }
+
+		public string Text1 { get; set; }
+		public string Text2 { get; set; }
+		public string Text1_1 { get; set; }
+		public string Text2_2 { get; set; }
+
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	internal interface ITarget1
+	{
+		string Text1 { get; set; }
+	}
+
+	internal interface ITarget2
+	{
+		string Text2 { get; set; }
+	}
+
+	internal interface ITarget1_1 : ITarget1
+	{
+		string Text1_1 { get; set; }
+	}
+
+	internal interface ITarget2_1 : ITarget2
+	{
+		string Text2_2 { get; set; }
+	}
+
+	internal interface ITarget3 : ITarget1_1, ITarget2_1
+	{
+	}
+
+	[Target, Id(1)]
+	internal class Target1 : ITarget1, ITarget2
+	{
+		public string Text1 { get; set; }
+		public string Text2 { get; set; }
+	}
+
+	[Target(Id = 2), Id(2)]
+	internal class Target2 : ITarget1_1, ITarget2_1
+	{
+		public string Text1 { get; set; }
+		public string Text2 { get; set; }
+		public string Text1_1 { get; set; }
+		public string Text2_2 { get; set; }
+	}
+
+	[Target(Id = 3), Id(3)]
+	internal class Target3 : ITarget3
+	{
+		public string Text1 { get; set; }
+		public string Text1_1 { get; set; }
+		public string Text2 { get; set; }
+		public string Text2_2 { get; set; }
+	}
+}

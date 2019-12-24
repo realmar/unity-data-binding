@@ -50,5 +50,9 @@ namespace Realmar.DataBindings.Editor.Tests
 
 		[Test]
 		public void TwoWay_InterfaceToInterface_With_InterfaceInheritance() => RunTest();
+
+		// TODO breaks weaver
+		[Test]
+		public void TwoWay_InterfaceToInterface_MultipleInterfaceInheritance_With_InterfaceInheritance() => RunTest();
 	}
 }

@@ -19,7 +19,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 		{
 			var saneTargetPropertyName = targetPropertyName ?? sourceProperty.Name;
 
-			var targetProperty = targetType.GetProperty(saneTargetPropertyName);
+			var targetProperty = targetType.GetPropertiesInBaseHierarchy(saneTargetPropertyName).FirstOrDefault();
 			if (targetProperty == null)
 			{
 				throw new MissingTargetPropertyException(targetType.FullName, saneTargetPropertyName);
@@ -31,10 +31,10 @@ namespace Realmar.DataBindings.Editor.Weaving
 		internal static MethodDefinition GetSetHelperMethod(PropertyDefinition property, TypeDefinition type)
 		{
 			var targetSetHelperMethodName = GetTargetSetHelperMethodName(property.SetMethod);
-			var targetSetHelperMethod = type.GetMethod(targetSetHelperMethodName);
+			var targetSetHelperMethod = type.GetMethodsInBaseHierarchy(targetSetHelperMethodName).FirstOrDefault();
 			if (targetSetHelperMethod == null)
 			{
-				throw new MissingGetterException(property.FullName);
+				throw new MissingSetterException(property.FullName);
 			}
 
 			return targetSetHelperMethod;
@@ -75,19 +75,26 @@ namespace Realmar.DataBindings.Editor.Weaving
 		internal static PropertyDefinition GetAccessorProperty(TypeDefinition sourceType, TypeDefinition targetType)
 		{
 			var injectedSourceName = GetAccessorPropertyName(sourceType);
-			var properties = targetType.GetPropertiesInBaseHierarchy(injectedSourceName);
-
-			if (properties.Count == 0)
+			var accessorInterface = targetType.GetInInterfaces(injectedSourceName, definition => definition.Properties).FirstOrDefault();
+			if (accessorInterface != null)
 			{
-				return null;
-			}
-			else if (properties.Count > 1)
-			{
-				throw new BigOOFException("FATAL ERROR: Cannot weave assembly because multiple target to source fields of the same type are found on the target");
+				return accessorInterface;
 			}
 			else
 			{
-				return properties[0];
+				var properties = targetType.GetPropertiesInBaseHierarchy(injectedSourceName).ToList();
+				if (properties.Count == 0)
+				{
+					return null;
+				}
+				else if (properties.Count > 1)
+				{
+					throw new BigOOFException("FATAL ERROR: Cannot weave assembly because multiple target to source fields of the same type are found on the target");
+				}
+				else
+				{
+					return properties[0];
+				}
 			}
 		}
 

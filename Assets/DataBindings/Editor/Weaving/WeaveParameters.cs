@@ -3,6 +3,7 @@ using Mono.Cecil;
 
 namespace Realmar.DataBindings.Editor.Weaving
 {
+	[DebuggerStepThrough]
 	internal class WeaveParameters
 	{
 		internal PropertyDefinition FromProperty { [DebuggerStepThrough] get; [DebuggerStepThrough] set; }

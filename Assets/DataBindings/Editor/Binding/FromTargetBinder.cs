@@ -3,6 +3,7 @@ using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.Extensions;
 using Realmar.DataBindings.Editor.Weaving;
 using Realmar.DataBindings.Editor.Weaving.Commands;
+using System.Linq;
 using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
 
 namespace Realmar.DataBindings.Editor.Binding
@@ -16,7 +17,7 @@ namespace Realmar.DataBindings.Editor.Binding
 				var targetPropertyName = settings.TargetPropertyName ?? sourceProperty.Name;
 				var bindingTarget = target.Source;
 				var targetType = GetReturnType(bindingTarget);
-				var targetProperty = targetType.GetProperty(targetPropertyName);
+				var targetProperty = targetType.GetPropertiesInBaseHierarchy(targetPropertyName).FirstOrDefault();
 				var sourceType = sourceProperty.DeclaringType;
 				var bindingInitializer = GetBindingInitializer(sourceType);
 
@@ -25,7 +26,7 @@ namespace Realmar.DataBindings.Editor.Binding
 					throw new MissingTargetPropertyException(sourceType.FullName, targetPropertyName);
 				}
 
-				var accessorCommand = WeaveTargetToSourceAccessorCommand.Create(sourceType, targetType, bindingTarget, bindingInitializer);
+				var accessorCommand = WeaveTargetToSourceAccessorCommand.Create(sourceType, targetProperty.DeclaringType, bindingTarget, bindingInitializer);
 				accessorCommand.Execute();
 
 				var accessorProperty = GetAccessorProperty(sourceProperty.DeclaringType, targetProperty.DeclaringType);
@@ -38,6 +39,7 @@ namespace Realmar.DataBindings.Editor.Binding
 						BindingTarget = accessorProperty.GetMethod,
 						EmitNullCheck = settings.EmitNullCheck
 					});
+
 				weaveCommand.Execute();
 			}
 		}

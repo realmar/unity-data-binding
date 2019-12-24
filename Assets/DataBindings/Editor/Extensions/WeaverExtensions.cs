@@ -20,17 +20,17 @@ namespace Realmar.DataBindings.Editor.Extensions
 			return type.Fields.FirstOrDefault(definition => definition.Name == name);
 		}
 
-		internal static List<FieldDefinition> GetFieldsInBaseHierarchy(this TypeDefinition type, string name)
+		internal static IEnumerable<FieldDefinition> GetFieldsInBaseHierarchy(this TypeDefinition type, string name = null)
 		{
 			return GetInBaseHierarchy(type, name, definition => definition.Fields);
 		}
 
-		internal static List<PropertyDefinition> GetPropertiesInBaseHierarchy(this TypeDefinition type, string name)
+		internal static IEnumerable<PropertyDefinition> GetPropertiesInBaseHierarchy(this TypeDefinition type, string name = null)
 		{
 			return GetInBaseHierarchy(type, name, definition => definition.Properties);
 		}
 
-		internal static List<MethodDefinition> GetMethodsInBaseHierarchy(this TypeDefinition type, string name)
+		internal static IEnumerable<MethodDefinition> GetMethodsInBaseHierarchy(this TypeDefinition type, string name = null)
 		{
 			return GetInBaseHierarchy(type, name, definition => definition.Methods);
 		}
@@ -111,29 +111,48 @@ namespace Realmar.DataBindings.Editor.Extensions
 			}
 		}
 
-		private static List<TMemberDefinition> GetInBaseHierarchy<TMemberDefinition>(this TypeDefinition type,
+		internal static IEnumerable<TMemberDefinition> GetInBaseHierarchy<TMemberDefinition>(this TypeDefinition type,
 			string name, Func<TypeDefinition, Collection<TMemberDefinition>> getter)
 			where TMemberDefinition : IMemberDefinition
 		{
-			List<TMemberDefinition> members;
-
-			var baseType = type.BaseType;
-			if (baseType == null)
+			var types = GetInInterfaces(type, getter).Concat(GetInBaseClassHierarchy(type, getter));
+			if (name != null)
 			{
-				members = new List<TMemberDefinition>();
-			}
-			else
-			{
-				members = GetInBaseHierarchy(baseType.Resolve(), name, getter);
+				return types.Where(definition => definition.Name == name);
 			}
 
-			var member = getter.Invoke(type).FirstOrDefault(definition => definition.Name == name);
-			if (member != null)
-			{
-				members.Add(member);
-			}
+			return types;
+		}
 
-			return members;
+		internal static IEnumerable<TMemberDefinition> GetInInterfaces<TMemberDefinition>(this TypeDefinition type,
+			string name, Func<TypeDefinition, Collection<TMemberDefinition>> getter)
+			where TMemberDefinition : IMemberDefinition
+		{
+			return GetInInterfaces(type, getter).Where(definition => definition.Name == name);
+		}
+
+		internal static IEnumerable<TMemberDefinition> GetInInterfaces<TMemberDefinition>(this TypeDefinition type,
+			Func<TypeDefinition, Collection<TMemberDefinition>> getter)
+			where TMemberDefinition : IMemberDefinition
+		{
+			var ifaceTypes = type.Interfaces.Select(iface => iface.InterfaceType.Resolve());
+			return ifaceTypes.SelectMany(definition => getter.Invoke(definition));
+		}
+
+		internal static IEnumerable<TMemberDefinition> GetInBaseClassHierarchy<TMemberDefinition>(this TypeDefinition type,
+			Func<TypeDefinition, Collection<TMemberDefinition>> getter)
+			where TMemberDefinition : IMemberDefinition
+		{
+			var currentType = type;
+			while (currentType != null)
+			{
+				foreach (var memberDefinition in getter.Invoke(currentType))
+				{
+					yield return memberDefinition;
+				}
+
+				currentType = currentType.BaseType?.Resolve();
+			}
 		}
 
 		/// <exception cref="T:System.ArgumentException"></exception>
