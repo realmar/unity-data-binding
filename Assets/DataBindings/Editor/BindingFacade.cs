@@ -157,8 +157,8 @@ namespace Realmar.DataBindings.Editor
 			var locator = ServiceLocator.Current;
 
 			locator.RegisterType<DerivativeResolver>(ServiceLifetime.Singleton);
-			locator.RegisterType<HashSet<MethodDefinition>>(ServiceLifetime.Singleton, "WovenSetHelpers");
-			locator.RegisterType<HashSet<int>>(ServiceLifetime.Singleton, "WovenBindings");
+			locator.RegisterWovenSetHelpers();
+			locator.RegisterWovenBindings();
 		}
 	}
 }

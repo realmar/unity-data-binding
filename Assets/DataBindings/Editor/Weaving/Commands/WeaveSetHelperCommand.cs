@@ -3,7 +3,6 @@ using Realmar.DataBindings.Editor.Commands;
 using Realmar.DataBindings.Editor.Emitting.Command;
 using Realmar.DataBindings.Editor.Extensions;
 using Realmar.DataBindings.Editor.Utils;
-using System.Collections.Generic;
 using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
 
 namespace Realmar.DataBindings.Editor.Weaving.Commands
@@ -17,14 +16,15 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 		internal static ICommand Create(MethodDefinition setMethod)
 		{
 			var command = new WeaveSetHelperCommand();
+			var wovenSetHelpers = ServiceLocator.Current.GetWovenSetHelpers();
 			var type = setMethod.DeclaringType;
 			var targetSetHelperMethodName = GetTargetSetHelperMethodName(setMethod);
 			var targetSetHelperMethod = type.GetMethod(targetSetHelperMethodName);
 
-			if (targetSetHelperMethod == null)
+			if (targetSetHelperMethod == null && wovenSetHelpers.Contains(setMethod) == false)
 			{
 				command.AddChild(EmitSetHelperCommand.Create(targetSetHelperMethodName, setMethod));
-				ServiceLocator.Current.Resolve<HashSet<MethodDefinition>>("WovenSetHelpers").Add(setMethod);
+				wovenSetHelpers.Add(setMethod);
 			}
 
 			return command;

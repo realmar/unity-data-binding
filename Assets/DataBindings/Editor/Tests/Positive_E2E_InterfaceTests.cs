@@ -42,7 +42,6 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void TwoWay_InterfaceToInterfaceToAbstract_MultipleOverrides() => RunTest();
 
-		// TODO breaks weaver
 		[Test]
 		public void TwoWay_InterfaceToAbstractToInterfaceToAbstract() => RunTest();
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Commands;
@@ -32,15 +33,10 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 					continue;
 				}
 
-				var properties = typeDefinition.Properties;
-				foreach (var property in properties)
+				var setMethods = typeDefinition.Properties.Select(definition => definition.SetMethod).WhereNotNull();
+				foreach (var setter in setMethods)
 				{
-					var method = property.SetMethod;
-
-					if (method != null)
-					{
-						command.AddChild(WeaveSetHelperCommand.Create(method));
-					}
+					command.AddChild(WeaveSetHelperCommand.Create(setter));
 				}
 			}
 

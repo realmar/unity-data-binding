@@ -1,8 +1,8 @@
 using Realmar.DataBindings.Editor.BCL.System;
 using Realmar.DataBindings.Editor.Commands;
 using Realmar.DataBindings.Editor.Emitting.Command;
+using Realmar.DataBindings.Editor.Extensions;
 using Realmar.DataBindings.Editor.Utils;
-using System.Collections.Generic;
 
 namespace Realmar.DataBindings.Editor.Weaving.Commands
 {
@@ -16,7 +16,7 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 		{
 			var command = new WeaveNonAbstractBindingCommand();
 			var hash = GetBindingHashCode(parameters);
-			var wovenBindings = ServiceLocator.Current.Resolve<HashSet<int>>("WovenBindings");
+			var wovenBindings = ServiceLocator.Current.GetWovenBindings();
 
 			if (wovenBindings.Contains(hash) == false)
 			{
