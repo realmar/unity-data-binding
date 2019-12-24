@@ -20,25 +20,25 @@ namespace Realmar.DataBindings.Editor.Extensions
 			return type.Fields.FirstOrDefault(definition => definition.Name == name);
 		}
 
-		internal static List<FieldDefinition> GetFieldsInHierarchy(this TypeDefinition type, string name)
+		internal static List<FieldDefinition> GetFieldsInBaseHierarchy(this TypeDefinition type, string name)
 		{
-			return GetInHierarchy(type, name, definition => definition.Fields);
+			return GetInBaseHierarchy(type, name, definition => definition.Fields);
 		}
 
-		internal static List<PropertyDefinition> GetPropertiesInHierarchy(this TypeDefinition type, string name)
+		internal static List<PropertyDefinition> GetPropertiesInBaseHierarchy(this TypeDefinition type, string name)
 		{
-			return GetInHierarchy(type, name, definition => definition.Properties);
+			return GetInBaseHierarchy(type, name, definition => definition.Properties);
 		}
 
-		internal static List<MethodDefinition> GetMethodsInHierarchy(this TypeDefinition type, string name)
+		internal static List<MethodDefinition> GetMethodsInBaseHierarchy(this TypeDefinition type, string name)
 		{
-			return GetInHierarchy(type, name, definition => definition.Methods);
+			return GetInBaseHierarchy(type, name, definition => definition.Methods);
 		}
 
-		internal static TypeDefinition GetFirstClassInHierarchy(this TypeDefinition type)
+		internal static TypeDefinition GetRootBaseClass(this TypeDefinition type)
 		{
 			if (type.BaseType == null) return type;
-			return type.BaseType.Resolve().GetFirstClassInHierarchy();
+			return type.BaseType.Resolve().GetRootBaseClass();
 		}
 
 		internal static bool HasCustomAttribute<T>(this ICustomAttributeProvider instance)
@@ -111,13 +111,12 @@ namespace Realmar.DataBindings.Editor.Extensions
 			}
 		}
 
-		private static List<TMemberDefinition> GetInHierarchy<TMemberDefinition>(
-			this TypeDefinition type,
-			string name,
-			Func<TypeDefinition, Collection<TMemberDefinition>> getter)
-			where TMemberDefinition : class, IMemberDefinition
+		private static List<TMemberDefinition> GetInBaseHierarchy<TMemberDefinition>(this TypeDefinition type,
+			string name, Func<TypeDefinition, Collection<TMemberDefinition>> getter)
+			where TMemberDefinition : IMemberDefinition
 		{
 			List<TMemberDefinition> members;
+
 			var baseType = type.BaseType;
 			if (baseType == null)
 			{
@@ -125,7 +124,7 @@ namespace Realmar.DataBindings.Editor.Extensions
 			}
 			else
 			{
-				members = GetInHierarchy(baseType.Resolve(), name, getter);
+				members = GetInBaseHierarchy(baseType.Resolve(), name, getter);
 			}
 
 			var member = getter.Invoke(type).FirstOrDefault(definition => definition.Name == name);

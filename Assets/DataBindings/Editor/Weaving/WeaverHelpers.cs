@@ -75,7 +75,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 		internal static PropertyDefinition GetAccessorProperty(TypeDefinition sourceType, TypeDefinition targetType)
 		{
 			var injectedSourceName = GetAccessorPropertyName(sourceType);
-			var properties = targetType.GetPropertiesInHierarchy(injectedSourceName);
+			var properties = targetType.GetPropertiesInBaseHierarchy(injectedSourceName);
 
 			if (properties.Count == 0)
 			{
@@ -83,7 +83,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 			else if (properties.Count > 1)
 			{
-				throw new FatalException("FATAL ERROR: Cannot weave assembly because multiple target to source fields of the same type are found on the target");
+				throw new BigOOFException("FATAL ERROR: Cannot weave assembly because multiple target to source fields of the same type are found on the target");
 			}
 			else
 			{

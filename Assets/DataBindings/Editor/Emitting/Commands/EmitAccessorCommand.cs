@@ -11,13 +11,13 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 	internal class EmitAccessorCommand : BaseCommand
 	{
 		private DataMediator<PropertyDefinition> _accessor;
-		private DataMediator<IMemberDefinition> _accessorMethod;
+		private DataMediator<MethodDefinition> _accessorMethod;
 		private TypeDefinition _targetType;
 		private TypeDefinition _sourceType;
 		private string _injectedSourceName;
 		private bool _isInterfaceImpl;
 
-		private EmitAccessorCommand(DataMediator<PropertyDefinition> accessor, DataMediator<IMemberDefinition> accessorMethod, TypeDefinition targetType, TypeDefinition sourceType, bool isInterfaceImpl)
+		private EmitAccessorCommand(DataMediator<PropertyDefinition> accessor, DataMediator<MethodDefinition> accessorMethod, TypeDefinition targetType, TypeDefinition sourceType, bool isInterfaceImpl)
 		{
 			_accessor = accessor;
 			_accessorMethod = accessorMethod;
@@ -53,19 +53,23 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			accessor.GetMethod = new MethodDefinition(GetGetterName(_injectedSourceName), attributes, _sourceType);
 			accessor.SetMethod =
 				new MethodDefinition(GetSetterName(_injectedSourceName), attributes, module.ImportReference(typeof(void)));
-			accessor.SetMethod.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, _sourceType));
+
+			var accessorSetMethod = accessor.SetMethod;
+			var accessorGetMethod = accessor.GetMethod;
+
+			accessorSetMethod.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, _sourceType));
 
 			_targetType.Properties.Add(accessor);
-			_targetType.Methods.Add(accessor.GetMethod);
-			_targetType.Methods.Add(accessor.SetMethod);
+			_targetType.Methods.Add(accessorGetMethod);
+			_targetType.Methods.Add(accessorSetMethod);
 
-			EmitCustomAttribute<CompilerGeneratedAttribute>(accessor.GetMethod, module);
-			EmitCustomAttribute<CompilerGeneratedAttribute>(accessor.SetMethod, module);
+			EmitCustomAttribute<CompilerGeneratedAttribute>(accessorGetMethod, module);
+			EmitCustomAttribute<CompilerGeneratedAttribute>(accessorSetMethod, module);
 
 			_accessor.Data = accessor;
 			if (_accessorMethod != null)
 			{
-				_accessorMethod.Data = accessor.SetMethod;
+				_accessorMethod.Data = accessorSetMethod;
 			}
 
 			ExecuteNext();
@@ -76,10 +80,10 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			return Create(null, targetType, sourceType, isInterfaceImpl);
 		}
 
-		internal static ICommand Create(DataMediator<IMemberDefinition> accessorMethodMediator, TypeDefinition targetType, TypeDefinition sourceType, bool isInterfaceImpl)
+		internal static ICommand Create(DataMediator<MethodDefinition> accessorMethod, TypeDefinition targetType, TypeDefinition sourceType, bool isInterfaceImpl)
 		{
 			var accessorMediator = new DataMediator<PropertyDefinition>();
-			var command = new EmitAccessorCommand(accessorMediator, accessorMethodMediator, targetType, sourceType, isInterfaceImpl);
+			var command = new EmitAccessorCommand(accessorMediator, accessorMethod, targetType, sourceType, isInterfaceImpl);
 
 			if (targetType.IsInterface == false)
 			{

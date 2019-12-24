@@ -267,7 +267,7 @@ namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface
 	}
 }
 
-/* namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface_MultipleInterfaceInheritance
+namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface_MultipleInterfaceInheritance
 {
 	[Source, CompileTimeType]
 	internal interface ISource
@@ -315,7 +315,7 @@ namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface
 		public string Text1 { get; set; }
 		public string Text2 { get; set; }
 	}
-} */
+}
 
 namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterfaceToAbstract
 {
@@ -409,7 +409,7 @@ namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface
 	}
 }
 
-/* namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToAbstractToInterfaceToAbstract
+namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToAbstractToInterfaceToAbstract
 {
 	[Source, CompileTimeType]
 	internal interface ISource
@@ -456,7 +456,7 @@ namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToInterface
 	{
 		public override string Text { get; set; }
 	}
-} */
+}
 
 namespace UnitsUnderTest.Positive_E2E_InterfaceTests.TwoWay_InterfaceToProperty_MultipleSources
 {

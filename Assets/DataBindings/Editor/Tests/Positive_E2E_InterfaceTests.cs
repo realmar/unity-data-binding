@@ -33,9 +33,8 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void TwoWay_InterfaceToInterface() => RunTest();
 
-		// TODO breaks weaver
-		// [Test]
-		// public void TwoWay_InterfaceToInterface_MultipleInterfaceInheritance() => RunTest();
+		[Test]
+		public void TwoWay_InterfaceToInterface_MultipleInterfaceInheritance() => RunTest();
 
 		[Test]
 		public void TwoWay_InterfaceToInterfaceToAbstract() => RunTest();
@@ -44,8 +43,8 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void TwoWay_InterfaceToInterfaceToAbstract_MultipleOverrides() => RunTest();
 
 		// TODO breaks weaver
-		// [Test]
-		// public void TwoWay_InterfaceToAbstractToInterfaceToAbstract() => RunTest();
+		[Test]
+		public void TwoWay_InterfaceToAbstractToInterfaceToAbstract() => RunTest();
 
 		[Test]
 		public void TwoWay_InterfaceToProperty_MultipleSources() => RunTest();

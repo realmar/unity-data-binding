@@ -44,9 +44,8 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void TwoWay_AbstractToAbstract_AbstractBindingInitializer_MultipleOverrides() => RunTest();
 
-		// TODO breaks weaver
-		// [Test]
-		// public void OneWay_AbstractToAbstract_MultipleAbstractsInHierarchy() => RunTest();
+		[Test]
+		public void OneWay_AbstractToAbstract_MultipleAbstractsInHierarchy() => RunTest();
 
 		[Test]
 		public void OneWay_AbstractBindingTarget() => RunTest();

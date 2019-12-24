@@ -455,7 +455,7 @@ namespace UnitsUnderTest.Positive_E2E_AbstractTests.TwoWay_AbstractToAbstract_Ab
 	}
 }
 
-/* namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_AbstractToAbstract_MultipleAbstractsInHierarchy
+namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_AbstractToAbstract_MultipleAbstractsInHierarchy
 {
 	[Source, CompileTimeType]
 	internal abstract class BaseSource
@@ -488,7 +488,7 @@ namespace UnitsUnderTest.Positive_E2E_AbstractTests.TwoWay_AbstractToAbstract_Ab
 	{
 		public override string Text { get; set; }
 	}
-} */
+}
 
 namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_AbstractBindingTarget
 {

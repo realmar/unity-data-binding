@@ -21,25 +21,28 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 		{
 			var command = new WeaveTargetToSourceAccessorCommand();
 			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
-			var targetToSourceSymbol = GetAccessorProperty(sourceType, targetType);
-			var accessorSymbolMediator = new DataMediator<IMemberDefinition>();
+			var accessorSymbol = GetAccessorProperty(sourceType, targetType);
+			var accessorSymbolMediator = new DataMediator<MethodDefinition>();
 
-			if (targetToSourceSymbol == null)
+			if (accessorSymbol == null)
 			{
 				// WEAVE ACCESSOR METHOD
 				command.AddChild(EmitAccessorCommand.Create(accessorSymbolMediator, targetType, sourceType, false));
 				if (targetType.IsInterface)
 				{
 					var list = derivativeResolver.GetDirectlyDerivedTypes(targetType);
-					foreach (var subject in list)
+					foreach (var derivedType in list)
 					{
-						command.AddChild(EmitAccessorCommand.Create(subject, sourceType, true));
+						if (GetAccessorProperty(sourceType, derivedType) == null)
+						{
+							command.AddChild(EmitAccessorCommand.Create(derivedType, sourceType, true));
+						}
 					}
 				}
 			}
 			else
 			{
-				accessorSymbolMediator.Data = targetToSourceSymbol.SetMethod;
+				accessorSymbolMediator.Data = accessorSymbol.SetMethod;
 			}
 
 			if (bindingInitializer.IsAbstract)
@@ -48,7 +51,7 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 			}
 			else
 			{
-				command.AddChild(EmitAccessorInitializationCommand.Create(bindingInitializer, bindingTarget, accessorSymbolMediator));
+				command.AddChild(EmitAccessorInitializationCommand.Create(accessorSymbolMediator, bindingInitializer, bindingTarget));
 			}
 
 			return command;

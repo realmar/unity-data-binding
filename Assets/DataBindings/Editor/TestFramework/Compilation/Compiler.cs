@@ -27,7 +27,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Compilation
 
 			if (compiler == null)
 			{
-				throw new FatalException("Could not create compiler.");
+				throw new BigOOFException("Could not create compiler.");
 			}
 
 			var result = compiler.Compile_Internal(code);

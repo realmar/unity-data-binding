@@ -12,9 +12,9 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 	{
 		private MethodDefinition _bindingInitializer;
 		private IMemberDefinition _bindingTarget;
-		private DataMediator<IMemberDefinition> _accessorSymbol;
+		private DataMediator<MethodDefinition> _accessorSymbol;
 
-		private EmitAccessorInitializationCommand(MethodDefinition bindingInitializer, IMemberDefinition bindingTarget, DataMediator<IMemberDefinition> accessorSymbol)
+		private EmitAccessorInitializationCommand(DataMediator<MethodDefinition> accessorSymbol, MethodDefinition bindingInitializer, IMemberDefinition bindingTarget)
 		{
 			_bindingInitializer = bindingInitializer;
 			_bindingTarget = bindingTarget;
@@ -23,6 +23,7 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 
 		public override void Execute()
 		{
+			var accessorSymbol = _accessorSymbol.Data;
 			var methodBody = _bindingInitializer.Body;
 			var ilProcessor = methodBody.GetILProcessor();
 			var instructions = methodBody.Instructions;
@@ -38,7 +39,7 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			var il1 = ilProcessor.Create(OpCodes.Ldarg_0);
 			var il2 = GetLoadFromFieldOrCallableInstruction(_bindingTarget, ilProcessor);
 			var il3 = ilProcessor.Create(OpCodes.Ldarg_0);
-			var il4 = GetLoadFromFieldOrCallableInstruction(_accessorSymbol.Data, ilProcessor);
+			var il4 = ilProcessor.Create(GetCallInstruction(accessorSymbol), accessorSymbol);
 
 			ilProcessor.InsertBefore(lastInstruction, il1);
 			ilProcessor.InsertAfter(il1, il2);
@@ -53,9 +54,9 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			ExecuteNext();
 		}
 
-		public static ICommand Create(MethodDefinition bindingInitializer, IMemberDefinition bindingTarget, DataMediator<IMemberDefinition> accessorSymbol)
+		public static ICommand Create(DataMediator<MethodDefinition> accessorSymbol, MethodDefinition bindingInitializer, IMemberDefinition bindingTarget)
 		{
-			return new EmitAccessorInitializationCommand(bindingInitializer, bindingTarget, accessorSymbol);
+			return new EmitAccessorInitializationCommand(accessorSymbol, bindingInitializer, bindingTarget);
 		}
 	}
 }
