@@ -2,6 +2,7 @@ using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Commands;
 using Realmar.DataBindings.Editor.Emitting.Command;
+using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.Extensions;
 using Realmar.DataBindings.Editor.Utils;
 
@@ -13,53 +14,76 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 		{
 		}
 
+		private struct WeaveInTypeParameters
+		{
+			internal TypeDefinition DerivedType;
+			internal DataMediator<MethodDefinition> AccessorSymbolMediator;
+			internal string BindingInitializerName;
+			internal IMemberDefinition BindingTarget;
+		}
+
 		internal static ICommand Create(DataMediator<MethodDefinition> accessorSymbolMediator, MethodDefinition bindingInitializer, IMemberDefinition bindingTarget)
 		{
 			var command = new WeaveAbstractAccessorInitializationCommand();
 			var originType = bindingInitializer.DeclaringType;
 
-			WeaveInType(command, originType, accessorSymbolMediator, bindingInitializer.Name, bindingTarget);
+			var parameters = new WeaveInTypeParameters
+			{
+				DerivedType = originType,
+				AccessorSymbolMediator = accessorSymbolMediator,
+				BindingInitializerName = bindingInitializer.Name,
+				BindingTarget = bindingTarget
+			};
+			var found = WeaveInType(command, parameters);
+
+			if (found == false)
+			{
+				throw new MissingNonAbstractBindingInitializer(bindingInitializer.FullName);
+			}
 
 			return command;
 		}
 
-		private static void WeaveInType(WeaveAbstractAccessorInitializationCommand command, TypeDefinition derivedType, DataMediator<MethodDefinition> accessorSymbolMediator, string bindingInitializerName, IMemberDefinition bindingTarget)
+		private static bool WeaveInType(WeaveAbstractAccessorInitializationCommand command, WeaveInTypeParameters parameters)
 		{
-			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
-			var initializer = derivedType.GetMethod(bindingInitializerName);
+			var initializer = parameters.DerivedType.GetMethod(parameters.BindingInitializerName);
 			var found = false;
 
 			if (initializer != null)
 			{
 				if (initializer.IsAbstract == false)
 				{
-					command.AddChild(EmitAccessorInitializationCommand.Create(accessorSymbolMediator, initializer, bindingTarget));
+					command.AddChild(EmitAccessorInitializationCommand.Create(parameters.AccessorSymbolMediator, initializer, parameters.BindingTarget));
 					found = true;
 				}
 				else
 				{
-					var newDerivedTypes = derivativeResolver.GetDirectlyDerivedTypes(derivedType);
-					foreach (var newDerivedType in newDerivedTypes)
-					{
-						WeaveInType(command, newDerivedType, accessorSymbolMediator, bindingInitializerName, bindingTarget);
-					}
+					found = WeaveInDerivedTypes(command, parameters);
 				}
 			}
 			else
 			{
-				var newDerivedTypes = derivativeResolver.GetDirectlyDerivedTypes(derivedType);
-				foreach (var newDerivedType in newDerivedTypes)
-				{
-					WeaveInType(command, newDerivedType, accessorSymbolMediator, bindingInitializerName, bindingTarget);
-				}
+				found = WeaveInDerivedTypes(command, parameters);
 			}
 
-			// if (found == false)
-			// {
-			// 	// TODO - ABSTRACT - Exception
-			// 	throw new MissingSymbolException(
-			// 		$"Could not find overriding non-abstract binding target for {bindingTarget.FullName}");
-			// }
+			return found;
+		}
+
+		private static bool WeaveInDerivedTypes(WeaveAbstractAccessorInitializationCommand command, WeaveInTypeParameters parameters)
+		{
+			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
+			var newDerivedTypes = derivativeResolver.GetDirectlyDerivedTypes(parameters.DerivedType);
+			var found = false;
+
+			foreach (var newDerivedType in newDerivedTypes)
+			{
+				var newParameters = parameters;
+				newParameters.DerivedType = newDerivedType;
+
+				found |= WeaveInType(command, newParameters);
+			}
+
+			return found;
 		}
 	}
 }

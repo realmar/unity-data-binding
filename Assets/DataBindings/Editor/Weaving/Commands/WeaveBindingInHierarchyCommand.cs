@@ -1,8 +1,8 @@
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Commands;
+using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.Extensions;
 using Realmar.DataBindings.Editor.Utils;
-using System;
 
 namespace Realmar.DataBindings.Editor.Weaving.Commands
 {
@@ -38,7 +38,7 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 
 			if (foundNonAbstract == false)
 			{
-				throw new Exception("TODO Did not found any non abstract symbols in derivatives.");
+				throw new MissingNonAbstractSymbolException(fromProperty.FullName);
 			}
 
 			return command;
