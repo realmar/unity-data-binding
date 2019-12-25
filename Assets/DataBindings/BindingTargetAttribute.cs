@@ -2,6 +2,7 @@ using System;
 
 namespace Realmar.DataBindings
 {
+	[Serializable]
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true, Inherited = true)]
 	public class BindingTargetAttribute : Attribute
 	{
