@@ -35,17 +35,16 @@ namespace Realmar.DataBindings.Editor.Emitting
 			}
 		}
 
-		internal static Instruction GetLoadFromFieldOrCallableInstruction(IMemberDefinition bindingTarget, ILProcessor ilProcessor)
+		internal static Instruction GetLoadFromFieldOrCallableInstruction(IMemberDefinition bindingTarget)
 		{
 			YeetIfNull(bindingTarget, nameof(bindingTarget));
-			YeetIfNull(ilProcessor, nameof(ilProcessor));
 
 			switch (bindingTarget)
 			{
 				case FieldDefinition field:
-					return ilProcessor.Create(OpCodes.Ldfld, field);
+					return Instruction.Create(OpCodes.Ldfld, field);
 				case MethodDefinition method:
-					return ilProcessor.Create(GetCallInstruction(method), method);
+					return Instruction.Create(GetCallInstruction(method), method);
 				default:
 					throw new NotSupportedException("BindingTarget can only be field or method");
 			}

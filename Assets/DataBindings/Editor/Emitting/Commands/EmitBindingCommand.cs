@@ -41,17 +41,17 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			// IL_000e: call instance int32 Realmar.UnityMVVM.Example.ExampleViewModel::get_Value3()
 			// IL_0013: call instance void Realmar.UnityMVVM.Example.ExampleView::set_Value3(int32)
 
-			var il1 = ilProcessor.Create(OpCodes.Ldarg_0);
-			var il2 = GetLoadFromFieldOrCallableInstruction(bindingTarget, ilProcessor);
-			var il3 = ilProcessor.Create(OpCodes.Ldarg_0);
-			var il4 = ilProcessor.Create(GetCallInstruction(fromGetMethod), fromGetMethod);
-			var il5 = ilProcessor.Create(GetCallInstruction(toSetMethod), toSetMethod);
+			var il1 = Instruction.Create(OpCodes.Ldarg_0);
+			var il2 = GetLoadFromFieldOrCallableInstruction(bindingTarget);
+			var il3 = Instruction.Create(OpCodes.Ldarg_0);
+			var il4 = Instruction.Create(GetCallInstruction(fromGetMethod), fromGetMethod);
+			var il5 = Instruction.Create(GetCallInstruction(toSetMethod), toSetMethod);
 
 			Instruction firstInjected;
 
 			if (emitNullCheck)
 			{
-				var nullCheckInstructions = EmitNullCheckInstructions(bindingTarget, ilProcessor, lastInstruction);
+				var nullCheckInstructions = EmitNullCheckInstructions(bindingTarget, lastInstruction);
 				var last = nullCheckInstructions[0];
 				firstInjected = last;
 				ilProcessor.InsertBefore(lastInstruction, last);
@@ -81,31 +81,28 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			}
 		}
 
-		private List<Instruction> EmitNullCheckInstructions(
-			IMemberDefinition toBeChecked,
-			ILProcessor ilProcessor,
-			Instruction isNullBranch)
+		private List<Instruction> EmitNullCheckInstructions(IMemberDefinition toBeChecked, Instruction isNullBranch)
 		{
 			var instructions = new List<Instruction>();
 
-			instructions.Add(ilProcessor.Create(OpCodes.Ldarg_0));
-			instructions.Add(GetLoadFromFieldOrCallableInstruction(toBeChecked, ilProcessor));
-			instructions.Add(ilProcessor.Create(OpCodes.Ldnull));
+			instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+			instructions.Add(GetLoadFromFieldOrCallableInstruction(toBeChecked));
+			instructions.Add(Instruction.Create(OpCodes.Ldnull));
 
 			var returnType = GetReturnType(toBeChecked);
 			var op = returnType.GetInEqualityOperator();
-			var opReference = toBeChecked.DeclaringType.Module.ImportReference(op);
 
 			if (op != null)
 			{
-				instructions.Add(ilProcessor.Create(OpCodes.Call, opReference));
+				var opReference = toBeChecked.DeclaringType.Module.ImportReference(op);
+				instructions.Add(Instruction.Create(OpCodes.Call, opReference));
 			}
 			else
 			{
-				instructions.Add(ilProcessor.Create(OpCodes.Cgt_Un));
+				instructions.Add(Instruction.Create(OpCodes.Cgt_Un));
 			}
 
-			instructions.Add(ilProcessor.Create(OpCodes.Brfalse_S, isNullBranch));
+			instructions.Add(Instruction.Create(OpCodes.Brfalse_S, isNullBranch));
 
 			return instructions;
 		}

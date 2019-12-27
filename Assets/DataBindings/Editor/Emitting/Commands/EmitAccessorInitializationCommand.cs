@@ -36,10 +36,10 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			// IL_000e: ldarg.0      // this
 			// IL_000f: stfld        class Realmar.DataBindings.Example.ExampleViewModel Realmar.DataBindings.Example.ExampleView::ViewModel
 
-			var il1 = ilProcessor.Create(OpCodes.Ldarg_0);
-			var il2 = GetLoadFromFieldOrCallableInstruction(_bindingTarget, ilProcessor);
-			var il3 = ilProcessor.Create(OpCodes.Ldarg_0);
-			var il4 = ilProcessor.Create(GetCallInstruction(accessorSymbol), accessorSymbol);
+			var il1 = Instruction.Create(OpCodes.Ldarg_0);
+			var il2 = GetLoadFromFieldOrCallableInstruction(_bindingTarget);
+			var il3 = Instruction.Create(OpCodes.Ldarg_0);
+			var il4 = Instruction.Create(GetCallInstruction(accessorSymbol), accessorSymbol);
 
 			ilProcessor.InsertBefore(lastInstruction, il1);
 			ilProcessor.InsertAfter(il1, il2);
