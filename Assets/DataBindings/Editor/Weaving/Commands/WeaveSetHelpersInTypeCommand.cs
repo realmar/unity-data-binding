@@ -14,7 +14,11 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 		internal static ICommand Create(TypeDefinition type)
 		{
 			var command = new WeaveSetHelpersInTypeCommand();
-			var setMethods = type.GetPropertiesInBaseHierarchy().Select(definition => definition.SetMethod).WhereNotNull();
+			var setMethods = type
+				.GetPropertiesInBaseHierarchy()
+				.Where(definition => definition.DeclaringType.Module.Assembly.IsSame(type.Module.Assembly))
+				.Select(definition => definition.SetMethod)
+				.WhereNotNull().ToArray();
 
 			foreach (var setMethod in setMethods)
 			{

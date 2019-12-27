@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Realmar.DataBindings.Editor.Binding;
 using Realmar.DataBindings.Editor.TestFramework.Compilation;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 using static UnityEngine.Debug;

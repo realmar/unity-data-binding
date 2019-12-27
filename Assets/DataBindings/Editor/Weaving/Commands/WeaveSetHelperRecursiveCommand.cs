@@ -21,23 +21,19 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 			var baseMethods = setMethod.GetBaseMethods();
 			var derivedTypes = derivativeResolver.GetDerivedTypes(originType);
 
-			foreach (var method in baseMethods)
-			{
-				command.AddChild(WeaveSetHelperCommand.Create(method));
-			}
+			var allSetters = baseMethods
+				.Concat(
+					derivedTypes
+						.Where(definition => definition != originType)
+						.Where(definition => definition.Module.Assembly.IsSame(originType.Module.Assembly))
+						.SelectMany(definition => definition.Properties
+							.Select(propertyDefinition => propertyDefinition.SetMethod)
+							.WhereNotNull()))
+				.ToArray();
 
-			foreach (var typeDefinition in derivedTypes)
+			foreach (var methodDefinition in allSetters)
 			{
-				if (typeDefinition == originType)
-				{
-					continue;
-				}
-
-				var setMethods = typeDefinition.Properties.Select(definition => definition.SetMethod).WhereNotNull();
-				foreach (var setter in setMethods)
-				{
-					command.AddChild(WeaveSetHelperCommand.Create(setter));
-				}
+				command.AddChild(WeaveSetHelperCommand.Create(methodDefinition));
 			}
 
 			return command;

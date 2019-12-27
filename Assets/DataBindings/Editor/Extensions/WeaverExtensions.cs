@@ -244,7 +244,8 @@ namespace Realmar.DataBindings.Editor.Extensions
 
 		internal static bool IsSame(this AssemblyDefinition a, AssemblyDefinition b)
 		{
-			return a.MetadataToken.Equals(b.MetadataToken);
+			// TODO is this implementation correct? There is no overload for == nor .Equals so this will do reference equality
+			return a == b;
 		}
 
 		internal static bool IsAccessibleFrom(this IMemberDefinition member, TypeDefinition type)

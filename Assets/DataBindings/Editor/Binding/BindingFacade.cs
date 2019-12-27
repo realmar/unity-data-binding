@@ -1,6 +1,5 @@
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
-using Realmar.DataBindings.Editor.Binding;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.Extensions;
@@ -9,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Realmar.DataBindings.Editor.Utils;
 
-namespace Realmar.DataBindings.Editor
+namespace Realmar.DataBindings.Editor.Binding
 {
 	internal class BindingFacade
 	{
@@ -46,11 +45,11 @@ namespace Realmar.DataBindings.Editor
 		}
 
 		// TODO consistent naming: weave vs bind vs emit
-		// TODO add overload for Stream
+		// TODO support multiple assemblies
 		public void WeaveAssembly(string assemblyPath, string outputPath = null)
 		{
 			ConfigureServiceLocator();
-			// TODO what if the assembly which needs to be weaved is not the one provided here? --> weave beyond assembly boundaries!!
+
 			using (var assemblyResolver = new UnityAssemblyResolver())
 			{
 				var metadataResolver = new CachedMetadataResolver(assemblyResolver);
@@ -114,9 +113,8 @@ namespace Realmar.DataBindings.Editor
 			{
 				var bindingTargets =
 					_attributeResolver.GetCustomAttributesOfSymbolsInType<BindingTargetAttribute>(type);
-				for (var i = 0; i < bindingTargets.Count; i++)
+				foreach (var target in bindingTargets)
 				{
-					var target = bindingTargets[i];
 					var source = (IMemberDefinition) target.Source;
 					if (source is PropertyDefinition propertyDefinition)
 					{

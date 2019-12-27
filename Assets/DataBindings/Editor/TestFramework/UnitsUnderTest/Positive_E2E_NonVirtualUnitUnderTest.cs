@@ -22,7 +22,9 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_FieldBindingTarget
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
 	{
+#pragma warning disable 649
 		[BindingTarget, Id(1)] public Target BindingTarget;
+#pragma warning restore 649
 		[Binding] public string Text { get; set; }
 	}
 

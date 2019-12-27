@@ -44,5 +44,10 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			Assert.That(exception.SymbolName, Is.EqualTo(fullSymbolName));
 			customAssertions?.Invoke(exception);
 		}
+
+		protected void AssetNoThrow([CallerMemberName] string testName = null)
+		{
+			_weaverTestFacade.CompileAndWeave(GetType(), testName);
+		}
 	}
 }

@@ -1,8 +1,9 @@
 using JetBrains.Annotations;
+using Realmar.DataBindings.Editor.EditorTools;
+using Realmar.DataBindings.Editor.TestFramework.Facades;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Realmar.DataBindings.Editor.TestFramework.Facades;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.EditorTools
 {
 	internal static class TestFrameworkEditorTools
 	{
-		[MenuItem("DataBindings/Compile and weave testcase"), UsedImplicitly]
+		[MenuItem(MenuConstants.PREFIX + "/Compile and weave TestCase"), UsedImplicitly]
 		private static void WeaveAssemblyForSingleTest()
 		{
 			var popup = ScriptableObject.CreateInstance<CompileTestPopUp>();
