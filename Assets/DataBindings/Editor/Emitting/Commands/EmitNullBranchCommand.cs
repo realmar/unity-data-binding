@@ -4,9 +4,9 @@ using Realmar.DataBindings.Editor.Utils;
 using Realmar.DataBindings.Editor.Weaving.Commands;
 using System.Collections.Generic;
 using Realmar.DataBindings.Editor.Commands;
-using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using static Realmar.DataBindings.Editor.Emitting.EmitHelpers;
-using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
+using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 
 namespace Realmar.DataBindings.Editor.Emitting.Command
 {

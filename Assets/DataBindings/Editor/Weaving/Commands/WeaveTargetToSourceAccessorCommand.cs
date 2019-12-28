@@ -2,8 +2,9 @@ using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Commands;
 using Realmar.DataBindings.Editor.Emitting.Command;
+using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Utils;
-using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
+using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 
 namespace Realmar.DataBindings.Editor.Weaving.Commands
 {

@@ -9,9 +9,9 @@ using System.Reflection;
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using ICustomAttributeProvider = Mono.Cecil.ICustomAttributeProvider;
 
-namespace Realmar.DataBindings.Editor.Extensions
+namespace Realmar.DataBindings.Editor.Cecil
 {
-	internal static class WeaverExtensions
+	internal static class CecilExtensions
 	{
 		private const BindingFlags ALL_FLAGS = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 

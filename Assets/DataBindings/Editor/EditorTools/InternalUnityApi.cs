@@ -1,4 +1,4 @@
-using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using UnityEditor;
 
 namespace Realmar.DataBindings.Editor.EditorTools

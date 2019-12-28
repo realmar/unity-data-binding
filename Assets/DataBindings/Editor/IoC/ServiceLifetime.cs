@@ -1,4 +1,4 @@
-namespace Realmar.DataBindings.Editor.Utils
+namespace Realmar.DataBindings.Editor.IoC
 {
 	public enum ServiceLifetime
 	{

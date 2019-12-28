@@ -1,4 +1,4 @@
-using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -2,7 +2,7 @@ using Realmar.DataBindings.Editor.BCL.System;
 using System;
 using System.Collections.Generic;
 
-namespace Realmar.DataBindings.Editor.Utils
+namespace Realmar.DataBindings.Editor.IoC
 {
 	internal class ServiceLocator
 	{

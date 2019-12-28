@@ -1,33 +1,14 @@
-using Mono.Cecil;
-using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Extensions;
 using System;
 using System.Linq;
-using System.Text;
-using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
+using Mono.Cecil;
+using Realmar.DataBindings.Editor.Cecil;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 
-namespace Realmar.DataBindings.Editor.Weaving
+namespace Realmar.DataBindings.Editor.Shared
 {
-	internal static class WeaverHelpers
+	internal static class SharedHelpers
 	{
-		private static readonly StringBuilder _sb = new StringBuilder();
-
-		internal static PropertyDefinition GetTargetProperty(
-			PropertyDefinition sourceProperty,
-			TypeDefinition targetType,
-			string targetPropertyName)
-		{
-			var saneTargetPropertyName = targetPropertyName ?? sourceProperty.Name;
-
-			var targetProperty = targetType.GetPropertiesInBaseHierarchy(saneTargetPropertyName).FirstOrDefault();
-			if (targetProperty == null)
-			{
-				throw new MissingTargetPropertyException(targetType.FullName, saneTargetPropertyName);
-			}
-
-			return targetProperty;
-		}
-
 		internal static MethodDefinition GetSetHelperMethod(PropertyDefinition property, TypeDefinition type)
 		{
 			var targetSetHelperMethodName = GetTargetSetHelperMethodName(property.SetMethod);
@@ -42,29 +23,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 		internal static string GetTargetSetHelperMethodName(MethodDefinition setMethod)
 		{
-			return _sb.Clear().Append(setMethod.Name).Append("WeaveBinding").ToString();
-		}
-
-		internal static (MethodDefinition, BindingInitializerSettings) GetBindingInitializer(TypeDefinition type)
-		{
-			MethodDefinition initializer = null;
-			BindingInitializerSettings settings = default;
-
-			foreach (var method in type.Methods)
-			{
-				var attribute = method.GetCustomAttribute<BindingInitializerAttribute>();
-				if (attribute != null)
-				{
-					initializer = method;
-					settings = GetBindingInitializerSettings(attribute);
-
-					break;
-				}
-			}
-
-			YeetIfNoBindingInitializer(initializer, type);
-
-			return (initializer, settings);
+			return $"{setMethod.Name}WeaveBinding";
 		}
 
 		internal static TypeDefinition GetReturnType(IMemberDefinition bindingTarget)
@@ -113,15 +72,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 		internal static string GetAccessorPropertyName(TypeDefinition sourceType)
 		{
 			return sourceType.FullName.Replace(".", "");
-		}
-
-		private static BindingInitializerSettings GetBindingInitializerSettings(CustomAttribute attribute)
-		{
-			var ctorArgs = attribute.ConstructorArguments;
-			return new BindingInitializerSettings
-			{
-				ThrowOnFailure = (bool) ctorArgs[0].Value
-			};
 		}
 	}
 }

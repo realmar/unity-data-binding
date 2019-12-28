@@ -1,5 +1,6 @@
 using Realmar.DataBindings.Editor.Commands;
-using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Weaving.Commands

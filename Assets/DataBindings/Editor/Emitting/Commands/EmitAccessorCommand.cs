@@ -4,7 +4,7 @@ using Realmar.DataBindings.Editor.Utils;
 using Realmar.DataBindings.Editor.Weaving.Commands;
 using System.Runtime.CompilerServices;
 using static Realmar.DataBindings.Editor.Emitting.EmitHelpers;
-using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
+using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 
 namespace Realmar.DataBindings.Editor.Emitting.Command
 {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using Realmar.DataBindings.Editor.TestFramework.Attributes;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox

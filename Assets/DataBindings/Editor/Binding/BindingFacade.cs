@@ -2,11 +2,12 @@ using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Extensions;
-using Realmar.DataBindings.Editor.Utils.Cecil;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;
+using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Utils;
+using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
 
 namespace Realmar.DataBindings.Editor.Binding
 {
@@ -44,9 +45,8 @@ namespace Realmar.DataBindings.Editor.Binding
 			};
 		}
 
-		// TODO consistent naming: weave vs bind vs emit
 		// TODO support multiple assemblies
-		public void WeaveAssembly(string assemblyPath, string outputPath = null)
+		public void CreateBindingsInAssembly(string assemblyPath, string outputPath = null)
 		{
 			ConfigureServiceLocator();
 
@@ -130,18 +130,6 @@ namespace Realmar.DataBindings.Editor.Binding
 			}
 
 			return targets.ToArray();
-		}
-
-		private static BindingSettings GetBindingSettings(CustomAttribute attribute)
-		{
-			var ctorArgs = attribute.ConstructorArguments;
-			return new BindingSettings
-			{
-				Type = (BindingType) ctorArgs[0].Value,
-				TargetId = (int) ctorArgs[1].Value,
-				TargetPropertyName = (string) ctorArgs[2].Value,
-				EmitNullCheck = (bool) ctorArgs[3].Value
-			};
 		}
 
 		private static BindingTarget[] FilterBindingsTargets(BindingSettings settings, BindingTarget[] targets)

@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using Mono.Cecil;
-using Realmar.DataBindings.Editor.Utils;
+using System.Collections.Generic;
 
-namespace Realmar.DataBindings.Editor.Extensions
+namespace Realmar.DataBindings.Editor.IoC
 {
 	internal static class ServiceLocatorExtensions
 	{

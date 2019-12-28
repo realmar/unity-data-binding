@@ -1,6 +1,8 @@
 using Mono.Cecil;
+using Realmar.DataBindings.Editor.Cecil;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 
-namespace Realmar.DataBindings.Editor.Extensions
+namespace Realmar.DataBindings.Editor.Emitting
 {
 	public static class EmitExtensions
 	{

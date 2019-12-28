@@ -29,7 +29,7 @@ namespace Realmar.DataBindings.Editor.EditorTools
 			var facade = new BindingFacade();
 
 			var stopwatch = Stopwatch.StartNew();
-			facade.WeaveAssembly(assemblyPath);
+			facade.CreateBindingsInAssembly(assemblyPath);
 			stopwatch.Stop();
 
 			AssetDatabase.Refresh();

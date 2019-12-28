@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
-namespace Realmar.DataBindings.Editor.Extensions
+namespace Realmar.DataBindings.Editor.Shared.Extensions
 {
 	internal static class ReflectionExtensions
 	{

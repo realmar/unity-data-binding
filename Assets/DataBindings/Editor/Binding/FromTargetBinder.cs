@@ -1,10 +1,12 @@
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using Realmar.DataBindings.Editor.Weaving;
 using Realmar.DataBindings.Editor.Weaving.Commands;
 using System.Linq;
-using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
+using Realmar.DataBindings.Editor.Cecil;
+using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
+using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 
 namespace Realmar.DataBindings.Editor.Binding
 {

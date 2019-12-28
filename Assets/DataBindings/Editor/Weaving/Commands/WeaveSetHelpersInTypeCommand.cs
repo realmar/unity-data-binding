@@ -1,7 +1,8 @@
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Commands;
-using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using System.Linq;
+using Realmar.DataBindings.Editor.Cecil;
 
 namespace Realmar.DataBindings.Editor.Weaving.Commands
 {

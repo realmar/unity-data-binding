@@ -1,5 +1,5 @@
 using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using System;
 using System.CodeDom.Compiler;
 using System.Linq;

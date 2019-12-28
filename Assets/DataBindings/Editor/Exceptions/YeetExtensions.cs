@@ -1,7 +1,6 @@
 using Mono.Cecil;
-using Realmar.DataBindings.Editor.Exceptions;
 
-namespace Realmar.DataBindings.Editor.Extensions
+namespace Realmar.DataBindings.Editor.Exceptions
 {
 	internal static class YeetExtensions
 	{

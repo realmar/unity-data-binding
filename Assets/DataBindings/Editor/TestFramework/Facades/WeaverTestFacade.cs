@@ -87,7 +87,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Facades
 		{
 			var facade = new BindingFacade(new BindingFacade.Options { WeaveDebugSymbols = false });
 			var weavedPath = CreateWeavedDllFQName(path);
-			facade.WeaveAssembly(path, weavedPath);
+			facade.CreateBindingsInAssembly(path, weavedPath);
 
 			return weavedPath;
 		}
