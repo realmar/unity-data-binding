@@ -23,5 +23,11 @@ namespace Realmar.DataBindings.Editor.EditorTools
 				.GetAssemblies()
 				.Where(assembly => _assembliesToBeWeaved.Contains(assembly.GetName().Name));
 		}
+
+		internal bool ShouldAssemblyBeWeaved(string assemblyPath)
+		{
+			// TODO proper solution see: https://github.com/modesttree/Zenject/blob/master/UnityProject/Assets/Plugins/Zenject/OptionalExtras/ReflectionBaking/Unity/ReflectionBakingBuildObserver.cs#L50
+			return _assembliesToBeWeaved.Find(name => assemblyPath.Contains($"{name}.dll")) != null;
+		}
 	}
 }
