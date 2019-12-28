@@ -22,13 +22,11 @@ namespace Realmar.DataBindings.Editor.TestFramework.Facades
 			_compiler?.Dispose();
 		}
 
+
 		internal string CompileAndWeave(Type testType, string testName)
 		{
 			YeetIfNull(testName, nameof(testName));
-
-			var @namespace = GetNamespaceForTest(testType, testName);
-			var code = GetCodeProvider(testType).FilterNamespace(@namespace);
-			var path = CompileAssembly(code);
+			var path = CompileAssembly(testType, testName);
 
 			return WeaveAssembly(path);
 		}
@@ -42,6 +40,16 @@ namespace Realmar.DataBindings.Editor.TestFramework.Facades
 		internal string GetNamespaceForTest(Type testType, string testName)
 		{
 			return $"{GetCodeProvider(testType).UUTNamespace}.{testType.Name}.{testName}";
+		}
+
+		internal string CompileAssembly(Type testType, string testName)
+		{
+			YeetIfNull(testName, nameof(testName));
+
+			var @namespace = GetNamespaceForTest(testType, testName);
+			var code = GetCodeProvider(testType).FilterNamespace(@namespace);
+
+			return CompileAssembly(code);
 		}
 
 		private string CompileAssembly(Type testType)

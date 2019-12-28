@@ -45,14 +45,26 @@ namespace Realmar.DataBindings.Editor.Weaving
 			return _sb.Clear().Append(setMethod.Name).Append("WeaveBinding").ToString();
 		}
 
-		internal static MethodDefinition GetBindingInitializer(TypeDefinition type)
+		internal static (MethodDefinition, BindingInitializerSettings) GetBindingInitializer(TypeDefinition type)
 		{
-			var initializer = type.Methods.FirstOrDefault(method =>
-				method.GetCustomAttribute<BindingInitializerAttribute>() != null);
+			MethodDefinition initializer = null;
+			BindingInitializerSettings settings = default;
+
+			foreach (var method in type.Methods)
+			{
+				var attribute = method.GetCustomAttribute<BindingInitializerAttribute>();
+				if (attribute != null)
+				{
+					initializer = method;
+					settings = GetBindingInitializerSettings(attribute);
+
+					break;
+				}
+			}
 
 			YeetIfNoBindingInitializer(initializer, type);
 
-			return initializer;
+			return (initializer, settings);
 		}
 
 		internal static TypeDefinition GetReturnType(IMemberDefinition bindingTarget)
@@ -101,6 +113,15 @@ namespace Realmar.DataBindings.Editor.Weaving
 		internal static string GetAccessorPropertyName(TypeDefinition sourceType)
 		{
 			return sourceType.FullName.Replace(".", "");
+		}
+
+		private static BindingInitializerSettings GetBindingInitializerSettings(CustomAttribute attribute)
+		{
+			var ctorArgs = attribute.ConstructorArguments;
+			return new BindingInitializerSettings
+			{
+				ThrowOnFailure = (bool) ctorArgs[0].Value
+			};
 		}
 	}
 }

@@ -84,9 +84,13 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 					.ToList();
 
 				ThrowIfMultipleMatches(runtimeTypes, bindingTargetAttribute, mappingId);
-				ThrowIfNoMatches(runtimeTypes, bindingTargetAttribute, mappingId);
 
-				var targetObject = Activator.CreateInstance(runtimeTypes[0]);
+				object targetObject = null;
+				if (runtimeTypes.Count > 0)
+				{
+					targetObject = Activator.CreateInstance(runtimeTypes[0]);
+				}
+
 				var targetBindingSymbols = sourceType.GetMembersWithAttributesInType(
 						new[] { typeof(BindingTargetAttribute), typeof(IdAttribute) },
 						attributes => ContainsMatchingTargetAndIdPair(attributes, bindingTargetAttribute, mappingId))
@@ -157,8 +161,14 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 				foreach (var bindingTargetSymbol in bindingTargetSymbols)
 				{
 					var targetObject = bindingTargetSymbol.GetFieldOrPropertyValue(sourceObject);
-					var targetSymbol = targetObject.GetType()
+					var targetSymbol = targetObject?.GetType()
 						.GetFieldOrPropertyInfo(bindingAttribute.TargetPropertyName ?? bindingSymbol.Name);
+
+					var doNotConfigure = bindingTargetSymbol.GetCustomAttribute<DoNotConfigureAttribute>();
+					if (doNotConfigure != null)
+					{
+						bindingTargetSymbol.SetFieldOrPropertyValue(sourceObject, null);
+					}
 
 					var arguments = new Binding.Arguments
 					{

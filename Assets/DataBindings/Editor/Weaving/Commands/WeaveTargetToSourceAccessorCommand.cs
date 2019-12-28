@@ -13,29 +13,25 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 		{
 		}
 
-		internal static ICommand Create(
-			TypeDefinition sourceType,
-			TypeDefinition targetType,
-			IMemberDefinition bindingTarget,
-			MethodDefinition bindingInitializer)
+		internal static ICommand Create(AccessorSymbolParameters parameters)
 		{
 			var command = new WeaveTargetToSourceAccessorCommand();
 			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
-			var accessorSymbol = GetAccessorProperty(sourceType, targetType);
+			var accessorSymbol = GetAccessorProperty(parameters.SourceType, parameters.TargetType);
 			var accessorSymbolMediator = new DataMediator<MethodDefinition>();
 
 			if (accessorSymbol == null)
 			{
 				// WEAVE ACCESSOR METHOD
-				command.AddChild(EmitAccessorCommand.Create(accessorSymbolMediator, targetType, sourceType, false));
-				if (targetType.IsInterface)
+				command.AddChild(EmitAccessorCommand.Create(accessorSymbolMediator, parameters.TargetType, parameters.SourceType, false));
+				if (parameters.TargetType.IsInterface)
 				{
-					var list = derivativeResolver.GetDirectlyDerivedTypes(targetType);
+					var list = derivativeResolver.GetDirectlyDerivedTypes(parameters.TargetType);
 					foreach (var derivedType in list)
 					{
-						if (GetAccessorProperty(sourceType, derivedType) == null)
+						if (GetAccessorProperty(parameters.SourceType, derivedType) == null)
 						{
-							command.AddChild(EmitAccessorCommand.Create(derivedType, sourceType, true));
+							command.AddChild(EmitAccessorCommand.Create(derivedType, parameters.SourceType, true));
 						}
 					}
 				}
@@ -45,13 +41,13 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 				accessorSymbolMediator.Data = accessorSymbol.SetMethod;
 			}
 
-			if (bindingInitializer.IsAbstract)
+			if (parameters.BindingInitializer.IsAbstract)
 			{
-				command.AddChild(WeaveAbstractAccessorInitializationCommand.Create(accessorSymbolMediator, bindingInitializer, bindingTarget));
+				command.AddChild(WeaveAbstractAccessorInitializationCommand.Create(accessorSymbolMediator, parameters));
 			}
 			else
 			{
-				command.AddChild(EmitAccessorInitializationCommand.Create(accessorSymbolMediator, bindingInitializer, bindingTarget));
+				command.AddChild(EmitAccessorInitializationCommand.Create(accessorSymbolMediator, parameters.BindingInitializer, parameters.BindingTarget, parameters.Settings.ThrowOnFailure));
 			}
 
 			return command;

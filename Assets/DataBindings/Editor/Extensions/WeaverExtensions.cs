@@ -205,24 +205,6 @@ namespace Realmar.DataBindings.Editor.Extensions
 
 			return (Attribute) instance;
 		}
-
-		internal static MethodDefinition GetInEqualityOperator(this TypeDefinition type)
-		{
-			var op = type.GetMethod("op_Inequality");
-			if (op == null)
-			{
-				return type.BaseType?.Resolve().GetInEqualityOperator();
-			}
-
-			return op;
-		}
-
-		internal static bool HasInEqualityOperator(this TypeDefinition type)
-		{
-			return type.GetInEqualityOperator() != null;
-		}
-
-
 		internal static ModuleDefinition GetModule(this IMemberDefinition member)
 		{
 			switch (member)

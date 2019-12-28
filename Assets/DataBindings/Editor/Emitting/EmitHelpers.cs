@@ -76,6 +76,26 @@ namespace Realmar.DataBindings.Editor.Emitting
 			return found;
 		}
 
+		internal static void AppendInstructionsToMethod(MethodDefinition method, List<Instruction> instructions)
+		{
+			var methodBody = method.Body;
+			var ilProcessor = methodBody.GetILProcessor();
+			var methodInstructions = methodBody.Instructions;
+			var lastInstruction = methodInstructions[methodInstructions.Count - 1];
+			var referencingLast = GetInstructionsReferencing(lastInstruction, methodInstructions);
+			var firstInjected = instructions[0];
+
+			foreach (var instruction in instructions)
+			{
+				ilProcessor.InsertBefore(lastInstruction, instruction);
+			}
+
+			foreach (var instruction in referencingLast)
+			{
+				instruction.Operand = firstInjected;
+			}
+		}
+
 		internal static string GetBackingFieldName(string normalName) => $"\u003C{normalName}\u003Ek__BackingField";
 		internal static string GetGetterName(string normalName) => $"get_{normalName}";
 		internal static string GetSetterName(string normalName) => $"set_{normalName}";

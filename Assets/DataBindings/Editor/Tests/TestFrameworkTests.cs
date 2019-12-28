@@ -92,6 +92,28 @@ namespace Realmar.DataBindings.Editor.Tests
 			}
 		}
 
+		[Test]
+		public void Verify_BindingTargetNotConfigured()
+		{
+			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull), _testType);
+			var bindingSet = sandbox.BindingSets.First();
+			var binding = bindingSet.Bindings.First();
+			var btValue = binding.Source.ReflectValue("BindingTarget");
+
+			Assert.That(btValue, Is.Null);
+		}
+
+		[Test]
+		public void Verify_NoClassesMarkedAsTargets()
+		{
+			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull), _testType);
+			var bindingSet = sandbox.BindingSets.First();
+			var binding = bindingSet.Bindings.First();
+			var btValue = binding.Source.ReflectValue("BindingTarget");
+
+			Assert.That(btValue, Is.Null);
+		}
+
 		private static void AssertDifferentBindingTargetObjects(IEnumerable<IBinding> bindings)
 		{
 			var targets = new HashSet<int>();

@@ -19,14 +19,21 @@ namespace Realmar.DataBindings.Editor.Binding
 				var targetType = GetReturnType(bindingTarget);
 				var targetProperty = targetType.GetPropertiesInBaseHierarchy(targetPropertyName).FirstOrDefault();
 				var sourceType = sourceProperty.DeclaringType;
-				var bindingInitializer = GetBindingInitializer(sourceType);
+				var (bindingInitializer, bindingInitializerSettings) = GetBindingInitializer(sourceType);
 
 				if (targetProperty == null)
 				{
 					throw new MissingTargetPropertyException(sourceType.FullName, targetPropertyName);
 				}
 
-				var accessorCommand = WeaveTargetToSourceAccessorCommand.Create(sourceType, targetProperty.DeclaringType, bindingTarget, bindingInitializer);
+				var accessorCommand = WeaveTargetToSourceAccessorCommand.Create(new AccessorSymbolParameters
+				{
+					SourceType = sourceType,
+					TargetType = targetProperty.DeclaringType,
+					BindingTarget = bindingTarget,
+					BindingInitializer = bindingInitializer,
+					Settings = bindingInitializerSettings
+				});
 				accessorCommand.Execute();
 
 				var accessorProperty = GetAccessorProperty(sourceProperty.DeclaringType, targetProperty.DeclaringType);

@@ -485,3 +485,67 @@ namespace UnitsUnderTest.Positive_E2E_VirtualTests.TwoWay_PropertyToManyOverride
 		public override string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_VirtualTests.TwoWay_OverrideToOverride_PrivateBindingInitializer
+{
+	[Source, CompileTimeType]
+	internal class BaseSource
+	{
+		[BindingTarget, Id(1)] public BaseTarget BindingTarget { get; set; }
+		[Binding(BindingType.TwoWay)] public virtual string Text { get; set; }
+
+		[BindingInitializer]
+		private void InitializeBindings()
+		{
+		}
+	}
+
+	[Source, RunTimeType]
+	internal class Source : BaseSource
+	{
+		public override string Text { get; set; }
+	}
+
+	internal class BaseTarget
+	{
+		public virtual string Text { get; set; }
+	}
+
+	[Target, Id(1)]
+	internal class Target : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_VirtualTests.TwoWay_OverrideBindingInitializer_WithBaseCall
+{
+	[Source, CompileTimeType]
+	internal class BaseSource
+	{
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+		[Binding(BindingType.TwoWay)] public virtual string Text { get; set; }
+
+		[BindingInitializer]
+		protected virtual void InitializeBindings()
+		{
+		}
+	}
+
+	[Source, RunTimeType]
+	internal class Source : BaseSource
+	{
+		public override string Text { get; set; }
+
+		protected override void InitializeBindings()
+		{
+			base.InitializeBindings();
+		}
+	}
+
+	[Target, Id(1)]
+	internal class Target
+	{
+		public string Text { get; set; }
+	}
+}

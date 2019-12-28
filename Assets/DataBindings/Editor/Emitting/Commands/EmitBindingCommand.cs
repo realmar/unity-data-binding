@@ -1,23 +1,24 @@
-using System.Collections.Generic;
-using System.Linq;
-using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Realmar.DataBindings.Editor.Commands;
 using Realmar.DataBindings.Editor.Extensions;
+using Realmar.DataBindings.Editor.Utils;
 using Realmar.DataBindings.Editor.Weaving;
 using Realmar.DataBindings.Editor.Weaving.Commands;
-using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
+using System.Collections.Generic;
+using System.Linq;
 using static Realmar.DataBindings.Editor.Emitting.EmitHelpers;
+using static Realmar.DataBindings.Editor.Weaving.WeaverHelpers;
 
 namespace Realmar.DataBindings.Editor.Emitting.Command
 {
 	internal class EmitBindingCommand : BaseCommand
 	{
 		private WeaveParameters _parameters;
+		private DataMediator<List<Instruction>> _instructions;
+		private DataMediator<Instruction> _skipBranch;
 
-		private EmitBindingCommand(WeaveParameters parameters)
+		private EmitBindingCommand()
 		{
-			_parameters = parameters;
 		}
 
 		public override void Execute()
@@ -26,14 +27,12 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			var fromGetMethod = _parameters.FromProperty.GetGetMethodOrYeet();
 			var fromSetMethod = _parameters.FromProperty.GetSetMethodOrYeet();
 			var toSetMethod = GetSetHelperMethod(_parameters.ToProperty, _parameters.ToType);
-			var emitNullCheck = _parameters.EmitNullCheck;
-
 			var methodBody = fromSetMethod.Body;
-			var ilProcessor = methodBody.GetILProcessor();
-			var instructions = methodBody.Instructions;
-			var lastInstruction = instructions.Last();
+			var lastInstruction = methodBody.Instructions.Last();
+			var referencingLast = GetInstructionsReferencing(lastInstruction, methodBody.Instructions);
 
-			var referencingLast = GetInstructionsReferencing(lastInstruction, instructions);
+			_skipBranch.Data = lastInstruction;
+			ExecuteNext();
 
 			// IL_0007: ldarg.0      // this
 			// IL_0008: call instance class Realmar.UnityMVVM.Example.ExampleView Realmar.UnityMVVM.Example.ExampleViewModel::get_View()
@@ -41,75 +40,38 @@ namespace Realmar.DataBindings.Editor.Emitting.Command
 			// IL_000e: call instance int32 Realmar.UnityMVVM.Example.ExampleViewModel::get_Value3()
 			// IL_0013: call instance void Realmar.UnityMVVM.Example.ExampleView::set_Value3(int32)
 
-			var il1 = Instruction.Create(OpCodes.Ldarg_0);
-			var il2 = GetLoadFromFieldOrCallableInstruction(bindingTarget);
-			var il3 = Instruction.Create(OpCodes.Ldarg_0);
-			var il4 = Instruction.Create(GetCallInstruction(fromGetMethod), fromGetMethod);
-			var il5 = Instruction.Create(GetCallInstruction(toSetMethod), toSetMethod);
+			_instructions.Data.Add(Instruction.Create(OpCodes.Ldarg_0));
+			_instructions.Data.Add(GetLoadFromFieldOrCallableInstruction(bindingTarget));
+			_instructions.Data.Add(Instruction.Create(OpCodes.Ldarg_0));
+			_instructions.Data.Add(Instruction.Create(GetCallInstruction(fromGetMethod), fromGetMethod));
+			_instructions.Data.Add(Instruction.Create(GetCallInstruction(toSetMethod), toSetMethod));
 
-			Instruction firstInjected;
-
-			if (emitNullCheck)
-			{
-				var nullCheckInstructions = EmitNullCheckInstructions(bindingTarget, lastInstruction);
-				var last = nullCheckInstructions[0];
-				firstInjected = last;
-				ilProcessor.InsertBefore(lastInstruction, last);
-				for (var i = 1; i < nullCheckInstructions.Count; i++)
-				{
-					var inst = nullCheckInstructions[i];
-					ilProcessor.InsertAfter(last, inst);
-					last = inst;
-				}
-
-				ilProcessor.InsertAfter(last, il1);
-			}
-			else
-			{
-				firstInjected = il1;
-				ilProcessor.InsertBefore(lastInstruction, il1);
-			}
-
-			ilProcessor.InsertAfter(il1, il2);
-			ilProcessor.InsertAfter(il2, il3);
-			ilProcessor.InsertAfter(il3, il4);
-			ilProcessor.InsertAfter(il4, il5);
+			AppendInstructionsToMethod(fromSetMethod, _instructions.Data);
 
 			foreach (var instruction in referencingLast)
 			{
-				instruction.Operand = firstInjected;
+				instruction.Operand = _instructions.Data;
 			}
-		}
-
-		private List<Instruction> EmitNullCheckInstructions(IMemberDefinition toBeChecked, Instruction isNullBranch)
-		{
-			var instructions = new List<Instruction>();
-
-			instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-			instructions.Add(GetLoadFromFieldOrCallableInstruction(toBeChecked));
-			instructions.Add(Instruction.Create(OpCodes.Ldnull));
-
-			var returnType = GetReturnType(toBeChecked);
-			var op = returnType.GetInEqualityOperator();
-
-			if (op != null)
-			{
-				var opReference = toBeChecked.DeclaringType.Module.ImportReference(op);
-				instructions.Add(Instruction.Create(OpCodes.Call, opReference));
-			}
-			else
-			{
-				instructions.Add(Instruction.Create(OpCodes.Cgt_Un));
-			}
-
-			instructions.Add(Instruction.Create(OpCodes.Brfalse_S, isNullBranch));
-
-			return instructions;
 		}
 
 		internal static ICommand Create(WeaveParameters parameters)
 		{
-			return new EmitBindingCommand(parameters);
+			var skipBranch = new DataMediator<Instruction>();
+			var instructions = new DataMediator<List<Instruction>> { Data = new List<Instruction>() };
+
+			var command = new EmitBindingCommand
+			{
+				_parameters = parameters,
+				_instructions = instructions,
+				_skipBranch = skipBranch
+			};
+
+			if (parameters.EmitNullCheck)
+			{
+				command.AddChild(EmitJumpToIfNullCommand.Create(instructions, parameters.BindingTarget, skipBranch));
+			}
+
+			return command;
 		}
 	}
 }

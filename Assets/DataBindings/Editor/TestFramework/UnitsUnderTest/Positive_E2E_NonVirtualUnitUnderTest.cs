@@ -210,90 +210,267 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_ManyToMany
 	}
 }
 
-/* namespace UnitsUnderTest.Positive_NonVirtualTests.TESTI
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_PrivateBindingInitializer
 {
-	// this will be used as SourceType (compile time type) for all set and get against source
-	// there is every only once source in a conceptional binding (but not in reality
-	// however, this doesn't matter here because we would think of it as a new independent set of bindings)
-	[Source, CompileTimeType]
-	public interface ISource
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
 	{
-		// the testframework requires BindingTargets to have setters, however this is not a requirement
-		// of the data binding framework
-		[BindingTarget, Id(11)] ITarget BT1_1 { get; set; }
-		[BindingTarget, Id(12)] ITarget BT1_2 { get; set; }
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
 
-		[BindingTarget(id: 2), Id(21)] Target BT2_1 { get; set; }
+		[Binding(BindingType.OneWayFromTarget)]
+		public string Text { get; set; }
 
-		// bindings need setters
-		[Binding] string Text1_1 { get; set; }
-		[Binding(targetId: 2)] string Text2_1 { get; set; }
-		[Binding(targetId: 2)] string Text2_2 { get; set; }
+		[BindingInitializer]
+		private void InitializeBindings()
+		{
+		}
 	}
 
-	public interface ITarget
+	[Target, Id(1)]
+	internal class Target
 	{
-		string Text1_1 { get; }
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNotNull
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+		[Binding(emitNullCheck: true)] public string Text { get; set; }
 	}
 
-	[Source, RunTimeType]
-	public class Source1 : ISource
+	[Target, Id(1)]
+	internal class Target
 	{
-		public ITarget BT1_1 { get; set; }
-		public ITarget BT1_2 { get; set; }
-		public Target BT2_1 { get; set; }
-		public string Text1_1 { get; set; }
-		public string Text2_1 { get; set; }
-		public string Text2_2 { get; set; }
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+		[Binding(emitNullCheck: true)] public string Text { get; set; }
 	}
 
-	[Source, RunTimeType]
-	public class Source2 : ISource
+	internal class Target
 	{
-		public ITarget BT1_1 { get; set; }
-		public ITarget BT1_2 { get; set; }
-		public Target BT2_1 { get; set; }
-		public string Text1_1 { get; set; }
-		public string Text2_1 { get; set; }
-		public string Text2_2 { get; set; }
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_Throw_TargetNotNull
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneWayFromTarget, emitNullCheck: true)]
+		public string Text { get; set; }
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
 	}
 
-	public abstract class BaseSource : ISource
+	[Target, Id(1)]
+	internal class Target
 	{
-		public ITarget BT1_1 { get; set; }
-		public ITarget BT1_2 { get; set; }
-		public Target BT2_1 { get; set; }
-		public string Text1_1 { get; set; }
-		public string Text2_1 { get; set; }
-		public string Text2_2 { get; set; }
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1), DoNotConfigure] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneWayFromTarget, emitNullCheck: true)]
+		public string Text { get; set; }
+
+		[BindingInitializer(throwOnFailure: false)]
+		public void InitializeBindings()
+		{
+		}
 	}
 
-	public abstract class BaseTarget : ITarget
+	[Target, Id(1)]
+	internal class Target
 	{
-		public string Text1_1 { get; }
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1), DoNotConfigure] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneWayFromTarget, emitNullCheck: true)]
+		public string Text { get; set; }
+
+
+		private int _sample;
+
+		[BindingInitializer(throwOnFailure: false)]
+		public void InitializeBindings()
+		{
+			_sample = 42;
+		}
 	}
 
-	public class Source : BaseSource
+	[Target, Id(1)]
+	internal class Target
 	{
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted_Branching
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1), DoNotConfigure] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneWayFromTarget, emitNullCheck: true)]
+		public string Text { get; set; }
+
+
+		private int _sample;
+		private int _result;
+
+		[BindingInitializer(throwOnFailure: false)]
+		public void InitializeBindings()
+		{
+			if (_sample < 0)
+			{
+				_result = 1;
+			}
+			else if (_sample == 0)
+			{
+				_result = 2;
+			}
+			else
+			{
+				_result = 3;
+			}
+		}
 	}
 
-	[Target, Id(11)]
-	[Target(Id = 2), Id(21)]
-	public class Target : BaseTarget
+	[Target, Id(1)]
+	internal class Target
 	{
-		public string Text2_1 { get; }
-		public string Text2_2 { get; }
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_Throw_TargetNull_VerifyCustomCodeExecuted
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneWayFromTarget, emitNullCheck: true)]
+		public string Text { get; set; }
+
+
+		private int _sample;
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+			_sample = 42;
+		}
 	}
 
-	// create an instance of this type for the source compile time type
-	[Source, RunTimeType]
-	public class DerivedSource : Source
+	internal class Target
 	{
+		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_Binding_NullCheck_CustomLogicExecuted
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		private int _sample;
+		private string _text;
+
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+
+		[Binding(emitNullCheck: true)]
+		public string Text
+		{
+			get => _text;
+			set
+			{
+				_text = value;
+				_sample = 42;
+			}
+		}
 	}
 
-	// create instance of this type for BindingTarget with id = 1
-	[Target, Id(12)]
-	public class DerivedTarget : Target
+	internal class Target
 	{
+		public string Text { get; set; }
 	}
-} */
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_Binding_CustomLogicExecuted
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		private int _sample;
+		private string _text;
+
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+
+		[Binding(emitNullCheck: true)]
+		public string Text
+		{
+			get => _text;
+			set
+			{
+				_text = value;
+				_sample = 42;
+			}
+		}
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target, Id(1)]
+	internal class Target
+	{
+		private int _sample;
+		private string _text;
+
+		public string Text
+		{
+			get => _text;
+			set
+			{
+				_text = value;
+				_sample = 69;
+			}
+		}
+	}
+}

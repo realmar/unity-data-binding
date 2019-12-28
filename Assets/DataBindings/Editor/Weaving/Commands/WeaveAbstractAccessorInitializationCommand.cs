@@ -18,27 +18,25 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 		{
 			internal TypeDefinition DerivedType;
 			internal DataMediator<MethodDefinition> AccessorSymbolMediator;
-			internal string BindingInitializerName;
-			internal IMemberDefinition BindingTarget;
+			internal AccessorSymbolParameters AccessorSymbolParameters;
 		}
 
-		internal static ICommand Create(DataMediator<MethodDefinition> accessorSymbolMediator, MethodDefinition bindingInitializer, IMemberDefinition bindingTarget)
+		internal static ICommand Create(DataMediator<MethodDefinition> accessorSymbolMediator, AccessorSymbolParameters accessorSymbolParameters)
 		{
 			var command = new WeaveAbstractAccessorInitializationCommand();
-			var originType = bindingInitializer.DeclaringType;
+			var originType = accessorSymbolParameters.BindingInitializer.DeclaringType;
 
 			var parameters = new WeaveInTypeParameters
 			{
 				DerivedType = originType,
 				AccessorSymbolMediator = accessorSymbolMediator,
-				BindingInitializerName = bindingInitializer.Name,
-				BindingTarget = bindingTarget
+				AccessorSymbolParameters = accessorSymbolParameters
 			};
 			var found = WeaveInType(command, parameters);
 
 			if (found == false)
 			{
-				throw new MissingNonAbstractBindingInitializer(bindingInitializer.FullName);
+				throw new MissingNonAbstractBindingInitializer(accessorSymbolParameters.BindingInitializer.FullName);
 			}
 
 			return command;
@@ -46,14 +44,14 @@ namespace Realmar.DataBindings.Editor.Weaving.Commands
 
 		private static bool WeaveInType(WeaveAbstractAccessorInitializationCommand command, WeaveInTypeParameters parameters)
 		{
-			var initializer = parameters.DerivedType.GetMethod(parameters.BindingInitializerName);
+			var initializer = parameters.DerivedType.GetMethod(parameters.AccessorSymbolParameters.BindingInitializer.Name);
 			var found = false;
 
 			if (initializer != null)
 			{
 				if (initializer.IsAbstract == false)
 				{
-					command.AddChild(EmitAccessorInitializationCommand.Create(parameters.AccessorSymbolMediator, initializer, parameters.BindingTarget));
+					command.AddChild(EmitAccessorInitializationCommand.Create(parameters.AccessorSymbolMediator, initializer, parameters.AccessorSymbolParameters.BindingTarget, parameters.AccessorSymbolParameters.Settings.ThrowOnFailure));
 					found = true;
 				}
 				else
