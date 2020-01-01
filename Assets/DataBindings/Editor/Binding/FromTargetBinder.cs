@@ -1,10 +1,9 @@
 using Mono.Cecil;
-using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Shared.Extensions;
-using Realmar.DataBindings.Editor.Weaving;
-using Realmar.DataBindings.Editor.Weaving.Commands;
-using System.Linq;
 using Realmar.DataBindings.Editor.Cecil;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.IoC;
+using Realmar.DataBindings.Editor.Weaving;
+using System.Linq;
 using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 
@@ -12,6 +11,8 @@ namespace Realmar.DataBindings.Editor.Binding
 {
 	internal class FromTargetBinder : IBinder
 	{
+		private readonly Weaver _weaver = ServiceLocator.Current.Resolve<Weaver>();
+
 		public void Bind(PropertyDefinition sourceProperty, BindingSettings settings, BindingTarget[] targets)
 		{
 			foreach (var target in targets)
@@ -28,7 +29,7 @@ namespace Realmar.DataBindings.Editor.Binding
 					throw new MissingTargetPropertyException(sourceType.FullName, targetPropertyName);
 				}
 
-				var accessorCommand = WeaveTargetToSourceAccessorCommand.Create(new AccessorSymbolParameters
+				var accessorProperty = _weaver.WeaveTargetToSourceAccessorCommand(new AccessorSymbolParameters
 				{
 					SourceType = sourceType,
 					TargetType = targetProperty.DeclaringType,
@@ -36,10 +37,8 @@ namespace Realmar.DataBindings.Editor.Binding
 					BindingInitializer = bindingInitializer,
 					Settings = bindingInitializerSettings
 				});
-				accessorCommand.Execute();
 
-				var accessorProperty = GetAccessorProperty(sourceProperty.DeclaringType, targetProperty.DeclaringType);
-				var weaveCommand = WeaveBindingRootCommand.Create(
+				_weaver.Weave(
 					new WeaveParameters
 					{
 						FromProperty = targetProperty,
@@ -48,8 +47,6 @@ namespace Realmar.DataBindings.Editor.Binding
 						BindingTarget = accessorProperty.GetMethod,
 						EmitNullCheck = settings.EmitNullCheck
 					});
-
-				weaveCommand.Execute();
 			}
 		}
 	}

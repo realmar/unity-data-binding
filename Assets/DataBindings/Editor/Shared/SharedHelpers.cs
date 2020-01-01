@@ -1,9 +1,8 @@
-using System;
-using System.Linq;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Shared.Extensions;
+using System;
+using System.Linq;
 
 namespace Realmar.DataBindings.Editor.Shared
 {
@@ -44,6 +43,12 @@ namespace Realmar.DataBindings.Editor.Shared
 		}
 
 		internal static PropertyDefinition GetAccessorProperty(TypeDefinition sourceType, TypeDefinition targetType)
+		{
+			var injectedSourceName = GetAccessorPropertyName(sourceType);
+			return targetType.GetProperty(injectedSourceName);
+		}
+
+		internal static PropertyDefinition GetAccessorPropertyInHierarchy(TypeDefinition sourceType, TypeDefinition targetType)
 		{
 			var injectedSourceName = GetAccessorPropertyName(sourceType);
 			var accessorInterface = targetType.GetInInterfaces(injectedSourceName, definition => definition.Properties).FirstOrDefault();

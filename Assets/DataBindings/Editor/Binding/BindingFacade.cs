@@ -1,12 +1,12 @@
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Realmar.DataBindings.Editor.Cecil;
+using Realmar.DataBindings.Editor.Emitting;
 using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Shared.Extensions;
+using Realmar.DataBindings.Editor.IoC;
+using Realmar.DataBindings.Editor.Weaving;
 using System.Collections.Generic;
 using System.Linq;
-using Realmar.DataBindings.Editor.IoC;
-using Realmar.DataBindings.Editor.Utils;
 using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
 
 namespace Realmar.DataBindings.Editor.Binding
@@ -31,6 +31,8 @@ namespace Realmar.DataBindings.Editor.Binding
 
 		public BindingFacade(Options options)
 		{
+			ConfigureServiceLocator();
+
 			var oneWayBinder = new OneWayBinder();
 			var fromTargetBinder = new FromTargetBinder();
 			var twoWayBinder = new TwoWayBinder(oneWayBinder, fromTargetBinder);
@@ -48,8 +50,6 @@ namespace Realmar.DataBindings.Editor.Binding
 		// TODO support multiple assemblies
 		public void CreateBindingsInAssembly(string assemblyPath, string outputPath = null)
 		{
-			ConfigureServiceLocator();
-
 			using (var assemblyResolver = new UnityAssemblyResolver())
 			{
 				var metadataResolver = new CachedMetadataResolver(assemblyResolver);
@@ -142,9 +142,9 @@ namespace Realmar.DataBindings.Editor.Binding
 			ServiceLocator.Reset();
 			var locator = ServiceLocator.Current;
 
+			locator.RegisterType<Weaver>(ServiceLifetime.Singleton);
+			locator.RegisterType<Emitter>();
 			locator.RegisterType<DerivativeResolver>(ServiceLifetime.Singleton);
-			locator.RegisterWovenSetHelpers();
-			locator.RegisterWovenBindings();
 		}
 	}
 }

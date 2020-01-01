@@ -1,6 +1,6 @@
 using Mono.Cecil;
+using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Weaving;
-using Realmar.DataBindings.Editor.Weaving.Commands;
 using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 
@@ -8,6 +8,8 @@ namespace Realmar.DataBindings.Editor.Binding
 {
 	internal class OneWayBinder : IBinder
 	{
+		private readonly Weaver _weaver = ServiceLocator.Current.Resolve<Weaver>();
+
 		public void Bind(PropertyDefinition sourceProperty, BindingSettings settings, BindingTarget[] targets)
 		{
 			foreach (var bindingTarget in targets)
@@ -17,7 +19,7 @@ namespace Realmar.DataBindings.Editor.Binding
 				var targetType = GetReturnType(bindingTargetProperty);
 				var targetProperty = GetTargetProperty(sourceProperty, targetType, settings.TargetPropertyName);
 
-				var command = WeaveBindingRootCommand.Create(
+				_weaver.Weave(
 					new WeaveParameters
 					{
 						FromProperty = sourceProperty,
@@ -26,7 +28,6 @@ namespace Realmar.DataBindings.Editor.Binding
 						BindingTarget = bindingTarget.Source,
 						EmitNullCheck = settings.EmitNullCheck
 					});
-				command.Execute();
 			}
 		}
 	}
