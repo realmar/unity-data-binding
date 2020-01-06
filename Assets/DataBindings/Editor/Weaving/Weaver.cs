@@ -6,6 +6,7 @@ using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 using static Realmar.DataBindings.Editor.Weaving.WeaveHelpers;
@@ -18,7 +19,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 		private readonly HashSet<int> _wovenBindings = new HashSet<int>();
 		private readonly Emitter _emitter = ServiceLocator.Current.Resolve<Emitter>();
 
-		internal void Weave(WeaveParameters parameters)
+		internal void Weave(in WeaveParameters parameters)
 		{
 			var fromPropertyDeclaringType = parameters.FromProperty.DeclaringType;
 			YeetIfInaccessible(parameters.ToProperty.SetMethod, fromPropertyDeclaringType);
@@ -131,18 +132,27 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
-		private void WeaveNonAbstractBinding(WeaveParameters parameters)
+		private void WeaveNonAbstractBinding(in WeaveParameters parameters)
 		{
 			var hash = GetBindingHashCode(parameters);
 
 			if (_wovenBindings.Contains(hash) == false)
 			{
 				_wovenBindings.Add(hash);
-				_emitter.EmitBinding(parameters);
+				_emitter.EmitBinding(EmitParameters.FromWeaveParameters(parameters));
+
+				//var setHelperMethod = GetSetHelperMethod(parameters.FromProperty, parameters.FromProperty.DeclaringType);
+				//_emitter.EmitBinding(
+				//	new EmitParameters(
+				//		parameters.BindingTarget,
+				//		parameters.FromProperty.GetGetMethodOrYeet(),
+				//		setHelperMethod,
+				//		GetSetHelperMethod(parameters.ToProperty, parameters.ToType),
+				//		parameters.EmitNullCheck));
 			}
 		}
 
-		private void WeaveBindingInHierarchy(WeaveParameters parameters)
+		private void WeaveBindingInHierarchy(in WeaveParameters parameters)
 		{
 			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
 
@@ -156,11 +166,14 @@ namespace Realmar.DataBindings.Editor.Weaving
 				var property = typeDefinition.GetProperty(fromPropertyName);
 				if (property != null && property.GetSetMethodOrYeet().IsAbstract == false)
 				{
-					WeaveNonAbstractBinding(new WeaveParameters(parameters)
-					{
-						FromProperty = property
-					});
+					var newParameters = new WeaveParameters(
+						fromProperty: property,
+						toType: parameters.ToType,
+						toProperty: parameters.ToProperty,
+						bindingTarget: parameters.BindingTarget,
+						emitNullCheck: parameters.EmitNullCheck);
 
+					WeaveNonAbstractBinding(newParameters);
 					foundNonAbstract = true;
 				}
 			}

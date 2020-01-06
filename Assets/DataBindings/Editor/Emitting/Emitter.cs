@@ -1,8 +1,6 @@
-using System;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Weaving;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -214,18 +212,13 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		#region Binding
 
-		internal void EmitBinding(WeaveParameters parameters)
+		internal void EmitBinding(in EmitParameters parameters)
 		{
-			var bindingTarget = parameters.BindingTarget;
-			var fromGetMethod = parameters.FromProperty.GetGetMethodOrYeet();
-			var fromSetMethod = parameters.FromProperty.GetSetMethodOrYeet();
-			var toSetMethod = GetSetHelperMethod(parameters.ToProperty, parameters.ToType);
-
-			var appender = new MethodAppender(fromSetMethod);
+			var appender = new MethodAppender(parameters.FromSetter);
 
 			if (parameters.EmitNullCheck)
 			{
-				EmitJumpToIfNull(appender, parameters.BindingTarget, GetLastInstruction(fromSetMethod));
+				EmitJumpToIfNull(appender, parameters.BindingTarget, GetLastInstruction(parameters.FromSetter));
 			}
 
 			// IL_0007: ldarg.0      // this
@@ -235,10 +228,10 @@ namespace Realmar.DataBindings.Editor.Emitting
 			// IL_0013: call instance void Realmar.UnityMVVM.Example.ExampleView::set_Value3(int32)
 
 			appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(bindingTarget));
+			appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(parameters.BindingTarget));
 			appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			appender.AddInstruction(Instruction.Create(GetCallInstruction(fromGetMethod), fromGetMethod));
-			appender.AddInstruction(Instruction.Create(GetCallInstruction(toSetMethod), toSetMethod));
+			appender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.FromGetter), parameters.FromGetter));
+			appender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.ToSetter), parameters.ToSetter));
 
 			appender.Emit();
 		}

@@ -4,7 +4,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 {
 	internal static class WeaveHelpers
 	{
-		internal static int GetBindingHashCode(WeaveParameters parameters)
+		internal static int GetBindingHashCode(in WeaveParameters parameters)
 		{
 			return HashCode.Combine(parameters.FromProperty, parameters.ToProperty, parameters.BindingTarget);
 		}

@@ -40,13 +40,13 @@ namespace Realmar.DataBindings.Editor.Binding
 
 				_weaver.Weave(
 					new WeaveParameters
-					{
-						FromProperty = targetProperty,
-						ToType = sourceProperty.DeclaringType,
-						ToProperty = sourceProperty,
-						BindingTarget = accessorProperty.GetMethod,
-						EmitNullCheck = settings.EmitNullCheck
-					});
+					(
+						fromProperty: targetProperty,
+						toType: sourceProperty.DeclaringType,
+						toProperty: sourceProperty,
+						bindingTarget: accessorProperty.GetMethod,
+						emitNullCheck: settings.EmitNullCheck
+					));
 			}
 		}
 	}

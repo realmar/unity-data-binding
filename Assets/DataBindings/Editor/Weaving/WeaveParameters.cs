@@ -1,30 +1,23 @@
-using System.Diagnostics;
 using Mono.Cecil;
 
 namespace Realmar.DataBindings.Editor.Weaving
 {
-	[DebuggerStepThrough]
-	internal class WeaveParameters
+	internal readonly struct WeaveParameters
 	{
-		internal PropertyDefinition FromProperty { [DebuggerStepThrough] get; [DebuggerStepThrough] set; }
-		internal TypeDefinition ToType { [DebuggerStepThrough] get; [DebuggerStepThrough] set; }
-		internal PropertyDefinition ToProperty { [DebuggerStepThrough] get; [DebuggerStepThrough] set; }
-		internal IMemberDefinition BindingTarget { [DebuggerStepThrough] get; [DebuggerStepThrough] set; }
-		internal bool EmitNullCheck { [DebuggerStepThrough] get; [DebuggerStepThrough] set; }
+		internal PropertyDefinition FromProperty { get; }
 
-		[DebuggerStepThrough]
-		internal WeaveParameters()
-		{
-		}
+		internal TypeDefinition ToType { get; }
+		internal PropertyDefinition ToProperty { get; }
+		internal IMemberDefinition BindingTarget { get; }
+		internal bool EmitNullCheck { get; }
 
-		[DebuggerStepThrough]
-		internal WeaveParameters(WeaveParameters parameters)
+		public WeaveParameters(PropertyDefinition fromProperty, TypeDefinition toType, PropertyDefinition toProperty, IMemberDefinition bindingTarget, bool emitNullCheck)
 		{
-			FromProperty = parameters.FromProperty;
-			ToType = parameters.ToType;
-			ToProperty = parameters.ToProperty;
-			BindingTarget = parameters.BindingTarget;
-			EmitNullCheck = parameters.EmitNullCheck;
+			FromProperty = fromProperty;
+			ToType = toType;
+			ToProperty = toProperty;
+			BindingTarget = bindingTarget;
+			EmitNullCheck = emitNullCheck;
 		}
 	}
 }
