@@ -217,7 +217,7 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_PrivateBindingIniti
 	{
 		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
 
-		[Binding(BindingType.OneWayFromTarget)]
+		[Binding(BindingType.TwoWay)]
 		public string Text { get; set; }
 
 		[BindingInitializer]
@@ -440,7 +440,7 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_Binding_CustomLogic
 
 		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
 
-		[Binding(emitNullCheck: true)]
+		[Binding(BindingType.TwoWay, emitNullCheck: true)]
 		public string Text
 		{
 			get => _text;
