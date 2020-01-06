@@ -6,7 +6,6 @@ using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 using static Realmar.DataBindings.Editor.Weaving.WeaveHelpers;
@@ -18,6 +17,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 		private readonly HashSet<MethodDefinition> _wovenSetHelpers = new HashSet<MethodDefinition>();
 		private readonly HashSet<int> _wovenBindings = new HashSet<int>();
 		private readonly Emitter _emitter = ServiceLocator.Current.Resolve<Emitter>();
+		private readonly DerivativeResolver _derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
 
 		internal void Weave(in WeaveParameters parameters)
 		{
@@ -39,7 +39,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 		internal PropertyDefinition WeaveTargetToSourceAccessorCommand(AccessorSymbolParameters parameters)
 		{
-			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
 			var accessorSymbol = GetAccessorPropertyInHierarchy(parameters.SourceType, parameters.TargetType);
 
 			if (accessorSymbol == null)
@@ -48,7 +47,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 				accessorSymbol = _emitter.EmitAccessor(parameters.TargetType, parameters.SourceType, false);
 				if (parameters.TargetType.IsInterface)
 				{
-					var list = derivativeResolver.GetDirectlyDerivedTypes(parameters.TargetType);
+					var list = _derivativeResolver.GetDirectlyDerivedTypes(parameters.TargetType);
 					foreach (var derivedType in list)
 					{
 						if (GetAccessorProperty(parameters.SourceType, derivedType) == null)
@@ -111,10 +110,9 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 		private void WeaveSetHelperRecursive(MethodDefinition setMethod)
 		{
-			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
 			var originType = setMethod.DeclaringType;
 			var baseMethods = setMethod.GetBaseMethods();
-			var derivedTypes = derivativeResolver.GetDerivedTypes(originType);
+			var derivedTypes = _derivativeResolver.GetDerivedTypes(originType);
 
 			var allSetters = baseMethods
 				.Concat(
@@ -149,17 +147,34 @@ namespace Realmar.DataBindings.Editor.Weaving
 				//		setHelperMethod,
 				//		GetSetHelperMethod(parameters.ToProperty, parameters.ToType),
 				//		parameters.EmitNullCheck));
+
+
+				/*
+				 * v to vm via sh
+				 * vm to v via sh
+				 *
+				 * vm to m via sh | v to vm?
+				 * m to vm via sh
+				 *
+				 * v to vm via s --> vm to v via sh | vm to v is unnecessary OP
+				 *				 --> vm to m via sh
+				 *
+				 * m to vm via s --> vm to m via sh | vm to m is unnecessary op
+				 *				 --> vm to v via sh
+				 *
+				 * --> TwoWay: in vm you want to have a setter which contains all bindings except the one to the data source
+				 *			   when adding new bindings, those special setters need to be kept up to date
+				 *
+				 */
 			}
 		}
 
 		private void WeaveBindingInHierarchy(in WeaveParameters parameters)
 		{
-			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
-
 			var foundNonAbstract = false;
 			var fromProperty = parameters.FromProperty;
 			var fromPropertyName = fromProperty.Name;
-			var derivedTypes = derivativeResolver.GetDerivedTypes(fromProperty.DeclaringType);
+			var derivedTypes = _derivativeResolver.GetDerivedTypes(fromProperty.DeclaringType);
 
 			foreach (var typeDefinition in derivedTypes)
 			{
@@ -222,8 +237,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 		private bool WeaveAccessorInitializationInDerivedTypes(MethodDefinition accessorSymbol, TypeDefinition derivedType, AccessorSymbolParameters parameters)
 		{
-			var derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
-			var newDerivedTypes = derivativeResolver.GetDirectlyDerivedTypes(derivedType);
+			var newDerivedTypes = _derivativeResolver.GetDirectlyDerivedTypes(derivedType);
 
 			var found = false;
 
