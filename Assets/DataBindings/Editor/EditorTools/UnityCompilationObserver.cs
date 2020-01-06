@@ -1,4 +1,5 @@
 using Realmar.DataBindings.Editor.Binding;
+using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEditor;
 using UnityEditor.Compilation;
@@ -8,17 +9,38 @@ namespace Realmar.DataBindings.Editor.EditorTools
 	[InitializeOnLoad]
 	internal static class UnityCompilationObserver
 	{
+		private static readonly HashSet<string> _compiledAssemblies = new HashSet<string>();
+
 		static UnityCompilationObserver()
 		{
-			CompilationPipeline.assemblyCompilationFinished += OnCompilationFinished;
+			CompilationPipeline.assemblyCompilationStarted += OnCompilationStarted;
+			AssemblyReloadEvents.beforeAssemblyReload += WeaveAssemblies;
+			AssemblyReloadEvents.afterAssemblyReload += () => _compiledAssemblies.Clear();
 		}
 
-		private static void OnCompilationFinished(string assemblyPath, CompilerMessage[] _)
+		private static void OnCompilationStarted(string assemblyPath)
+		{
+			if (ShouldBeWeaved(assemblyPath))
+			{
+				_compiledAssemblies.Add(assemblyPath);
+			}
+		}
+
+		private static bool ShouldBeWeaved(string assemblyPath)
 		{
 			var settings = ScriptableManager.Get<SettingsScriptable>();
-			if (settings.Enabled && settings.ShouldAssemblyBeWeaved(assemblyPath))
+			return settings.Enabled && settings.ShouldAssemblyBeWeaved(assemblyPath);
+		}
+
+		private static void WeaveAssemblies()
+		{
+			foreach (var assemblyPath in _compiledAssemblies)
 			{
-				WeaveAssembly(assemblyPath);
+				var settings = ScriptableManager.Get<SettingsScriptable>();
+				if (settings.Enabled && settings.ShouldAssemblyBeWeaved(assemblyPath))
+				{
+					WeaveAssembly(assemblyPath);
+				}
 			}
 		}
 

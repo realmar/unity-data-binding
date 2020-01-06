@@ -15,9 +15,9 @@ namespace Realmar.DataBindings.Editor.Tests
 			AssertSetCounter(binding.Target, 2);
 		});
 
-		private static void AssertSetCounter(IAccessSymbol symbol, int expectedCount)
+		private static void AssertSetCounter(IUUTBindingObject symbol, int expectedCount)
 		{
-			var sourceSetCounter = symbol.ReflectValue("_textSetCounter");
+			var sourceSetCounter = symbol.GetValue("_textSetCounter");
 			Assert.That(sourceSetCounter, Is.EqualTo(expectedCount));
 		}
 	}

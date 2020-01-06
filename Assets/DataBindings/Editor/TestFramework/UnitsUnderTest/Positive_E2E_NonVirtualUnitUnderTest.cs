@@ -474,3 +474,34 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_Binding_CustomLogic
 		}
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_OneWay_DoubleBinding
+{
+	[Target, Id(1)]
+	internal class View
+	{
+		public string Text { get; set; }
+	}
+
+	[Source, CompileTimeType, RunTimeType]
+	internal class ViewModel
+	{
+		[BindingTarget, Id(1)] public View View { get; set; }
+		[BindingTarget(2), Id(2)] public Model Model { get; set; }
+
+		[Binding(BindingType.OneWayFromTarget)]
+		[Binding(targetId: 2)]
+		public string Text { get; set; }
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target(Id = 2), Id(2)]
+	internal class Model
+	{
+		public string Text { get; set; }
+	}
+}

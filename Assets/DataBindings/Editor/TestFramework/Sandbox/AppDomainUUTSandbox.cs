@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -10,7 +9,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 	{
 		private Assembly _context;
 
-		public IReadOnlyCollection<IBindingSet> BindingSets { get; private set; }
+		public IBindingCollection BindingCollection { get; private set; }
 
 		public void InitializeSandbox(string assemblyPath)
 		{
@@ -34,7 +33,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 				.ToArray();
 
 			var bindingFactory = new BindingFactory(types);
-			BindingSets = bindingFactory.CreateBindings();
+			BindingCollection = bindingFactory.CreateBindings();
 		}
 	}
 }

@@ -4,7 +4,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 	{
 		BindingAttribute BindingAttribute { get; }
 
-		IAccessSymbol Target { get; }
-		IAccessSymbol Source { get; }
+		IUUTBindingObject Target { get; }
+		IUUTBindingObject Source { get; }
 	}
 }

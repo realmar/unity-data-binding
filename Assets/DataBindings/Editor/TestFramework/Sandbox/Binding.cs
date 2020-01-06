@@ -17,16 +17,16 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 
 		private Arguments _arguments;
 
-		[CanBeNull] public IAccessSymbol Target { get; }
-		[NotNull] public IAccessSymbol Source { get; }
+		[CanBeNull] public IUUTBindingObject Target { get; }
+		[NotNull] public IUUTBindingObject Source { get; }
 		[NotNull] public BindingAttribute BindingAttribute => _arguments.BindingAttribute;
 
 
 		internal Binding(Arguments arguments)
 		{
 			_arguments = arguments;
-			Target = new AccessSymbol(_arguments.TargetProperty, _arguments.Target);
-			Source = new AccessSymbol(_arguments.SourceProperty, _arguments.Source);
+			Target = new UUTBindingObject(_arguments.TargetProperty, _arguments.Target);
+			Source = new UUTBindingObject(_arguments.SourceProperty, _arguments.Source);
 		}
 	}
 }

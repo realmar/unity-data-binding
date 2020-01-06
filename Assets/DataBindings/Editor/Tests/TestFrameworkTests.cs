@@ -44,7 +44,7 @@ namespace Realmar.DataBindings.Editor.Tests
 				3,
 				typeof(Positive_E2E_InterfaceTests));
 
-			Assert.That(sandbox.BindingSets.Count, Is.EqualTo(3));
+			Assert.That(sandbox.BindingCollection.BindingSets.Count, Is.EqualTo(3));
 		}
 
 		[Test]
@@ -54,7 +54,7 @@ namespace Realmar.DataBindings.Editor.Tests
 				nameof(Positive_E2E_InterfaceTests.TwoWay_InterfaceToProperty_MultipleSources),
 				typeof(Positive_E2E_InterfaceTests));
 
-			var sourceTypeCount = sandbox.BindingSets
+			var sourceTypeCount = sandbox.BindingCollection.BindingSets
 				.SelectMany(set => set.Bindings)
 				.Select(binding => binding.Source.DeclaringTypeFQDN)
 				.Count();
@@ -66,14 +66,14 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void VerifyDifferentBindingTargetObjects_OneToMany_CheckHashCode()
 		{
 			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_OneToMany), _testType);
-			AssertDifferentBindingTargetObjects(FlattenBindings(sandbox.BindingSets));
+			AssertDifferentBindingTargetObjects(FlattenBindings(sandbox.BindingCollection.BindingSets));
 		}
 
 		[Test]
 		public void VerifyBindingSetup_MultipleBindings()
 		{
 			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_ManyToMany), _testType);
-			var bindings = FlattenBindings(sandbox.BindingSets).ToArray();
+			var bindings = FlattenBindings(sandbox.BindingCollection.BindingSets).ToArray();
 
 			Assert.That(bindings.Count, Is.EqualTo(3));
 			AssertDifferentBindingTargetObjects(bindings);
@@ -96,9 +96,9 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void Verify_BindingTargetNotConfigured()
 		{
 			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull), _testType);
-			var bindingSet = sandbox.BindingSets.First();
+			var bindingSet = sandbox.BindingCollection.BindingSets.First();
 			var binding = bindingSet.Bindings.First();
-			var btValue = binding.Source.ReflectValue("BindingTarget");
+			var btValue = binding.Source.GetValue("BindingTarget");
 
 			Assert.That(btValue, Is.Null);
 		}
@@ -107,9 +107,9 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void Verify_NoClassesMarkedAsTargets()
 		{
 			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull), _testType);
-			var bindingSet = sandbox.BindingSets.First();
+			var bindingSet = sandbox.BindingCollection.BindingSets.First();
 			var binding = bindingSet.Bindings.First();
-			var btValue = binding.Source.ReflectValue("BindingTarget");
+			var btValue = binding.Source.GetValue("BindingTarget");
 
 			Assert.That(btValue, Is.Null);
 		}
@@ -120,7 +120,7 @@ namespace Realmar.DataBindings.Editor.Tests
 
 			foreach (var binding in bindings)
 			{
-				var hashCode = binding.Target.GetHashCodeOfObject();
+				var hashCode = binding.Target.GetHashCodeOfSymbol();
 				Assert.That(targets.Contains(hashCode), Is.False);
 				targets.Add(hashCode);
 			}
@@ -129,7 +129,7 @@ namespace Realmar.DataBindings.Editor.Tests
 		private IUnitUnderTestSandbox AssertBindingCount(string testName, int expected, Type testType = null)
 		{
 			var sandbox = GetSandboxForTest(testName, testType ?? _testType);
-			var bindings = FlattenBindings(sandbox.BindingSets);
+			var bindings = FlattenBindings(sandbox.BindingCollection.BindingSets);
 
 			Assert.That(bindings.Count, Is.EqualTo(expected));
 

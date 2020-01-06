@@ -16,9 +16,10 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			_types = types;
 		}
 
-		internal IReadOnlyCollection<BindingSet> CreateBindings()
+		internal IBindingCollection CreateBindings()
 		{
 			var bindingSets = new List<BindingSet>();
+			var objects = new List<object>();
 
 			var sourceCompileTimeType =
 				_types.GetTypesWithAttributes(typeof(SourceAttribute), typeof(CompileTimeTypeAttribute)).Single();
@@ -29,8 +30,10 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			foreach (var sourceRunTimeType in sourceRunTimeTypes)
 			{
 				var sourceObject = Activator.CreateInstance(sourceRunTimeType);
+				objects.Add(sourceObject);
 
-				ConfigureTargets(sourceCompileTimeType, sourceObject);
+				var targetObjects = ConfigureTargets(sourceCompileTimeType, sourceObject);
+				objects.AddRange(targetObjects);
 
 				var bindingSymbols = sourceCompileTimeType.GetMembersWithAttributeInType<BindingAttribute>();
 				var bindings = new List<IBinding>();
@@ -45,10 +48,10 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 				bindingSets.Add(new BindingSet(bindings.ToArray(), bindingInitializer, sourceObject));
 			}
 
-			return bindingSets;
+			return new BindingCollection(bindingSets, objects);
 		}
 
-		private void ConfigureTargets(Type sourceType, object sourceObject)
+		private IReadOnlyCollection<object> ConfigureTargets(Type sourceType, object sourceObject)
 		{
 			void ThrowIfNoMatches<T>(IReadOnlyCollection<T> collection,
 				BindingTargetAttribute bindingTargetAttribute, IdAttribute mappingId)
@@ -72,6 +75,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 				}
 			}
 
+			var targetObjects = new List<object>();
 			var bindingTargets = sourceType.GetMembersWithAttributeInType<BindingTargetAttribute>();
 			foreach (var bindingTarget in bindingTargets)
 			{
@@ -89,6 +93,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 				if (runtimeTypes.Count > 0)
 				{
 					targetObject = Activator.CreateInstance(runtimeTypes[0]);
+					targetObjects.Add(targetObject);
 				}
 
 				var targetBindingSymbols = sourceType.GetMembersWithAttributesInType(
@@ -108,6 +113,8 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 
 				targetBindingSymbol.SetFieldOrPropertyValue(sourceObject, targetObject);
 			}
+
+			return targetObjects;
 		}
 
 		private static bool ContainsMatchingTargetAndIdPair(

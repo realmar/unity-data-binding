@@ -85,7 +85,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			YeetIfNull(testName, nameof(testName));
 			var sandbox = _sandboxTestFacade.GetSandboxForTest(testType, testName);
 
-			foreach (var bindingSet in sandbox.BindingSets)
+			foreach (var bindingSet in sandbox.BindingCollection.BindingSets)
 			{
 				bindingSetAssertion.Invoke(bindingSet);
 			}
@@ -98,6 +98,13 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 				assertions.Invoke(binding);
 				return null;
 			}, null);
+		}
+
+		protected void RunTest(Action<IBindingCollection> bindingSetAssertions, [CallerMemberName] string testName = null)
+		{
+			YeetIfNull(testName, nameof(testName));
+			var sandbox = _sandboxTestFacade.GetSandboxForTest(GetType(), testName);
+			bindingSetAssertions.Invoke(sandbox.BindingCollection);
 		}
 
 		protected void RunTestExpectException<TException>([CallerMemberName] string testName = null)
@@ -161,7 +168,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			return SetAndAssert(binding.Source, binding.Target);
 		}
 
-		private object SetAndAssert(IAccessSymbol source, IAccessSymbol target)
+		private object SetAndAssert(IUUTBindingObject source, IUUTBindingObject target)
 		{
 			var actual = SetValue(source);
 			AssertValue(target, actual);
@@ -169,7 +176,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			return actual;
 		}
 
-		private object SetValue(IAccessSymbol symbol, object value = null)
+		private object SetValue(IUUTBindingObject symbol, object value = null)
 		{
 			value = value ?? GetRandomString();
 			symbol.BindingValue = value;
@@ -177,7 +184,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			return value;
 		}
 
-		private void AssertValue(IAccessSymbol symbol, object expected)
+		private void AssertValue(IUUTBindingObject symbol, object expected)
 		{
 			var actual = symbol.BindingValue;
 			Assert.That(actual, Is.EqualTo(expected));

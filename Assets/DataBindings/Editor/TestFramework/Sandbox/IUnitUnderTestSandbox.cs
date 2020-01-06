@@ -4,7 +4,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 {
 	internal interface IUnitUnderTestSandbox
 	{
-		IReadOnlyCollection<IBindingSet> BindingSets { get; }
+		IBindingCollection BindingCollection { get; }
 		void InitializeSandbox(string assemblyPath);
 		void ChangeNamespace(string @namespace);
 	}

@@ -51,7 +51,7 @@ namespace Realmar.DataBindings.Editor.Tests
 
 		private static void AssertCustomSymbol(IBinding binding, object expected)
 		{
-			var text = binding.Target.ReflectValue("_text");
+			var text = binding.Target.GetValue("_text");
 			Assert.That(text, Is.EqualTo(expected));
 		}
 	}

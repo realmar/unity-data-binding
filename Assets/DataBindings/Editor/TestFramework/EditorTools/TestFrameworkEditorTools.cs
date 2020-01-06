@@ -11,7 +11,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.EditorTools
 {
 	internal static class TestFrameworkEditorTools
 	{
-		[MenuItem(MenuConstants.PREFIX + "/Compile and weave TestCase"), UsedImplicitly]
+		[MenuItem(MenuConstants.PREFIX + "/Compile and Weave TestCase"), UsedImplicitly]
 		private static void WeaveAssemblyForSingleTest()
 		{
 			var popup = ScriptableObject.CreateInstance<CompileTestPopUp>();

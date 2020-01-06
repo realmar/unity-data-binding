@@ -1,9 +1,7 @@
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.TestFramework.BaseTests;
 using Realmar.DataBindings.Editor.TestFramework.Sandbox;
+using System.Linq;
 
 
 namespace Realmar.DataBindings.Editor.Tests
@@ -48,6 +46,25 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void OneWay_NullCheck_TargetNotNull() => RunTest();
 
 		[Test]
+		public void FromTarget_OneWay_DoubleBinding() => RunTest(bindingCollection =>
+		{
+			foreach (var bindingSet in bindingCollection.BindingSets)
+			{
+				bindingSet.RunBindingInitializer();
+			}
+
+			var view = bindingCollection.GetSymbol("View");
+			var model = bindingCollection.GetSymbol("Model");
+			var viewModel = bindingCollection.GetSymbol("ViewModel");
+
+			var expected = GetRandomString();
+			view.SetValue("Text", expected);
+
+			Assert.That(viewModel.GetValue("Text"), Is.EqualTo(expected), "ViewModel::Text doesn't have the correct value");
+			Assert.That(model.GetValue("Text"), Is.EqualTo(expected), "Model::Text doesn't have the correct value");
+		});
+
+		[Test]
 		public void OneWay_NullCheck_TargetNull() => RunTest(binding =>
 		{
 			binding.Source.BindingValue = GetRandomString();
@@ -77,7 +94,7 @@ namespace Realmar.DataBindings.Editor.Tests
 		{
 			binding.Source.SetValue("_sample", setValue);
 			binding.Source.Invoke("InitializeBindings");
-			var actual = binding.Source.ReflectValue("_result");
+			var actual = binding.Source.GetValue("_result");
 
 			Assert.That(actual, Is.EqualTo(expected));
 		});
@@ -102,19 +119,19 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void TwoWay_Binding_CustomLogicExecuted() => RunTest((binding, o) =>
 		{
 			{
-				var value = binding.Source.ReflectValue("_sample");
+				var value = binding.Source.GetValue("_sample");
 				Assert.That(value, Is.EqualTo(42));
 			}
 
 			{
-				var value = binding.Target.ReflectValue("_sample");
+				var value = binding.Target.GetValue("_sample");
 				Assert.That(value, Is.EqualTo(69));
 			}
 		});
 
 		private static void AssertCustomSymbol(IBinding binding)
 		{
-			var value = binding.Source.ReflectValue("_sample");
+			var value = binding.Source.GetValue("_sample");
 			Assert.That(value, Is.EqualTo(42));
 		}
 	}
