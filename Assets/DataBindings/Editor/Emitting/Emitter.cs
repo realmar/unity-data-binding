@@ -157,14 +157,46 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		#region Set Helper
 
-		internal void EmitSetHelper(string targetSetHelperMethodName, MethodDefinition setMethod)
+		internal MethodMemento CreateMethodMemento(MethodDefinition method)
+		{
+			YeetIfAbstract(method);
+
+			var memento = new MethodMemento();
+			var body = method.Body;
+
+			memento.Variables.AddRange(body.Variables);
+			memento.ExceptionHandlers.AddRange(body.ExceptionHandlers);
+			memento.Instructions.AddRange(body.Instructions);
+			memento.InitLocals = body.InitLocals;
+
+			return memento;
+		}
+
+		internal MethodDefinition EmitSetHelper(string targetSetHelperMethodName, MethodDefinition setMethod)
+		{
+			return EmitSetHelperMethodDefinition(targetSetHelperMethodName, setMethod);
+		}
+
+		internal MethodDefinition EmitSetHelper(string targetSetHelperMethodName, MethodDefinition setMethod, MethodMemento memento)
+		{
+			YeetIfAbstract(setMethod);
+
+			var setHelper = EmitSetHelper(targetSetHelperMethodName, setMethod);
+			EmitSetHelperMethodBody(setHelper, memento);
+
+			return setHelper;
+		}
+
+		/* internal MethodDefinition EmitSetHelper(string targetSetHelperMethodName, MethodDefinition setMethod)
 		{
 			var setHelper = EmitSetHelperMethodDefinition(targetSetHelperMethodName, setMethod);
 			if (setMethod.IsAbstract == false)
 			{
 				EmitSetHelperMethodBody(setHelper, setMethod);
 			}
-		}
+
+			return setHelper;
+		} */
 
 		private MethodDefinition EmitSetHelperMethodDefinition(string targetSetHelperMethodName, MethodDefinition setMethod)
 		{
@@ -184,7 +216,30 @@ namespace Realmar.DataBindings.Editor.Emitting
 			return targetSetHelperMethod;
 		}
 
-		private void EmitSetHelperMethodBody(MethodDefinition setHelperMethod, MethodDefinition setMethod)
+		private void EmitSetHelperMethodBody(MethodDefinition setHelperMethod, MethodMemento memento)
+		{
+			var targetMethodBody = setHelperMethod.Body;
+			var ilProcessor = targetMethodBody.GetILProcessor();
+
+			foreach (var variable in memento.Variables)
+			{
+				targetMethodBody.Variables.Add(variable);
+			}
+
+			foreach (var handler in memento.ExceptionHandlers)
+			{
+				targetMethodBody.ExceptionHandlers.Add(handler);
+			}
+
+			targetMethodBody.InitLocals = memento.InitLocals;
+
+			foreach (var instruction in memento.Instructions)
+			{
+				ilProcessor.Append(instruction);
+			}
+		}
+
+		/* private void EmitSetHelperMethodBody(MethodDefinition setHelperMethod, MethodDefinition setMethod)
 		{
 			var setMethodBody = setMethod.Body;
 			var targetMethodBody = setHelperMethod.Body;
@@ -206,11 +261,26 @@ namespace Realmar.DataBindings.Editor.Emitting
 			{
 				ilProcessor.Append(instruction);
 			}
-		}
+		} */
 
 		#endregion
 
 		#region Binding
+
+		internal EmitBindingCommand CreateEmitCommand(EmitParameters parameters)
+		{
+			return new EmitBindingCommand(
+				fromSetter =>
+				{
+					EmitBinding(
+						new EmitParameters(
+							parameters.BindingTarget,
+							parameters.FromGetter,
+							fromSetter,
+							parameters.ToSetter,
+							parameters.EmitNullCheck));
+				});
+		}
 
 		internal void EmitBinding(in EmitParameters parameters)
 		{

@@ -54,5 +54,14 @@ namespace Realmar.DataBindings.Editor.Exceptions
 				throw new ArgumentException("Symbol is not a property nor a field.", nameof(info));
 			}
 		}
+
+		[DebuggerHidden]
+		internal static void YeetIfAbstract(MethodDefinition method)
+		{
+			if (method.IsAbstract)
+			{
+				throw new ArgumentException($"Method cannot be abstract {method.FullName}", nameof(method));
+			}
+		}
 	}
 }

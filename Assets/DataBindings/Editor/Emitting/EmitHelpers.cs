@@ -35,6 +35,8 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		internal static Instruction GetLastInstruction(MethodDefinition method)
 		{
+			YeetIfNull(method, nameof(method));
+
 			var methodBody = method.Body;
 			var lastInstruction = methodBody.Instructions.Last();
 
