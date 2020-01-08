@@ -16,6 +16,19 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 
 		public IReadOnlyCollection<IBindingSet> BindingSets { get; }
 
+		public void RunAllBindingInitializers()
+		{
+			foreach (var bindingSet in BindingSets)
+			{
+				bindingSet.RunBindingInitializer();
+			}
+		}
+
+		public IReadOnlyCollection<IUUTObject> GetSymbols()
+		{
+			return _allObjects.Select(o => new UUTObject(o)).ToArray();
+		}
+
 		public IReadOnlyCollection<IUUTObject> GetSymbols(string className)
 		{
 			return _allObjects

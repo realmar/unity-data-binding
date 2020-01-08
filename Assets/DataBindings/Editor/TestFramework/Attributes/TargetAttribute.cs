@@ -6,5 +6,14 @@ namespace Realmar.DataBindings.Editor.TestFramework.Attributes
 	public class TargetAttribute : Attribute
 	{
 		public int Id { get; set; } = 0;
+
+		public TargetAttribute()
+		{
+		}
+
+		public TargetAttribute(int id)
+		{
+			Id = id;
+		}
 	}
 }

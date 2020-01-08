@@ -116,7 +116,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 		private readonly DerivativeResolver _derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
 		private readonly Random _random = new Random();
 
-		// private readonly HashSet<MethodDefinition> _wovenSetHelpers = new HashSet<MethodDefinition>();
 		private readonly HashSet<int> _wovenBindings = new HashSet<int>();
 
 		internal void Weave(in WeaveParameters parameters)
@@ -125,7 +124,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 			YeetIfInaccessible(parameters.ToProperty.SetMethod, fromPropertyDeclaringType);
 			YeetIfInaccessible(parameters.BindingTarget, fromPropertyDeclaringType);
 
-			// WeaveSetHelperForTypes(new[] { parameters.ToType, parameters.FromProperty.DeclaringType });
 			CreateMethodMementos(new[] { parameters.ToType, parameters.FromProperty.DeclaringType });
 
 			if (parameters.FromProperty.GetSetMethodOrYeet().IsVirtual == false)
@@ -203,65 +201,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 				}
 			}
 		}
-
-		/*private void WeaveSetHelperForTypes(IEnumerable<TypeDefinition> types)
-		{
-			foreach (var type in types)
-			{
-				var setMethods = type
-					.GetPropertiesInBaseHierarchy()
-					.Where(definition => definition.DeclaringType.Module.Assembly.IsSame(type.Module.Assembly))
-					.Select(definition => definition.SetMethod)
-					.WhereNotNull();
-
-				foreach (var setMethod in setMethods)
-				{
-					if (setMethod.IsVirtual || setMethod.IsAbstract)
-					{
-						WeaveSetHelperRecursive(setMethod);
-					}
-					else
-					{
-						WeaveSetHelper(setMethod);
-					}
-				}
-			}
-		}
-
-		private void WeaveSetHelper(MethodDefinition setMethod)
-		{
-			var type = setMethod.DeclaringType;
-			var targetSetHelperMethodName = GetTargetSetHelperMethodName(setMethod);
-			var targetSetHelperMethod = type.GetMethod(targetSetHelperMethodName);
-
-			if (targetSetHelperMethod == null && _wovenSetHelpers.Contains(setMethod) == false)
-			{
-				_emitter.EmitSetHelper(targetSetHelperMethodName, setMethod);
-				_wovenSetHelpers.Add(setMethod);
-			}
-		}
-
-		private void WeaveSetHelperRecursive(MethodDefinition setMethod)
-		{
-			var originType = setMethod.DeclaringType;
-			var baseMethods = setMethod.GetBaseMethods();
-			var derivedTypes = _derivativeResolver.GetDerivedTypes(originType);
-
-			var allSetters = baseMethods
-				.Concat(
-					derivedTypes
-						.Where(definition => definition != originType)
-						.Where(definition => definition.Module.Assembly.IsSame(originType.Module.Assembly))
-						.SelectMany(definition => definition.Properties
-							.Select(propertyDefinition => propertyDefinition.SetMethod)
-							.WhereNotNull()))
-				.ToArray();
-
-			foreach (var methodDefinition in allSetters)
-			{
-				WeaveSetHelper(methodDefinition);
-			}
-		}*/
 
 		private MethodDefinition WeaveSetHelper(in WeaveParameters parameters)
 		{
@@ -369,11 +308,9 @@ namespace Realmar.DataBindings.Editor.Weaving
 				var fromSetter = fromProperty.GetSetMethodOrYeet();
 
 				var toProperty = parameters.ToProperty;
-				// var toSetter = GetSetHelperMethod(parameters.ToProperty, parameters.ToType);
 				var toSetter = WeaveSetHelper(parameters);
 
 				_wovenBindings.Add(hash);
-				//_emitter.EmitBinding(new EmitParameters(bindingTarget, fromGetter, fromSetter, toSetter, parameters.EmitNullCheck));
 
 				var emitCommand = _emitter.CreateEmitCommand(new EmitParameters(bindingTarget, fromGetter, fromSetter, toSetter, parameters.EmitNullCheck));
 				emitCommand.Emit(fromSetter);

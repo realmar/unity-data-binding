@@ -187,17 +187,6 @@ namespace Realmar.DataBindings.Editor.Emitting
 			return setHelper;
 		}
 
-		/* internal MethodDefinition EmitSetHelper(string targetSetHelperMethodName, MethodDefinition setMethod)
-		{
-			var setHelper = EmitSetHelperMethodDefinition(targetSetHelperMethodName, setMethod);
-			if (setMethod.IsAbstract == false)
-			{
-				EmitSetHelperMethodBody(setHelper, setMethod);
-			}
-
-			return setHelper;
-		} */
-
 		private MethodDefinition EmitSetHelperMethodDefinition(string targetSetHelperMethodName, MethodDefinition setMethod)
 		{
 			var attributes = setMethod.Attributes & ~MethodAttributes.SpecialName;
@@ -238,30 +227,6 @@ namespace Realmar.DataBindings.Editor.Emitting
 				ilProcessor.Append(instruction);
 			}
 		}
-
-		/* private void EmitSetHelperMethodBody(MethodDefinition setHelperMethod, MethodDefinition setMethod)
-		{
-			var setMethodBody = setMethod.Body;
-			var targetMethodBody = setHelperMethod.Body;
-			var ilProcessor = targetMethodBody.GetILProcessor();
-
-			foreach (var variable in setMethodBody.Variables)
-			{
-				targetMethodBody.Variables.Add(variable);
-			}
-
-			foreach (var handler in setMethodBody.ExceptionHandlers)
-			{
-				targetMethodBody.ExceptionHandlers.Add(handler);
-			}
-
-			targetMethodBody.InitLocals = setMethodBody.InitLocals;
-
-			foreach (var instruction in setMethodBody.Instructions)
-			{
-				ilProcessor.Append(instruction);
-			}
-		} */
 
 		#endregion
 

@@ -31,9 +31,20 @@ namespace Realmar.DataBindings.Editor.Tests
 		}
 
 		[Test]
-		public void VerifyBindingCount_MultipleBindingSources()
+		public void VerifyBindingCount_MultipleBinding_RunTime_Sources()
 		{
 			AssertBindingCount(nameof(Positive_E2E_NonVirtualTests.OneWay_MultipleBindingsPerSource), 3);
+		}
+
+		[Test]
+		public void VerifyBindingCount_MultipleBinding_CompileTime_Sources()
+		{
+			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings), _testType);
+			var collection = sandbox.BindingCollection;
+
+			Assert.That(collection.BindingSets.Count, Is.EqualTo(2));
+			Assert.That(collection.BindingSets.SelectMany(set => set.Bindings).Count(), Is.EqualTo(4));
+			Assert.That(collection.GetSymbols().Count, Is.EqualTo(5));
 		}
 
 		[Test]
@@ -112,6 +123,16 @@ namespace Realmar.DataBindings.Editor.Tests
 			var btValue = binding.Source.GetValue("BindingTarget");
 
 			Assert.That(btValue, Is.Null);
+		}
+
+		[Test]
+		public void Verify_ReuseTargetInstanceWithSameId()
+		{
+			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings), _testType);
+			var collection = sandbox.BindingCollection;
+			var symbols = collection.GetSymbols();
+
+			Assert.That(symbols.Count, Is.EqualTo(5));
 		}
 
 		private static void AssertDifferentBindingTargetObjects(IEnumerable<IBinding> bindings)

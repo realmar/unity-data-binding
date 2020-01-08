@@ -3,7 +3,6 @@ using Realmar.DataBindings.Editor.TestFramework.BaseTests;
 using Realmar.DataBindings.Editor.TestFramework.Sandbox;
 using System.Linq;
 
-
 namespace Realmar.DataBindings.Editor.Tests
 {
 	[TestFixture]
@@ -46,25 +45,6 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void OneWay_NullCheck_TargetNotNull() => RunTest();
 
 		[Test]
-		public void FromTarget_OneWay_DoubleBinding() => RunTest(bindingCollection =>
-		{
-			foreach (var bindingSet in bindingCollection.BindingSets)
-			{
-				bindingSet.RunBindingInitializer();
-			}
-
-			var view = bindingCollection.GetSymbol("View");
-			var model = bindingCollection.GetSymbol("Model");
-			var viewModel = bindingCollection.GetSymbol("ViewModel");
-
-			var expected = GetRandomString();
-			view.SetValue("Text", expected);
-
-			Assert.That(viewModel.GetValue("Text"), Is.EqualTo(expected), "ViewModel::Text doesn't have the correct value");
-			Assert.That(model.GetValue("Text"), Is.EqualTo(expected), "Model::Text doesn't have the correct value");
-		});
-
-		[Test]
 		public void OneWay_NullCheck_TargetNull() => RunTest(binding =>
 		{
 			binding.Source.BindingValue = GetRandomString();
@@ -85,7 +65,7 @@ namespace Realmar.DataBindings.Editor.Tests
 		});
 
 		[Test]
-		public void FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted() => RunTest(AssertCustomSymbol);
+		public void FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted() => RunTest(binding => AssertCustomSymbol(binding.Source, 42));
 
 		[TestCase(-1, 1)]
 		[TestCase(0, 2)]
@@ -105,34 +85,88 @@ namespace Realmar.DataBindings.Editor.Tests
 			RunMethodExpectException<BindingTargetNullException>(bindingSet.RunBindingInitializer);
 
 			var binding = bindingSet.Bindings.First();
-			AssertCustomSymbol(binding);
+			AssertCustomSymbol(binding.Source, 42);
 		});
 
 		[Test]
 		public void OneWay_Binding_NullCheck_CustomLogicExecuted() => RunTest(binding =>
 		{
 			binding.Source.BindingValue = GetRandomString();
-			AssertCustomSymbol(binding);
+			AssertCustomSymbol(binding.Source, 42);
 		});
 
 		[Test]
 		public void TwoWay_Binding_CustomLogicExecuted() => RunTest((binding, o) =>
 		{
-			{
-				var value = binding.Source.GetValue("_sample");
-				Assert.That(value, Is.EqualTo(42));
-			}
-
-			{
-				var value = binding.Target.GetValue("_sample");
-				Assert.That(value, Is.EqualTo(69));
-			}
+			AssertCustomSymbol(binding.Source, 42);
+			AssertCustomSymbol(binding.Target, 69);
 		});
 
-		private static void AssertCustomSymbol(IBinding binding)
+		[Test]
+		public void FromTarget_OneWay_DoubleBinding() => RunTest(bindingCollection =>
 		{
-			var value = binding.Source.GetValue("_sample");
-			Assert.That(value, Is.EqualTo(42));
+			bindingCollection.RunAllBindingInitializers();
+
+			var view = bindingCollection.GetSymbol("View");
+
+			var expected = GetRandomString();
+			view.SetValue("Text", expected);
+
+			AssertUUTObjects(bindingCollection, "Text", expected);
+		});
+
+		[Test]
+		public void TwoWay_PropertyToProperty_Ensure_Setter_Called_Once() => RunTest(binding =>
+		{
+			var expected = GetRandomString();
+
+			binding.Source.BindingValue = expected;
+			Assert.That(binding.Target.BindingValue, Is.EqualTo(expected));
+
+			Assert.That(binding.Target.GetValue("_counter"), Is.EqualTo(1));
+			Assert.That(binding.Source.GetValue("_counter"), Is.EqualTo(1), "source should not be set when setting target");
+
+			expected = GetRandomString();
+			binding.Target.BindingValue = expected;
+			Assert.That(binding.Source.BindingValue, Is.EqualTo(expected));
+
+			Assert.That(binding.Source.GetValue("_counter"), Is.EqualTo(2));
+			Assert.That(binding.Target.GetValue("_counter"), Is.EqualTo(2), "target should not be set when setting source");
+		});
+
+		[Test]
+		public void TwoWay_ChainedBindings() => RunTest(bindingCollection =>
+		{
+			bindingCollection.RunAllBindingInitializers();
+
+			var expected = GetRandomString();
+			var a = bindingCollection.GetSymbol("A");
+			a.SetValue("Text", expected);
+
+			// OneWay
+			AssertUUTObjects(bindingCollection, "Text", expected);
+
+			expected = GetRandomString();
+			var e = bindingCollection.GetSymbol("E");
+			e.SetValue("Text", expected);
+
+			// FromTarget
+			AssertUUTObjects(bindingCollection, "Text", expected);
+		});
+
+		private static void AssertUUTObjects(IBindingCollection bindingCollection, string symbolName, string expected)
+		{
+			foreach (var uutObject in bindingCollection.GetSymbols())
+			{
+				var actual = uutObject.GetValue(symbolName);
+				Assert.That(actual, Is.EqualTo(expected));
+			}
+		}
+
+		private static void AssertCustomSymbol(IUUTBindingObject binding, int expected)
+		{
+			var value = binding.GetValue("_sample");
+			Assert.That(value, Is.EqualTo(expected));
 		}
 	}
 }

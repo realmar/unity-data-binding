@@ -1,9 +1,9 @@
+using Realmar.DataBindings.Editor.Shared.Extensions;
+using Realmar.DataBindings.Editor.TestFramework.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Realmar.DataBindings.Editor.Shared.Extensions;
-using Realmar.DataBindings.Editor.TestFramework.Attributes;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 {
@@ -20,38 +20,43 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 		{
 			var bindingSets = new List<BindingSet>();
 			var objects = new List<object>();
+			var targetObjectsToId = new Dictionary<int, object>();
 
-			var sourceCompileTimeType =
-				_types.GetTypesWithAttributes(typeof(SourceAttribute), typeof(CompileTimeTypeAttribute)).Single();
+			var sourceCompileTimeTypes =
+				_types.GetTypesWithAttributes(typeof(SourceAttribute), typeof(CompileTimeTypeAttribute));
 
 			var sourceRunTimeTypes =
 				_types.GetTypesWithAttributes(typeof(SourceAttribute), typeof(RunTimeTypeAttribute));
 
-			foreach (var sourceRunTimeType in sourceRunTimeTypes)
+			foreach (var sourceCompileTimeType in sourceCompileTimeTypes)
 			{
-				var sourceObject = Activator.CreateInstance(sourceRunTimeType);
-				objects.Add(sourceObject);
-
-				var targetObjects = ConfigureTargets(sourceCompileTimeType, sourceObject);
-				objects.AddRange(targetObjects);
-
-				var bindingSymbols = sourceCompileTimeType.GetMembersWithAttributeInType<BindingAttribute>();
-				var bindings = new List<IBinding>();
-				foreach (var bindingSymbol in bindingSymbols)
+				foreach (var sourceRunTimeType in sourceRunTimeTypes.Where(type => sourceCompileTimeType.IsAssignableFrom(type)))
 				{
-					bindings.AddRange(CreateBindingsFrom(sourceCompileTimeType, sourceObject, bindingSymbol));
+					var sourceObject = Activator.CreateInstance(sourceRunTimeType);
+					objects.Add(sourceObject);
+
+					var targetObjects = ConfigureTargets(sourceCompileTimeType, sourceObject, targetObjectsToId);
+					objects.AddRange(targetObjects);
+
+					var bindingSymbols = sourceCompileTimeType.GetMembersWithAttributeInType<BindingAttribute>();
+					var bindings = new List<IBinding>();
+					foreach (var bindingSymbol in bindingSymbols)
+					{
+						bindings.AddRange(CreateBindingsFrom(sourceCompileTimeType, sourceObject, bindingSymbol));
+					}
+
+					var bindingInitializer =
+						(MethodInfo) sourceCompileTimeType.GetMemberWithAttributeInType<BindingInitializerAttribute>();
+
+					bindingSets.Add(new BindingSet(bindings.ToArray(), bindingInitializer, sourceObject));
 				}
-
-				var bindingInitializer =
-					(MethodInfo) sourceCompileTimeType.GetMemberWithAttributeInType<BindingInitializerAttribute>();
-
-				bindingSets.Add(new BindingSet(bindings.ToArray(), bindingInitializer, sourceObject));
 			}
 
 			return new BindingCollection(bindingSets, objects);
 		}
 
-		private IReadOnlyCollection<object> ConfigureTargets(Type sourceType, object sourceObject)
+		// TODO refactor: method too big
+		private IReadOnlyCollection<object> ConfigureTargets(Type sourceType, object sourceObject, Dictionary<int, object> targetObjectsToId)
 		{
 			void ThrowIfNoMatches<T>(IReadOnlyCollection<T> collection,
 				BindingTargetAttribute bindingTargetAttribute, IdAttribute mappingId)
@@ -76,6 +81,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			}
 
 			var targetObjects = new List<object>();
+
 			var bindingTargets = sourceType.GetMembersWithAttributeInType<BindingTargetAttribute>();
 			foreach (var bindingTarget in bindingTargets)
 			{
@@ -92,8 +98,20 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 				object targetObject = null;
 				if (runtimeTypes.Count > 0)
 				{
-					targetObject = Activator.CreateInstance(runtimeTypes[0]);
-					targetObjects.Add(targetObject);
+					// reuse target instance if Id matches
+					var runtimeType = runtimeTypes[0];
+					var id = mappingId.Id;
+
+					if (targetObjectsToId.ContainsKey(id))
+					{
+						targetObject = targetObjectsToId[id];
+					}
+					else
+					{
+						targetObject = Activator.CreateInstance(runtimeType);
+						targetObjects.Add(targetObject);
+						targetObjectsToId[id] = targetObject;
+					}
 				}
 
 				var targetBindingSymbols = sourceType.GetMembersWithAttributesInType(

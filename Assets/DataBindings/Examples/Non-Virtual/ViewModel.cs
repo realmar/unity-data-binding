@@ -16,6 +16,7 @@ namespace Realmar.DataBindings.Examples.NonVirtual
 			get => _model.Name;
 			set
 			{
+				_model.Name = value;
 				UpdateSummary();
 			}
 		}

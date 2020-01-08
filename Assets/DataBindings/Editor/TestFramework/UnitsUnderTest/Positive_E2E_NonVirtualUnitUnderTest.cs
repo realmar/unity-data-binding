@@ -505,3 +505,100 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_OneWay_DoubleBi
 		public string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_PropertyToProperty_Ensure_Setter_Called_Once
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		private string _text;
+		private int _counter;
+
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.TwoWay)] public string Text
+		{
+			get => _text;
+			set
+			{
+				_text = value;
+				_counter++;
+			}
+		}
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target, Id(1)]
+	internal class Target
+	{
+		private string _text;
+		private int _counter;
+
+		public string Text
+		{
+			get => _text;
+			set
+			{
+				_text = value;
+				_counter++;
+			}
+		}
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings
+{
+	[Target, Id(1)]
+	internal class A
+	{
+		public string Text { get; set; }
+	}
+
+	[Source, CompileTimeType, RunTimeType]
+	internal class B
+	{
+		[BindingTarget, Id(1)] public A BT_A { get; set; }
+		[BindingTarget(2), Id(2)] public C BT_C { get; set; }
+
+		[Binding(BindingType.TwoWay)]
+		[Binding(BindingType.TwoWay, targetId: 2)]
+		public string Text { get; set; }
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target, Target(2), Id(2)]
+	internal class C
+	{
+		public string Text { get; set; }
+	}
+
+	[Source, CompileTimeType, RunTimeType]
+	internal class D
+	{
+		[BindingTarget, Id(2)] public C BT_C { get; set; }
+		[BindingTarget(2), Id(4)] public E BT_E { get; set; }
+
+		[Binding(BindingType.TwoWay)]
+		[Binding(BindingType.TwoWay, targetId: 2)]
+		public string Text { get; set; }
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target(2), Id(4)]
+	internal class E
+	{
+		public string Text { get; set; }
+	}
+}
