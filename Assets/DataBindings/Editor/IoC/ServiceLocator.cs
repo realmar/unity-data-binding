@@ -121,7 +121,7 @@ namespace Realmar.DataBindings.Editor.IoC
 		{
 			object result;
 
-			if (type.GetConstructor(new Type[] { }) == null)
+			if (type.GetConstructor(Type.EmptyTypes) == null)
 			{
 				result = Activator.CreateInstance(type, this);
 			}
