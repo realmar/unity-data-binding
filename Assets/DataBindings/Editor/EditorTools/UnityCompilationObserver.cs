@@ -15,7 +15,12 @@ namespace Realmar.DataBindings.Editor.EditorTools
 		{
 			CompilationPipeline.assemblyCompilationStarted += OnCompilationStarted;
 			AssemblyReloadEvents.beforeAssemblyReload += WeaveAssemblies;
-			AssemblyReloadEvents.afterAssemblyReload += () => _compiledAssemblies.Clear();
+			AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
+		}
+
+		private static void OnAfterAssemblyReload()
+		{
+			_compiledAssemblies.Clear();
 		}
 
 		private static void OnCompilationStarted(string assemblyPath)
@@ -48,10 +53,12 @@ namespace Realmar.DataBindings.Editor.EditorTools
 		{
 			UnityEngine.Debug.Log("Start weaving assemblies");
 
-			var facade = new BindingFacade();
-
 			var stopwatch = Stopwatch.StartNew();
-			facade.CreateBindingsInAssembly(assemblyPath);
+			using (var facade = new BindingFacade())
+			{
+				facade.CreateBindingsInAssembly(assemblyPath);
+			}
+
 			stopwatch.Stop();
 
 			AssetDatabase.Refresh();

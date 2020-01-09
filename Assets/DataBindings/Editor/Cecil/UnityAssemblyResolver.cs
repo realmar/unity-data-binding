@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
+using Realmar.DataBindings.Editor.IoC;
 
 namespace Realmar.DataBindings.Editor.Cecil
 {
@@ -66,6 +67,16 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 		private AssemblyDefinition FindAssemblyDefinition(string fullName, ReaderParameters parameters)
 		{
+			if (parameters == null)
+			{
+				parameters = new ReaderParameters
+				{
+					ReflectionImporterProvider = ServiceLocator.Current.Resolve<IReflectionImporterProvider>(),
+					AssemblyResolver = ServiceLocator.Current.Resolve<IAssemblyResolver>(),
+					MetadataResolver = ServiceLocator.Current.Resolve<IMetadataResolver>()
+				};
+			}
+
 			if (_assemblyDefinitionCache.TryGetValue(fullName, out var assemblyDefinition) == false)
 			{
 				if (_appDomainAssemblyLocations.TryGetValue(fullName, out var location))

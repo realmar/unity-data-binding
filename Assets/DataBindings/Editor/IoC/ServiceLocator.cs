@@ -37,31 +37,45 @@ namespace Realmar.DataBindings.Editor.IoC
 			_current = new ServiceLocator();
 		}
 
+		internal void RegisterType<TFrom>(ServiceLifetime lifetime = ServiceLifetime.Transient, object id = null)
+		{
+			RegisterType<TFrom, TFrom>(lifetime, id);
+		}
+
 		internal void RegisterType<TFrom, TTo>(ServiceLifetime lifetime = ServiceLifetime.Transient, object id = null)
 		{
 			RegisterType(typeof(TFrom), typeof(TTo), lifetime, id);
 		}
 
-		internal void RegisterType<TFrom>(ServiceLifetime lifetime = ServiceLifetime.Transient, object id = null)
+		internal void RegisterType<TFrom>(TFrom obj, object id = null)
 		{
-			RegisterType(typeof(TFrom), typeof(TFrom), lifetime, id);
+			var from = typeof(TFrom);
+			var hash = HashCode.Combine(from, id);
+
+			YeetIfDuplicateBinding(from, hash);
+
+			_singletons[hash] = obj;
+			_bindings[hash] = new BindingConfiguration
+			{
+				From = from,
+				To = from,
+				Lifetime = ServiceLifetime.Singleton,
+				Id = id
+			};
 		}
 
-		private void RegisterType(Type from, Type to, ServiceLifetime lifetime = ServiceLifetime.Transient, object id = null)
+		private void RegisterType(Type from, Type to, ServiceLifetime lifetime, object id = null)
 		{
 			var hash = HashCode.Combine(from, id);
 
-			if (_bindings.ContainsKey(hash))
-			{
-				throw new ArgumentException($"Duplicate binding for {from.FullName}", nameof(from));
-			}
+			YeetIfDuplicateBinding(from, hash);
 
 			var defaultCtor = to.GetConstructor(Type.EmptyTypes);
 			var locatorCtor = to.GetConstructor(new[] { typeof(ServiceLocator) });
 
 			if (defaultCtor == null && locatorCtor == null)
 			{
-				throw new ArgumentException($"To type must have a default constructor or a constructor taking {nameof(ServiceLocator)} as its sole argument.");
+				throw new ArgumentException($"To type must have a default constructor or a constructor taking {nameof(ServiceLocator)} as its sole argument. Type = {to.FullName}");
 			}
 
 			_bindings[hash] = new BindingConfiguration
@@ -117,6 +131,14 @@ namespace Realmar.DataBindings.Editor.IoC
 			}
 
 			return result;
+		}
+
+		private void YeetIfDuplicateBinding(Type type, int hash)
+		{
+			if (_bindings.ContainsKey(hash))
+			{
+				throw new ArgumentException($"Duplicate binding for {type.FullName}", nameof(type));
+			}
 		}
 	}
 }

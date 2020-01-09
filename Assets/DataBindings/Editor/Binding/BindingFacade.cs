@@ -1,3 +1,4 @@
+using System;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Realmar.DataBindings.Editor.Cecil;
@@ -11,14 +12,17 @@ using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
 
 namespace Realmar.DataBindings.Editor.Binding
 {
-	internal class BindingFacade
+	internal class BindingFacade : IDisposable
 	{
 		internal struct Options
 		{
 			internal bool WeaveDebugSymbols { get; set; }
 		}
 
+		private readonly UnityAssemblyResolver _assemblyResolver;
+		private readonly CachedMetadataResolver _metadataResolver;
 		private readonly AttributeResolver _attributeResolver;
+
 		private readonly Dictionary<BindingType, IBinder> _binders;
 		private readonly Options _options;
 
@@ -31,6 +35,9 @@ namespace Realmar.DataBindings.Editor.Binding
 
 		public BindingFacade(Options options)
 		{
+			_assemblyResolver = new UnityAssemblyResolver();
+			_metadataResolver = new CachedMetadataResolver(_assemblyResolver);
+
 			ConfigureServiceLocator();
 
 			var oneWayBinder = new OneWayBinder();
@@ -47,42 +54,46 @@ namespace Realmar.DataBindings.Editor.Binding
 			};
 		}
 
+		public void Dispose()
+		{
+			_assemblyResolver.Dispose();
+		}
+
 		// TODO support multiple assemblies
 		public void CreateBindingsInAssembly(string assemblyPath, string outputPath = null)
 		{
-			using (var assemblyResolver = new UnityAssemblyResolver())
+			var assemblyResolver = ServiceLocator.Current.Resolve<IAssemblyResolver>();
+			var metadataResolver = ServiceLocator.Current.Resolve<IMetadataResolver>();
+
+			using (var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters
 			{
-				var metadataResolver = new CachedMetadataResolver(assemblyResolver);
-				using (var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters
+				ReflectionImporterProvider = ServiceLocator.Current.Resolve<IReflectionImporterProvider>(),
+				AssemblyResolver = assemblyResolver,
+				MetadataResolver = metadataResolver,
+
+				// PDB, MDB
+				ReadSymbols = _options.WeaveDebugSymbols,
+				ReadWrite = _options.WeaveDebugSymbols,
+
+				// TODO PROPER SOLUTION REQUIRED
+				ThrowIfSymbolsAreNotMatching = false
+			}))
+			{
+				foreach (var type in module.GetAllTypes())
 				{
-					ReflectionImporterProvider = new ReflectionImporterProvider(),
-					AssemblyResolver = assemblyResolver,
-					MetadataResolver = metadataResolver,
+					foreach (var property in type.Properties)
+					{
+						BindProperty(property);
+					}
+				}
 
-					// PDB, MDB
-					ReadSymbols = _options.WeaveDebugSymbols,
-					ReadWrite = _options.WeaveDebugSymbols,
-
-					// TODO PROPER SOLUTION REQUIRED
-					ThrowIfSymbolsAreNotMatching = false
-				}))
+				if (outputPath != null)
 				{
-					foreach (var type in module.GetAllTypes())
-					{
-						foreach (var property in type.Properties)
-						{
-							BindProperty(property);
-						}
-					}
-
-					if (outputPath != null)
-					{
-						module.Write(outputPath);
-					}
-					else
-					{
-						module.Write();
-					}
+					module.Write(outputPath);
+				}
+				else
+				{
+					module.Write();
 				}
 			}
 		}
@@ -132,12 +143,12 @@ namespace Realmar.DataBindings.Editor.Binding
 			return targets.ToArray();
 		}
 
-		private static BindingTarget[] FilterBindingsTargets(BindingSettings settings, BindingTarget[] targets)
+		private BindingTarget[] FilterBindingsTargets(BindingSettings settings, BindingTarget[] targets)
 		{
 			return targets.Where(bindingTarget => bindingTarget.Id == settings.TargetId).ToArray();
 		}
 
-		private static void ConfigureServiceLocator()
+		private void ConfigureServiceLocator()
 		{
 			ServiceLocator.Reset();
 			var locator = ServiceLocator.Current;
@@ -145,6 +156,9 @@ namespace Realmar.DataBindings.Editor.Binding
 			locator.RegisterType<Weaver>(ServiceLifetime.Singleton);
 			locator.RegisterType<Emitter>();
 			locator.RegisterType<DerivativeResolver>(ServiceLifetime.Singleton);
+			locator.RegisterType<IReflectionImporterProvider, ReflectionImporterProvider>(ServiceLifetime.Singleton);
+			locator.RegisterType<IAssemblyResolver>(_assemblyResolver);
+			locator.RegisterType<IMetadataResolver>(_metadataResolver);
 		}
 	}
 }
