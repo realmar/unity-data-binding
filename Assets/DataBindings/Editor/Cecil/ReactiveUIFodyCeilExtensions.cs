@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Mono.Cecil;
+using System.Collections.Generic;
 
 namespace Realmar.DataBindings.Editor.Cecil
 {

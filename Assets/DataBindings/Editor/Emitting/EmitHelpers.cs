@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Emitting
@@ -36,6 +36,7 @@ namespace Realmar.DataBindings.Editor.Emitting
 		internal static Instruction GetLastInstruction(MethodDefinition method)
 		{
 			YeetIfNull(method, nameof(method));
+			YeetIfAbstract(method);
 
 			var methodBody = method.Body;
 			var lastInstruction = methodBody.Instructions.Last();

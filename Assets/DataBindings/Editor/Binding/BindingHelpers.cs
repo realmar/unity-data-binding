@@ -66,9 +66,9 @@ namespace Realmar.DataBindings.Editor.Binding
 		{
 			var ctorArgs = attribute.ConstructorArguments;
 			return new BindingInitializerSettings
-			{
-				ThrowOnFailure = (bool) ctorArgs[0].Value
-			};
+			(
+				throwOnFailure: (bool) ctorArgs[0].Value
+			);
 		}
 	}
 }

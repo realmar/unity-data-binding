@@ -1,7 +1,7 @@
+using Mono.Cecil;
+using Realmar.DataBindings.Editor.Utils;
 using System;
 using System.Reflection;
-using Realmar.DataBindings.Editor.Utils;
-using Mono.Cecil;
 
 namespace Realmar.DataBindings.Editor.Cecil
 {

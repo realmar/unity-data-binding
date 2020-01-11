@@ -3,30 +3,16 @@ using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using System;
 using System.Linq;
+using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Shared
 {
 	internal static class SharedHelpers
 	{
-		internal static MethodDefinition GetSetHelperMethod(PropertyDefinition property, TypeDefinition type)
-		{
-			var targetSetHelperMethodName = GetTargetSetHelperMethodName(property.SetMethod);
-			var targetSetHelperMethod = type.GetMethodsInBaseHierarchy(targetSetHelperMethodName).FirstOrDefault();
-			if (targetSetHelperMethod == null)
-			{
-				throw new MissingSetterException(property.FullName);
-			}
-
-			return targetSetHelperMethod;
-		}
-
-		internal static string GetTargetSetHelperMethodName(MethodDefinition setMethod)
-		{
-			return $"{setMethod.Name}WeaveBinding";
-		}
-
 		internal static TypeDefinition GetReturnType(IMemberDefinition bindingTarget)
 		{
+			YeetIfNull(bindingTarget, nameof(bindingTarget));
+
 			switch (bindingTarget)
 			{
 				case FieldDefinition field:
@@ -50,6 +36,9 @@ namespace Realmar.DataBindings.Editor.Shared
 
 		internal static PropertyDefinition GetAccessorPropertyInHierarchy(TypeDefinition sourceType, TypeDefinition targetType)
 		{
+			YeetIfNull(sourceType, nameof(sourceType));
+			YeetIfNull(targetType, nameof(targetType));
+
 			var injectedSourceName = GetAccessorPropertyName(sourceType);
 			var accessorInterface = targetType.GetInInterfaces(injectedSourceName, definition => definition.Properties).FirstOrDefault();
 			if (accessorInterface != null)
@@ -76,6 +65,7 @@ namespace Realmar.DataBindings.Editor.Shared
 
 		internal static string GetAccessorPropertyName(TypeDefinition sourceType)
 		{
+			YeetIfNull(sourceType, nameof(sourceType));
 			return sourceType.FullName.Replace(".", "");
 		}
 	}

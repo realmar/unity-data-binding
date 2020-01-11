@@ -1,10 +1,9 @@
+using Mono.Cecil;
+using Realmar.DataBindings.Editor.Cecil;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Mono.Cecil;
-using Realmar.DataBindings.Editor.Cecil;
-using Realmar.DataBindings.Editor.Shared.Extensions;
 
 namespace Realmar.DataBindings.Editor.Exceptions
 {

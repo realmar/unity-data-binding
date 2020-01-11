@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using ICustomAttributeProvider = Mono.Cecil.ICustomAttributeProvider;
 
@@ -55,21 +56,21 @@ namespace Realmar.DataBindings.Editor.Cecil
 		{
 			var attributes = instance.CustomAttributes;
 
-			for (var i = 0; i < attributes.Count; i++)
+			foreach (var attribute in attributes)
 			{
-				if (attributes[i].AttributeType.FullName.Equals(typeof(T).FullName, StringComparison.Ordinal))
+				if (attribute.AttributeType.FullName.Equals(typeof(T).FullName, StringComparison.Ordinal))
 				{
-					yield return attributes[i];
+					yield return attribute;
 				}
 			}
 		}
 
 		internal static PropertyDefinition GetProperty(this TypeDefinition instance, string name)
 		{
-			for (int i = 0; i < instance.Properties.Count; i++)
-			{
-				var preopertyDef = instance.Properties[i];
+			YeetIfNull(name, nameof(name));
 
+			foreach (var preopertyDef in instance.Properties)
+			{
 				// Properties can only have one argument or they are an indexer. 
 				if (string.CompareOrdinal(preopertyDef.Name, name) == 0 && preopertyDef.Parameters.Count == 0)
 				{
@@ -82,10 +83,10 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 		internal static MethodDefinition GetMethod(this TypeDefinition instance, string name)
 		{
-			for (var i = 0; i < instance.Methods.Count; i++)
-			{
-				var methodDef = instance.Methods[i];
+			YeetIfNull(name, nameof(name));
 
+			foreach (var methodDef in instance.Methods)
+			{
 				if (string.CompareOrdinal(methodDef.Name, name) == 0)
 				{
 					return methodDef;
@@ -115,6 +116,8 @@ namespace Realmar.DataBindings.Editor.Cecil
 			string name, Func<TypeDefinition, Collection<TMemberDefinition>> getter)
 			where TMemberDefinition : IMemberDefinition
 		{
+			YeetIfNull(getter, nameof(getter));
+
 			var types = GetInInterfaces(type, getter).Concat(GetInBaseClassHierarchy(type, getter));
 			if (name != null)
 			{
@@ -135,6 +138,8 @@ namespace Realmar.DataBindings.Editor.Cecil
 			Func<TypeDefinition, Collection<TMemberDefinition>> getter)
 			where TMemberDefinition : IMemberDefinition
 		{
+			YeetIfNull(getter, nameof(getter));
+
 			var ifaceTypes = type.Interfaces.Select(iface => iface.InterfaceType.Resolve());
 			return ifaceTypes.SelectMany(definition => getter.Invoke(definition));
 		}
@@ -143,6 +148,8 @@ namespace Realmar.DataBindings.Editor.Cecil
 			Func<TypeDefinition, Collection<TMemberDefinition>> getter)
 			where TMemberDefinition : IMemberDefinition
 		{
+			YeetIfNull(getter, nameof(getter));
+
 			var currentType = type;
 			while (currentType != null)
 			{
@@ -173,6 +180,8 @@ namespace Realmar.DataBindings.Editor.Cecil
 				value = default;
 				return false;
 			}
+
+			YeetIfNull(symbolName, nameof(symbolName));
 
 			T result;
 			if (Query(attribute.Properties, symbolName, out result) == false)
@@ -205,6 +214,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 			return (Attribute) instance;
 		}
+
 		internal static ModuleDefinition GetModule(this IMemberDefinition member)
 		{
 			switch (member)
@@ -226,12 +236,26 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 		internal static bool IsSame(this AssemblyDefinition a, AssemblyDefinition b)
 		{
-			// TODO is this implementation correct? There is no overload for == nor .Equals so this will do reference equality
 			return a == b;
 		}
 
 		internal static bool IsAccessibleFrom(this IMemberDefinition member, TypeDefinition type)
 		{
+			YeetIfNull(type, nameof(type));
+
+			var module = member.GetModule();
+			var sameModule = module.Assembly.IsSame(type.Module.Assembly);
+
+			bool Check(bool isVisible, bool isPrivate)
+			{
+				if (sameModule == false && isVisible == false)
+				{
+					return false;
+				}
+
+				return isPrivate == false;
+			}
+
 			var sameType = member.DeclaringType.Equals(type);
 			if (sameType)
 			{
@@ -239,33 +263,14 @@ namespace Realmar.DataBindings.Editor.Cecil
 			}
 			else
 			{
-				var module = member.GetModule();
-				var sameModule = module.Assembly.IsSame(type.Module.Assembly);
-
 				switch (member)
 				{
-					// TODO clean code
 					case FieldDefinition fieldDefinition:
-						if (sameModule == false && fieldDefinition.IsVisible() == false)
-						{
-							return false;
-						}
-
-						return fieldDefinition.IsPrivate == false;
+						return Check(fieldDefinition.IsVisible(), fieldDefinition.IsPrivate);
 					case MethodDefinition methodDefinition:
-						if (sameModule == false && methodDefinition.IsVisible() == false)
-						{
-							return false;
-						}
-
-						return methodDefinition.IsPrivate == false;
+						return Check(methodDefinition.IsVisible(), methodDefinition.IsPrivate);
 					case TypeDefinition typeDefinition:
-						if (sameModule == false && typeDefinition.IsVisible() == false)
-						{
-							return false;
-						}
-
-						return typeDefinition.IsNestedPrivate == false;
+						return Check(typeDefinition.IsVisible(), typeDefinition.IsNestedPrivate);
 					default:
 						throw new ArgumentException($"{member.FullName} cannot be resolved to a concrete definition.");
 				}

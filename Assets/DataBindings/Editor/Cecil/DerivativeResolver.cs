@@ -1,5 +1,4 @@
 using Mono.Cecil;
-using Realmar.DataBindings.Editor.Shared.Extensions;
 using Realmar.DataBindings.Editor.Utils;
 using System.Collections.Generic;
 using System.Linq;

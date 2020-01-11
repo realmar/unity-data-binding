@@ -55,7 +55,6 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			return new BindingCollection(bindingSets, objects);
 		}
 
-		// TODO refactor: method too big
 		private IReadOnlyCollection<object> ConfigureTargets(Type sourceType, object sourceObject, Dictionary<int, object> targetObjectsToId)
 		{
 			void ThrowIfNoMatches<T>(IReadOnlyCollection<T> collection,

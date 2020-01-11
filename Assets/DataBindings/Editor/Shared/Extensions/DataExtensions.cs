@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Shared.Extensions
 {
@@ -11,14 +12,18 @@ namespace Realmar.DataBindings.Editor.Shared.Extensions
 
 		internal static void AddRange<T>(this HashSet<T> set, IReadOnlyList<T> data)
 		{
-			for (var i = data.Count - 1; i >= 0; i--)
+			YeetIfNull(data, nameof(data));
+
+			foreach (var d in data)
 			{
-				set.Add(data[i]);
+				set.Add(d);
 			}
 		}
 
 		internal static void AddRange<T>(this HashSet<T> set, IEnumerable<T> data)
 		{
+			YeetIfNull(data, nameof(data));
+
 			foreach (var item in data)
 			{
 				set.Add(item);
@@ -32,6 +37,8 @@ namespace Realmar.DataBindings.Editor.Shared.Extensions
 
 		internal static void AddRange<T>(this Stack<T> stack, IEnumerable<T> data)
 		{
+			YeetIfNull(data, nameof(data));
+
 			foreach (var d in data)
 			{
 				stack.Push(d);

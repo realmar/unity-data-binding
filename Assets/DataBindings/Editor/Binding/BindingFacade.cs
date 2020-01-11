@@ -1,4 +1,3 @@
-using System;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Realmar.DataBindings.Editor.Cecil;
@@ -6,9 +5,11 @@ using Realmar.DataBindings.Editor.Emitting;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Weaving;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
+using static UnityEngine.Debug;
 
 namespace Realmar.DataBindings.Editor.Binding
 {
@@ -112,7 +113,14 @@ namespace Realmar.DataBindings.Editor.Binding
 					throw new MissingBindingTargetException(sourceProperty.FullName, settings.TargetId);
 				}
 
-				_binders[settings.Type].Bind(sourceProperty, settings, bindingTargets);
+				if (_binders.TryGetValue(settings.Type, out var binder))
+				{
+					binder.Bind(sourceProperty, settings, bindingTargets);
+				}
+				else
+				{
+					LogError($"Cannot find a binder for {settings.Type} binding. Property = {sourceProperty.FullName}");
+				}
 			}
 		}
 
@@ -132,10 +140,11 @@ namespace Realmar.DataBindings.Editor.Binding
 						source = propertyDefinition.GetMethod;
 					}
 
+					var ctorArgs = target.Attribute.ConstructorArguments;
 					targets.Add(new BindingTarget
 					{
 						Source = source,
-						Id = (int) target.Attribute.ConstructorArguments[0].Value
+						Id = (int) ctorArgs[0].Value
 					});
 				}
 			}

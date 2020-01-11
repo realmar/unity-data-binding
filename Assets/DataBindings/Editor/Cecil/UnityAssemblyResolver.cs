@@ -1,8 +1,8 @@
+using Mono.Cecil;
+using Realmar.DataBindings.Editor.IoC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Mono.Cecil;
-using Realmar.DataBindings.Editor.IoC;
 
 namespace Realmar.DataBindings.Editor.Cecil
 {

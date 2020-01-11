@@ -30,13 +30,13 @@ namespace Realmar.DataBindings.Editor.Binding
 				}
 
 				var accessorProperty = _weaver.WeaveTargetToSourceAccessorCommand(new AccessorSymbolParameters
-				{
-					SourceType = sourceType,
-					TargetType = targetProperty.DeclaringType,
-					BindingTarget = bindingTarget,
-					BindingInitializer = bindingInitializer,
-					Settings = bindingInitializerSettings
-				});
+				(
+					sourceType: sourceType,
+					targetType: targetProperty.DeclaringType,
+					bindingTarget: bindingTarget,
+					bindingInitializer: bindingInitializer,
+					settings: bindingInitializerSettings
+				));
 
 				_weaver.Weave(
 					new WeaveParameters

@@ -1,6 +1,7 @@
 using Realmar.DataBindings.Editor.BCL.System;
 using System;
 using System.Collections.Generic;
+using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.IoC
 {
@@ -49,6 +50,8 @@ namespace Realmar.DataBindings.Editor.IoC
 
 		internal void RegisterType<TFrom>(TFrom obj, object id = null)
 		{
+			YeetIfNull(obj, nameof(obj));
+
 			var from = typeof(TFrom);
 			var hash = HashCode.Combine(from, id);
 

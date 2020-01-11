@@ -1,5 +1,4 @@
 using Mono.Cecil;
-using Realmar.DataBindings.Editor.BCL.System;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Emitting;
 using Realmar.DataBindings.Editor.Exceptions;
@@ -105,18 +104,17 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
-		private readonly Dictionary<PropertyDefinition, List<BindingCommand>> _bindings = new Dictionary<PropertyDefinition, List<BindingCommand>>();
-		private readonly Dictionary<PropertyDefinition, HashSet<PropertyDefinition>> _propertiesSettingOthers = new Dictionary<PropertyDefinition, HashSet<PropertyDefinition>>();
-
-		private readonly HashSet<TypeDefinition> _createdMethodMementos = new HashSet<TypeDefinition>();
-		private readonly Dictionary<MethodDefinition, MethodMemento> _methods = new Dictionary<MethodDefinition, MethodMemento>();
-		private readonly Dictionary<int, MethodDefinition> _setHelpers = new Dictionary<int, MethodDefinition>();
+		private readonly Random _random = new Random();
 
 		private readonly Emitter _emitter = ServiceLocator.Current.Resolve<Emitter>();
 		private readonly DerivativeResolver _derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
-		private readonly Random _random = new Random();
 
 		private readonly HashSet<int> _wovenBindings = new HashSet<int>();
+		private readonly Dictionary<PropertyDefinition, List<BindingCommand>> _bindingsForProperty = new Dictionary<PropertyDefinition, List<BindingCommand>>();
+		private readonly Dictionary<PropertyDefinition, HashSet<PropertyDefinition>> _propertySettingOtherProperties = new Dictionary<PropertyDefinition, HashSet<PropertyDefinition>>();
+		private readonly HashSet<TypeDefinition> _alreadyCreatedMethodMementos = new HashSet<TypeDefinition>();
+		private readonly Dictionary<MethodDefinition, MethodMemento> _originalSetters = new Dictionary<MethodDefinition, MethodMemento>();
+		private readonly Dictionary<int, MethodDefinition> _setHelpers = new Dictionary<int, MethodDefinition>();
 
 		internal void Weave(in WeaveParameters parameters)
 		{
@@ -136,10 +134,9 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
-		internal PropertyDefinition WeaveTargetToSourceAccessorCommand(AccessorSymbolParameters parameters)
+		internal PropertyDefinition WeaveTargetToSourceAccessorCommand(in AccessorSymbolParameters parameters)
 		{
 			var accessorSymbol = GetAccessorPropertyInHierarchy(parameters.SourceType, parameters.TargetType);
-
 			if (accessorSymbol == null)
 			{
 				// WEAVE ACCESSOR METHOD
@@ -174,7 +171,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 		{
 			foreach (var type in types)
 			{
-				if (_createdMethodMementos.Contains(type) == false)
+				if (_alreadyCreatedMethodMementos.Contains(type) == false)
 				{
 					var derivedProperties = _derivativeResolver
 						.GetDerivedTypes(type)
@@ -191,13 +188,13 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 					foreach (var setter in setters)
 					{
-						if (_methods.ContainsKey(setter) == false)
+						if (_originalSetters.ContainsKey(setter) == false)
 						{
-							_methods[setter] = _emitter.CreateMethodMemento(setter);
+							_originalSetters[setter] = _emitter.CreateMethodMemento(setter);
 						}
 					}
 
-					_createdMethodMementos.Add(type);
+					_alreadyCreatedMethodMementos.Add(type);
 				}
 			}
 		}
@@ -206,7 +203,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 		{
 			MethodDefinition result = null;
 			var fromProperty = parameters.FromProperty;
-			var helperHash = HashCode.Combine(fromProperty, parameters.ToProperty);
+			var helperHash = GetSetHelperHashCode(fromProperty, parameters.ToProperty);
 
 			if (_setHelpers.ContainsKey(helperHash))
 			{
@@ -223,7 +220,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 				{
 					foreach (var (property, setHelper) in WeaveSetHelperRecursive(fromProperty, toProperty, setHelperName))
 					{
-						_setHelpers[HashCode.Combine(fromProperty, property)] = setHelper;
+						_setHelpers[GetSetHelperHashCode(fromProperty, property)] = setHelper;
 
 						if (property == toProperty)
 						{
@@ -248,9 +245,9 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 		private MethodDefinition WeaveSetHelper(PropertyDefinition fromProperty, PropertyDefinition toProperty, string name)
 		{
-			MethodDefinition setHelper = null;
+			MethodDefinition setHelper;
 			var setter = toProperty.GetSetMethodOrYeet();
-			if (_methods.ContainsKey(setter) == false) 
+			if (_originalSetters.ContainsKey(setter) == false)
 			{
 				if (setter.IsAbstract == false)
 				{
@@ -261,11 +258,11 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 			else
 			{
-				setHelper = _emitter.EmitSetHelper(name, setter, _methods[setter]);
-				if (_bindings.ContainsKey(toProperty))
+				setHelper = _emitter.EmitSetHelper(name, setter, _originalSetters[setter]);
+				if (_bindingsForProperty.ContainsKey(toProperty))
 				{
 					// apply existing bindings
-					var bindings = _bindings[toProperty];
+					var bindings = _bindingsForProperty[toProperty];
 					foreach (var (command, targetProperty) in bindings)
 					{
 						if (targetProperty != fromProperty)
@@ -306,7 +303,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 				var fromProperty = parameters.FromProperty;
 				var fromGetter = fromProperty.GetGetMethodOrYeet();
 				var fromSetter = fromProperty.GetSetMethodOrYeet();
-
 				var toProperty = parameters.ToProperty;
 				var toSetter = WeaveSetHelper(parameters);
 
@@ -315,27 +311,27 @@ namespace Realmar.DataBindings.Editor.Weaving
 				var emitCommand = _emitter.CreateEmitCommand(new EmitParameters(bindingTarget, fromGetter, fromSetter, toSetter, parameters.EmitNullCheck));
 				emitCommand.Emit(fromSetter);
 
-				if (_bindings.TryGetValue(fromProperty, out var commands) == false)
+				if (_bindingsForProperty.TryGetValue(fromProperty, out var commands) == false)
 				{
 					commands = new List<BindingCommand>();
-					_bindings[fromProperty] = commands;
+					_bindingsForProperty[fromProperty] = commands;
 				}
 
 				commands.Add(new BindingCommand(emitCommand, toProperty));
 
-				foreach (var (origin, destinations) in _propertiesSettingOthers)
+				foreach (var (origin, destinations) in _propertySettingOtherProperties)
 				{
 					if (destinations.Contains(fromProperty) && toProperty != origin)
 					{
-						var setHelper = _setHelpers[HashCode.Combine(origin, fromProperty)];
+						var setHelper = _setHelpers[GetSetHelperHashCode(origin, fromProperty)];
 						emitCommand.Emit(setHelper);
 					}
 				}
 
-				if (_propertiesSettingOthers.TryGetValue(fromProperty, out var references) == false)
+				if (_propertySettingOtherProperties.TryGetValue(fromProperty, out var references) == false)
 				{
 					references = new HashSet<PropertyDefinition>();
-					_propertiesSettingOthers[fromProperty] = references;
+					_propertySettingOtherProperties[fromProperty] = references;
 				}
 
 				references.Add(toProperty);
@@ -390,7 +386,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
-		private void WeaveAbstractAccessorInitialization(MethodDefinition accessorSymbol, AccessorSymbolParameters accessorSymbolParameters)
+		private void WeaveAbstractAccessorInitialization(MethodDefinition accessorSymbol, in AccessorSymbolParameters accessorSymbolParameters)
 		{
 			var originType = accessorSymbolParameters.BindingInitializer.DeclaringType;
 
@@ -401,7 +397,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
-		private bool WeaveAccessorInitializationInType(MethodDefinition accessorSymbol, TypeDefinition derivedType, AccessorSymbolParameters parameters)
+		private bool WeaveAccessorInitializationInType(MethodDefinition accessorSymbol, TypeDefinition derivedType, in AccessorSymbolParameters parameters)
 		{
 			var initializer = derivedType.GetMethod(parameters.BindingInitializer.Name);
 			bool found;
@@ -426,7 +422,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 			return found;
 		}
 
-		private bool WeaveAccessorInitializationInDerivedTypes(MethodDefinition accessorSymbol, TypeDefinition derivedType, AccessorSymbolParameters parameters)
+		private bool WeaveAccessorInitializationInDerivedTypes(MethodDefinition accessorSymbol, TypeDefinition derivedType, in AccessorSymbolParameters parameters)
 		{
 			var newDerivedTypes = _derivativeResolver.GetDirectlyDerivedTypes(derivedType);
 

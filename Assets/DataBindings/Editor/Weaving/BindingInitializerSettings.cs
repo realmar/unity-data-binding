@@ -1,7 +1,12 @@
 namespace Realmar.DataBindings.Editor.Weaving
 {
-	internal struct BindingInitializerSettings
+	internal readonly struct BindingInitializerSettings
 	{
-		public bool ThrowOnFailure { get; set; }
+		public bool ThrowOnFailure { get; }
+
+		public BindingInitializerSettings(bool throwOnFailure)
+		{
+			ThrowOnFailure = throwOnFailure;
+		}
 	}
 }

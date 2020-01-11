@@ -16,6 +16,9 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		internal PropertyDefinition EmitAccessor(TypeDefinition targetType, TypeDefinition sourceType, bool isInterfaceImpl)
 		{
+			YeetIfNull(targetType, nameof(targetType));
+			YeetIfNull(sourceType, nameof(sourceType));
+
 			var accessor = EmitAccessorPropertyDefinition(targetType, sourceType, isInterfaceImpl);
 
 			if (targetType.IsInterface == false)
@@ -124,6 +127,10 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		internal void EmitAccessorInitialization(MethodDefinition accessorSymbol, MethodDefinition bindingInitializer, IMemberDefinition bindingTarget, bool throwOnFailure)
 		{
+			YeetIfNull(accessorSymbol, nameof(accessorSymbol));
+			YeetIfNull(bindingInitializer, nameof(bindingInitializer));
+			YeetIfNull(bindingTarget, nameof(bindingTarget));
+
 			// IL_0008: ldarg.0      // this
 			// IL_0009: ldfld        class Realmar.DataBindings.Example.ExampleView Realmar.DataBindings.Example.ExampleViewModel::_view
 			// IL_000e: ldarg.0      // this
@@ -159,6 +166,7 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		internal MethodMemento CreateMethodMemento(MethodDefinition method)
 		{
+			YeetIfNull(method, nameof(method));
 			YeetIfAbstract(method);
 
 			var memento = new MethodMemento();
@@ -179,6 +187,13 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		internal MethodDefinition EmitSetHelper(string targetSetHelperMethodName, MethodDefinition setMethod, MethodMemento memento)
 		{
+			if (string.IsNullOrEmpty(targetSetHelperMethodName))
+			{
+				throw new ArgumentNullException(nameof(targetSetHelperMethodName), "Set helper name cannot be null.");
+			}
+
+			YeetIfNull(setMethod, nameof(setMethod));
+			YeetIfNull(memento, nameof(memento));
 			YeetIfAbstract(setMethod);
 
 			var setHelper = EmitSetHelper(targetSetHelperMethodName, setMethod);
@@ -234,6 +249,8 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		internal EmitBindingCommand CreateEmitCommand(EmitParameters parameters)
 		{
+			parameters.Validate();
+
 			return new EmitBindingCommand(
 				fromSetter =>
 				{
@@ -249,6 +266,8 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		internal void EmitBinding(in EmitParameters parameters)
 		{
+			parameters.Validate();
+
 			var appender = new MethodAppender(parameters.FromSetter);
 
 			if (parameters.EmitNullCheck)
