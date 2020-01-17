@@ -10,27 +10,27 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void OneWay_NoNonAbstractSource() =>
 			AssertMissingSymbolExceptionThrown<MissingNonAbstractSymbolException>(
-				"System.String UnitsUnderTest.Negative_Weaver_AbstractTests.OneWay_NoNonAbstractSource.AbstractSource::Text()");
+				"System.Void UnitsUnderTest.Negative_Weaver_AbstractTests.OneWay_NoNonAbstractSource.AbstractSource::set_Text(System.String)");
 
 		[Test]
 		public void FromTarget_NoNonAbstractTarget() =>
 			AssertMissingSymbolExceptionThrown<MissingNonAbstractSymbolException>(
-				"System.String UnitsUnderTest.Negative_Weaver_AbstractTests.FromTarget_NoNonAbstractTarget.AbstractTarget::Text()");
+				"System.Void UnitsUnderTest.Negative_Weaver_AbstractTests.FromTarget_NoNonAbstractTarget.AbstractTarget::set_Text(System.String)");
 
 		[Test]
 		public void OneWay_NoNonAbstractSourceAndTarget() =>
 			AssertMissingSymbolExceptionThrown<MissingNonAbstractSymbolException>(
-				"System.String UnitsUnderTest.Negative_Weaver_AbstractTests.OneWay_NoNonAbstractSourceAndTarget.AbstractSource::Text()");
+				"System.Void UnitsUnderTest.Negative_Weaver_AbstractTests.OneWay_NoNonAbstractSourceAndTarget.AbstractSource::set_Text(System.String)");
 
 		[Test]
 		public void TwoWay_NoNonAbstractSourceAndTarget() =>
 			AssertMissingSymbolExceptionThrown<MissingNonAbstractSymbolException>(
-				"System.String UnitsUnderTest.Negative_Weaver_AbstractTests.TwoWay_NoNonAbstractSourceAndTarget.AbstractSource::Text()");
+				"System.Void UnitsUnderTest.Negative_Weaver_AbstractTests.TwoWay_NoNonAbstractSourceAndTarget.AbstractSource::set_Text(System.String)");
 
 		[Test]
 		public void TwoWay_NoNonAbstractTarget() =>
 			AssertMissingSymbolExceptionThrown<MissingNonAbstractSymbolException>(
-				"System.String UnitsUnderTest.Negative_Weaver_AbstractTests.TwoWay_NoNonAbstractTarget.AbstractTarget::Text()");
+				"System.Void UnitsUnderTest.Negative_Weaver_AbstractTests.TwoWay_NoNonAbstractTarget.AbstractTarget::set_Text(System.String)");
 
 		[Test]
 		public void TwoWay_NoNonAbstractBindingInitializer() =>

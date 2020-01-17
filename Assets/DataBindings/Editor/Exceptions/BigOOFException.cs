@@ -6,6 +6,8 @@ namespace Realmar.DataBindings.Editor.Exceptions
 {
 	internal class BigOOFException : Exception
 	{
+		public override string Message => $"{base.Message}\nThis should not happen. It indicates a logic error in the framework.";
+
 		internal BigOOFException()
 		{
 		}

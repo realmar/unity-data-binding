@@ -602,3 +602,29 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings
 		public string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneTime_ManyToOne
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1)] public Target BT1 { get; set; }
+
+		[Binding(BindingType.OneTime)] public string Text1 { get; set; }
+		[Binding(BindingType.OneTime)] public string Text2 { get; set; }
+		[Binding(BindingType.OneTime)] public string Text3 { get; set; }
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target, Id(1)]
+	internal class Target
+	{
+		public string Text1 { get; set; }
+		public string Text2 { get; set; }
+		public string Text3 { get; set; }
+	}
+}

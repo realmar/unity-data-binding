@@ -1,6 +1,7 @@
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Weaving;
+using System.Collections.Generic;
 using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 
@@ -10,7 +11,7 @@ namespace Realmar.DataBindings.Editor.Binding
 	{
 		private readonly Weaver _weaver = ServiceLocator.Current.Resolve<Weaver>();
 
-		public void Bind(PropertyDefinition sourceProperty, BindingSettings settings, BindingTarget[] targets)
+		public void Bind(PropertyDefinition sourceProperty, in BindingSettings settings, IReadOnlyCollection<BindingTarget> targets)
 		{
 			foreach (var bindingTarget in targets)
 			{

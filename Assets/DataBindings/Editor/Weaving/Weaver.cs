@@ -1,4 +1,5 @@
 using Mono.Cecil;
+using Realmar.DataBindings.Editor.BCL.System;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Emitting;
 using Realmar.DataBindings.Editor.Exceptions;
@@ -86,21 +87,48 @@ namespace Realmar.DataBindings.Editor.Weaving
 		 * --> special set helpers only it is then.
 		 */
 
+		private class WovenBindingsSetComparer : IEqualityComparer<WeaveMethodParameters>
+		{
+			public bool Equals(WeaveMethodParameters x, WeaveMethodParameters y)
+			{
+				return GetHashCode(x) == GetHashCode(y);
+			}
+
+			public int GetHashCode(WeaveMethodParameters parameters)
+			{
+				return HashCode.Combine(parameters.FromGetter, parameters.FromSetter, parameters.ToSetter, parameters.BindingTarget);
+			}
+		}
+
+		private class SetHelperComparer : IEqualityComparer<(MethodDefinition From, MethodDefinition To)>
+		{
+			public bool Equals((MethodDefinition From, MethodDefinition To) x, (MethodDefinition From, MethodDefinition To) y)
+			{
+				return GetHashCode(x) == GetHashCode(y);
+			}
+
+			public int GetHashCode((MethodDefinition From, MethodDefinition To) key)
+			{
+				var (from, to) = key;
+				return HashCode.Combine(from, to);
+			}
+		}
+
 		private readonly struct BindingCommand
 		{
 			internal EmitBindingCommand Command { get; }
-			internal PropertyDefinition ToProperty { get; }
+			internal MethodDefinition ToSetter { get; }
 
-			internal BindingCommand(EmitBindingCommand command, PropertyDefinition property)
+			internal BindingCommand(EmitBindingCommand command, MethodDefinition property)
 			{
 				Command = command;
-				ToProperty = property;
+				ToSetter = property;
 			}
 
-			internal void Deconstruct(out EmitBindingCommand command, out PropertyDefinition toProperty)
+			internal void Deconstruct(out EmitBindingCommand command, out MethodDefinition toProperty)
 			{
 				command = Command;
-				toProperty = ToProperty;
+				toProperty = ToSetter;
 			}
 		}
 
@@ -109,22 +137,23 @@ namespace Realmar.DataBindings.Editor.Weaving
 		private readonly Emitter _emitter = ServiceLocator.Current.Resolve<Emitter>();
 		private readonly DerivativeResolver _derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
 
-		private readonly HashSet<int> _wovenBindings = new HashSet<int>();
-		private readonly Dictionary<PropertyDefinition, List<BindingCommand>> _bindingsForProperty = new Dictionary<PropertyDefinition, List<BindingCommand>>();
-		private readonly Dictionary<PropertyDefinition, HashSet<PropertyDefinition>> _propertySettingOtherProperties = new Dictionary<PropertyDefinition, HashSet<PropertyDefinition>>();
+		private readonly HashSet<WeaveMethodParameters> _wovenBindings = new HashSet<WeaveMethodParameters>(new WovenBindingsSetComparer());
+		private readonly Dictionary<MethodDefinition, List<BindingCommand>> _bindingsForProperty = new Dictionary<MethodDefinition, List<BindingCommand>>();
+		private readonly Dictionary<MethodDefinition, HashSet<MethodDefinition>> _propertySettingOtherProperties = new Dictionary<MethodDefinition, HashSet<MethodDefinition>>();
 		private readonly HashSet<TypeDefinition> _alreadyCreatedMethodMementos = new HashSet<TypeDefinition>();
 		private readonly Dictionary<MethodDefinition, MethodMemento> _originalSetters = new Dictionary<MethodDefinition, MethodMemento>();
-		private readonly Dictionary<int, MethodDefinition> _setHelpers = new Dictionary<int, MethodDefinition>();
+		private readonly Dictionary<(MethodDefinition From, MethodDefinition To), MethodDefinition> _setHelpers = new Dictionary<(MethodDefinition From, MethodDefinition To), MethodDefinition>(new SetHelperComparer());
 
-		internal void Weave(in WeaveParameters parameters)
+		internal void Weave(in WeaveMethodParameters parameters)
 		{
-			var fromPropertyDeclaringType = parameters.FromProperty.DeclaringType;
-			YeetIfInaccessible(parameters.ToProperty.SetMethod, fromPropertyDeclaringType);
+			var fromPropertyDeclaringType = parameters.FromSetter.DeclaringType;
+			YeetIfInaccessible(parameters.ToSetter, fromPropertyDeclaringType);
 			YeetIfInaccessible(parameters.BindingTarget, fromPropertyDeclaringType);
 
-			CreateMethodMementos(new[] { parameters.ToType, parameters.FromProperty.DeclaringType });
+			CreateMethodMemento(parameters.ToSetter.DeclaringType);
+			CreateMethodMemento(parameters.FromSetter.DeclaringType);
 
-			if (parameters.FromProperty.GetSetMethodOrYeet().IsVirtual == false)
+			if (parameters.FromSetter.IsVirtual == false)
 			{
 				WeaveNonAbstractBinding(parameters);
 			}
@@ -132,6 +161,17 @@ namespace Realmar.DataBindings.Editor.Weaving
 			{
 				WeaveBindingInHierarchy(parameters);
 			}
+		}
+
+		internal void Weave(in WeaveParameters parameters)
+		{
+			Weave(new WeaveMethodParameters(
+				fromGetter: parameters.FromProperty.GetGetMethodOrYeet(),
+				fromSetter: parameters.FromProperty.GetSetMethodOrYeet(),
+				toSetter: parameters.ToProperty.GetSetMethodOrYeet(),
+				bindingTarget: parameters.BindingTarget,
+				emitNullCheck: parameters.EmitNullCheck
+			));
 		}
 
 		internal PropertyDefinition WeaveTargetToSourceAccessorCommand(in AccessorSymbolParameters parameters)
@@ -167,62 +207,55 @@ namespace Realmar.DataBindings.Editor.Weaving
 			return accessorSymbol;
 		}
 
-		private void CreateMethodMementos(IEnumerable<TypeDefinition> types)
+		private void CreateMethodMemento(TypeDefinition type)
 		{
-			foreach (var type in types)
+			if (_alreadyCreatedMethodMementos.Contains(type) == false)
 			{
-				if (_alreadyCreatedMethodMementos.Contains(type) == false)
+				var derivedProperties = _derivativeResolver
+					.GetDerivedTypes(type)
+					.SelectMany(definition => definition.Properties);
+
+				var setters = type
+					.GetPropertiesInBaseHierarchy()
+					.Concat(derivedProperties)
+					.Where(definition => definition.DeclaringType.Module.Assembly.IsSame(type.Module.Assembly))
+					.Select(definition => definition.SetMethod)
+					.WhereNotNull()
+					.Where(definition => definition.IsAbstract == false);
+
+
+				foreach (var setter in setters)
 				{
-					var derivedProperties = _derivativeResolver
-						.GetDerivedTypes(type)
-						.SelectMany(definition => definition.Properties);
-
-					var setters = type
-						.GetPropertiesInBaseHierarchy()
-						.Concat(derivedProperties)
-						.Where(definition => definition.DeclaringType.Module.Assembly.IsSame(type.Module.Assembly))
-						.Select(definition => definition.SetMethod)
-						.WhereNotNull()
-						.Where(definition => definition.IsAbstract == false);
-
-
-					foreach (var setter in setters)
+					if (_originalSetters.ContainsKey(setter) == false)
 					{
-						if (_originalSetters.ContainsKey(setter) == false)
-						{
-							_originalSetters[setter] = _emitter.CreateMethodMemento(setter);
-						}
+						_originalSetters[setter] = _emitter.CreateMethodMemento(setter);
 					}
-
-					_alreadyCreatedMethodMementos.Add(type);
 				}
+
+				_alreadyCreatedMethodMementos.Add(type);
 			}
 		}
 
-		private MethodDefinition WeaveSetHelper(in WeaveParameters parameters)
+		private MethodDefinition WeaveSetHelper(MethodDefinition fromSetter, MethodDefinition toSetter)
 		{
 			MethodDefinition result = null;
-			var fromProperty = parameters.FromProperty;
-			var helperHash = GetSetHelperHashCode(fromProperty, parameters.ToProperty);
 
-			if (_setHelpers.ContainsKey(helperHash))
+			var key = (fromSetter, toSetter);
+			if (_setHelpers.ContainsKey(key))
 			{
-				result = _setHelpers[helperHash];
+				result = _setHelpers[key];
 			}
 			else
 			{
-				var fromType = fromProperty.DeclaringType;
-				var toProperty = parameters.ToProperty;
-				var toSetter = toProperty.GetSetMethodOrYeet();
-				var setHelperName = $"from_{fromType.Name}_to_{toProperty.DeclaringType.Name}_with_{toProperty.Name}_{_random.Next()}";
+				var setHelperName = $"From_{FormatSetterName(fromSetter)}_To_{toSetter.DeclaringType.Name}_With_{FormatSetterName(toSetter)}_{_random.Next()}";
 
 				if (toSetter.IsVirtual || toSetter.IsAbstract)
 				{
-					foreach (var (property, setHelper) in WeaveSetHelperRecursive(fromProperty, toProperty, setHelperName))
+					foreach (var (property, setHelper) in WeaveSetHelperRecursive(fromSetter, toSetter, setHelperName))
 					{
-						_setHelpers[GetSetHelperHashCode(fromProperty, property)] = setHelper;
+						_setHelpers[(fromSetter, toSetter)] = setHelper;
 
-						if (property == toProperty)
+						if (property == toSetter)
 						{
 							result = setHelper;
 						}
@@ -230,42 +263,41 @@ namespace Realmar.DataBindings.Editor.Weaving
 				}
 				else
 				{
-					result = WeaveSetHelper(fromProperty, toProperty, setHelperName);
-					_setHelpers[helperHash] = result;
+					result = WeaveSetHelper(fromSetter, toSetter, setHelperName);
+					_setHelpers[key] = result;
 				}
 
 				if (result == null)
 				{
-					throw new BigOOFException($"Weaving set helper failed name {setHelperName} from {fromProperty} to {toProperty}");
+					throw new BigOOFException($"Weaving set helper failed name {setHelperName} from {fromSetter} to {toSetter}");
 				}
 			}
 
 			return result;
 		}
 
-		private MethodDefinition WeaveSetHelper(PropertyDefinition fromProperty, PropertyDefinition toProperty, string name)
+		private MethodDefinition WeaveSetHelper(MethodDefinition fromSetter, MethodDefinition toSetter, string name)
 		{
 			MethodDefinition setHelper;
-			var setter = toProperty.GetSetMethodOrYeet();
-			if (_originalSetters.ContainsKey(setter) == false)
+			if (_originalSetters.ContainsKey(toSetter) == false)
 			{
-				if (setter.IsAbstract == false)
+				if (toSetter.IsAbstract == false)
 				{
-					throw new BigOOFException($"Property setter is not abstract but has no method memento. {toProperty.FullName}");
+					throw new BigOOFException($"ToSetter is not abstract but has no method memento. {toSetter.FullName}");
 				}
 
-				setHelper = _emitter.EmitSetHelper(name, setter);
+				setHelper = _emitter.EmitSetHelper(name, toSetter);
 			}
 			else
 			{
-				setHelper = _emitter.EmitSetHelper(name, setter, _originalSetters[setter]);
-				if (_bindingsForProperty.ContainsKey(toProperty))
+				setHelper = _emitter.EmitSetHelper(name, toSetter, _originalSetters[toSetter]);
+				if (_bindingsForProperty.ContainsKey(toSetter))
 				{
 					// apply existing bindings
-					var bindings = _bindingsForProperty[toProperty];
+					var bindings = _bindingsForProperty[toSetter];
 					foreach (var (command, targetProperty) in bindings)
 					{
-						if (targetProperty != fromProperty)
+						if (targetProperty != fromSetter)
 						{
 							command.Emit(setHelper);
 						}
@@ -276,65 +308,61 @@ namespace Realmar.DataBindings.Editor.Weaving
 			return setHelper;
 		}
 
-		private IEnumerable<(PropertyDefinition Source, MethodDefinition Helper)> WeaveSetHelperRecursive(PropertyDefinition fromProperty, PropertyDefinition toProperty, string name)
+		private IEnumerable<(MethodDefinition Source, MethodDefinition Helper)> WeaveSetHelperRecursive(MethodDefinition fromSetter, MethodDefinition toSetter, string name)
 		{
-			var originType = toProperty.DeclaringType;
-			var properties = _derivativeResolver
+			var originType = toSetter.DeclaringType;
+			var setters = _derivativeResolver
 				.GetDerivedTypes(originType)
 				.SelectMany(definition => definition.Properties)
 				.Concat(originType.GetPropertiesInBaseHierarchy())
-				.Where(definition => definition.Name == toProperty.Name)
+				.Select(definition => definition.SetMethod)
+				.WhereNotNull()
+				.Where(definition => definition.Name == toSetter.Name)
 				.Where(definition => definition.DeclaringType.Module.Assembly.IsSame(originType.Module.Assembly))
 				.Distinct();
 
-			foreach (var p in properties)
+			foreach (var setter in setters)
 			{
-				yield return (p, WeaveSetHelper(fromProperty, p, name));
+				yield return (setter, WeaveSetHelper(fromSetter, setter, name));
 			}
 		}
 
-		private void WeaveNonAbstractBinding(in WeaveParameters parameters)
+		private void WeaveNonAbstractBinding(in WeaveMethodParameters parameters)
 		{
-			var hash = GetBindingHashCode(parameters);
-
-			if (_wovenBindings.Contains(hash) == false)
+			if (_wovenBindings.Contains(parameters) == false)
 			{
 				var bindingTarget = parameters.BindingTarget;
-				var fromProperty = parameters.FromProperty;
-				var fromGetter = fromProperty.GetGetMethodOrYeet();
-				var fromSetter = fromProperty.GetSetMethodOrYeet();
-				var toProperty = parameters.ToProperty;
-				var toSetter = WeaveSetHelper(parameters);
+				var toSetHelper = WeaveSetHelper(parameters.FromSetter, parameters.ToSetter);
 
-				_wovenBindings.Add(hash);
+				_wovenBindings.Add(parameters);
 
-				var emitCommand = _emitter.CreateEmitCommand(new EmitParameters(bindingTarget, fromGetter, fromSetter, toSetter, parameters.EmitNullCheck));
-				emitCommand.Emit(fromSetter);
+				var emitCommand = _emitter.CreateEmitCommand(new EmitParameters(bindingTarget, parameters.FromGetter, parameters.FromSetter, toSetHelper, parameters.EmitNullCheck));
+				emitCommand.Emit(parameters.FromSetter);
 
-				if (_bindingsForProperty.TryGetValue(fromProperty, out var commands) == false)
+				if (_bindingsForProperty.TryGetValue(parameters.FromSetter, out var commands) == false)
 				{
 					commands = new List<BindingCommand>();
-					_bindingsForProperty[fromProperty] = commands;
+					_bindingsForProperty[parameters.FromSetter] = commands;
 				}
 
-				commands.Add(new BindingCommand(emitCommand, toProperty));
+				commands.Add(new BindingCommand(emitCommand, parameters.ToSetter));
 
 				foreach (var (origin, destinations) in _propertySettingOtherProperties)
 				{
-					if (destinations.Contains(fromProperty) && toProperty != origin)
+					if (destinations.Contains(parameters.FromSetter) && parameters.ToSetter != origin)
 					{
-						var setHelper = _setHelpers[GetSetHelperHashCode(origin, fromProperty)];
+						var setHelper = _setHelpers[(origin, parameters.FromSetter)];
 						emitCommand.Emit(setHelper);
 					}
 				}
 
-				if (_propertySettingOtherProperties.TryGetValue(fromProperty, out var references) == false)
+				if (_propertySettingOtherProperties.TryGetValue(parameters.FromSetter, out var references) == false)
 				{
-					references = new HashSet<PropertyDefinition>();
-					_propertySettingOtherProperties[fromProperty] = references;
+					references = new HashSet<MethodDefinition>();
+					_propertySettingOtherProperties[parameters.FromSetter] = references;
 				}
 
-				references.Add(toProperty);
+				references.Add(parameters.ToSetter);
 
 				/*
 				 * v to vm via sh
@@ -356,84 +384,87 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
-		private void WeaveBindingInHierarchy(in WeaveParameters parameters)
+		private void WeaveBindingInHierarchy(in WeaveMethodParameters parameters)
 		{
 			var foundNonAbstract = false;
-			var fromProperty = parameters.FromProperty;
-			var fromPropertyName = fromProperty.Name;
-			var derivedTypes = _derivativeResolver.GetDerivedTypes(fromProperty.DeclaringType);
+			var fromSetterName = parameters.FromSetter.Name;
+			var derivedTypes = _derivativeResolver.GetDerivedTypes(parameters.FromSetter.DeclaringType);
 
 			foreach (var typeDefinition in derivedTypes)
 			{
-				var property = typeDefinition.GetProperty(fromPropertyName);
-				if (property != null && property.GetSetMethodOrYeet().IsAbstract == false)
+				var derivedFromSetter = typeDefinition.GetMethod(fromSetterName);
+				if (derivedFromSetter != null && derivedFromSetter.IsAbstract == false)
 				{
-					var newParameters = new WeaveParameters(
-						property,
-						parameters.ToType,
-						parameters.ToProperty,
-						parameters.BindingTarget,
-						parameters.EmitNullCheck);
-
-					WeaveNonAbstractBinding(newParameters);
+					WeaveNonAbstractBinding(parameters.UsingFromSetter(derivedFromSetter));
 					foundNonAbstract = true;
 				}
 			}
 
 			if (foundNonAbstract == false)
 			{
-				throw new MissingNonAbstractSymbolException(fromProperty.FullName);
+				throw new MissingNonAbstractSymbolException(parameters.FromSetter.FullName);
 			}
 		}
 
-		private void WeaveAbstractAccessorInitialization(MethodDefinition accessorSymbol, in AccessorSymbolParameters accessorSymbolParameters)
+		private void WeaveAbstractAccessorInitialization(MethodDefinition accessorSymbol, in AccessorSymbolParameters parameters)
 		{
-			var originType = accessorSymbolParameters.BindingInitializer.DeclaringType;
+			var bindingInitializer = parameters.BindingInitializer;
+			var concretes = GetNonAbstractMethods(bindingInitializer);
+			var found = false;
 
-			var found = WeaveAccessorInitializationInType(accessorSymbol, originType, accessorSymbolParameters);
+			foreach (var concrete in concretes)
+			{
+				found = true;
+				_emitter.EmitAccessorInitialization(accessorSymbol, concrete, parameters.BindingTarget, parameters.Settings.ThrowOnFailure);
+			}
+
 			if (found == false)
 			{
-				throw new MissingNonAbstractBindingInitializer(accessorSymbolParameters.BindingInitializer.FullName);
+				throw new MissingNonAbstractBindingInitializer(bindingInitializer.FullName);
 			}
 		}
 
-		private bool WeaveAccessorInitializationInType(MethodDefinition accessorSymbol, TypeDefinition derivedType, in AccessorSymbolParameters parameters)
+		private IEnumerable<MethodDefinition> GetNonAbstractMethods(MethodDefinition method)
 		{
-			var initializer = derivedType.GetMethod(parameters.BindingInitializer.Name);
-			bool found;
+			if (method == null)
+			{
+				return Enumerable.Empty<MethodDefinition>();
+			}
 
+			return GetNonAbstractMethods(method.Name, method.DeclaringType);
+		}
+
+		private IEnumerable<MethodDefinition> GetNonAbstractMethods(string methodName, TypeDefinition type)
+		{
+			var initializer = type.GetMethod(methodName);
 			if (initializer != null)
 			{
 				if (initializer.IsAbstract == false)
 				{
-					_emitter.EmitAccessorInitialization(accessorSymbol, initializer, parameters.BindingTarget, parameters.Settings.ThrowOnFailure);
-					found = true;
+					return initializer.Yield();
 				}
 				else
 				{
-					found = WeaveAccessorInitializationInDerivedTypes(accessorSymbol, derivedType, parameters);
+					return GetNonAbstractMethodInDerivedTypes(methodName, type);
 				}
 			}
 			else
 			{
-				found = WeaveAccessorInitializationInDerivedTypes(accessorSymbol, derivedType, parameters);
+				return GetNonAbstractMethodInDerivedTypes(methodName, type);
 			}
-
-			return found;
 		}
 
-		private bool WeaveAccessorInitializationInDerivedTypes(MethodDefinition accessorSymbol, TypeDefinition derivedType, in AccessorSymbolParameters parameters)
+		private IEnumerable<MethodDefinition> GetNonAbstractMethodInDerivedTypes(string methodName, TypeDefinition type)
 		{
-			var newDerivedTypes = _derivativeResolver.GetDirectlyDerivedTypes(derivedType);
+			var newDerivedTypes = _derivativeResolver.GetDirectlyDerivedTypes(type);
 
-			var found = false;
-
-			foreach (var newDerivedType in newDerivedTypes)
+			foreach (var derivedType in newDerivedTypes)
 			{
-				found |= WeaveAccessorInitializationInType(accessorSymbol, newDerivedType, parameters);
+				foreach (var nonAbstractMethod in GetNonAbstractMethods(methodName, derivedType))
+				{
+					yield return nonAbstractMethod;
+				}
 			}
-
-			return found;
 		}
 	}
 }

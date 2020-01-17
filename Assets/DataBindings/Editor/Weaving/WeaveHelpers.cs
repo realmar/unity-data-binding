@@ -1,18 +1,18 @@
 using Mono.Cecil;
-using Realmar.DataBindings.Editor.BCL.System;
 
 namespace Realmar.DataBindings.Editor.Weaving
 {
 	internal static class WeaveHelpers
 	{
-		internal static int GetBindingHashCode(in WeaveParameters parameters)
+		internal static string FormatSetterName(MethodDefinition method)
 		{
-			return HashCode.Combine(parameters.FromProperty, parameters.ToProperty, parameters.BindingTarget);
-		}
+			var name = method.Name;
+			if (name.Length <= 4)
+			{
+				return name;
+			}
 
-		internal static int GetSetHelperHashCode(PropertyDefinition from, PropertyDefinition to)
-		{
-			return HashCode.Combine(from, to);
+			return name.Substring(4);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -169,13 +170,13 @@ namespace Realmar.DataBindings.Editor.Emitting
 			YeetIfNull(method, nameof(method));
 			YeetIfAbstract(method);
 
-			var memento = new MethodMemento();
 			var body = method.Body;
-
-			memento.Variables.AddRange(body.Variables);
-			memento.ExceptionHandlers.AddRange(body.ExceptionHandlers);
-			memento.Instructions.AddRange(body.Instructions);
-			memento.InitLocals = body.InitLocals;
+			var memento = new MethodMemento(
+				variables: new List<VariableDefinition>(body.Variables),
+				exceptionHandlers: new List<ExceptionHandler>(body.ExceptionHandlers),
+				instructions: new List<Instruction>(body.Instructions),
+				initLocals: body.InitLocals
+			);
 
 			return memento;
 		}

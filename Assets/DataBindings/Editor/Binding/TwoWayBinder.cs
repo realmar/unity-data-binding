@@ -1,4 +1,5 @@
 using Mono.Cecil;
+using System.Collections.Generic;
 
 namespace Realmar.DataBindings.Editor.Binding
 {
@@ -13,7 +14,7 @@ namespace Realmar.DataBindings.Editor.Binding
 			_fromTargetBinder = fromTargetBinder;
 		}
 
-		public void Bind(PropertyDefinition sourceProperty, BindingSettings settings, BindingTarget[] targets)
+		public void Bind(PropertyDefinition sourceProperty, in BindingSettings settings, IReadOnlyCollection<BindingTarget> targets)
 		{
 			_oneWayBinder.Bind(sourceProperty, settings, targets);
 			_fromTargetBinder.Bind(sourceProperty, settings, targets);

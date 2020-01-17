@@ -2,11 +2,19 @@ using Realmar.DataBindings;
 
 namespace Realmar.DataBindings.Editor.Binding
 {
-	internal struct BindingSettings
+	internal readonly struct BindingSettings
 	{
-		public BindingType Type { get; set; }
-		public int TargetId { get; set; }
-		public string TargetPropertyName { get; set; }
-		public bool EmitNullCheck { get; set; }
+		public BindingType Type { get; }
+		public int TargetId { get; }
+		public string TargetPropertyName { get; }
+		public bool EmitNullCheck { get; }
+
+		public BindingSettings(BindingType type, int targetId, string targetPropertyName, bool emitNullCheck)
+		{
+			Type = type;
+			TargetId = targetId;
+			TargetPropertyName = targetPropertyName;
+			EmitNullCheck = emitNullCheck;
+		}
 	}
 }

@@ -1,9 +1,8 @@
-using System.Linq;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Shared.Extensions;
 using Realmar.DataBindings.Editor.Weaving;
+using System.Linq;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Binding
@@ -54,12 +53,12 @@ namespace Realmar.DataBindings.Editor.Binding
 		{
 			var ctorArgs = attribute.ConstructorArguments;
 			return new BindingSettings
-			{
-				Type = (BindingType) ctorArgs[0].Value,
-				TargetId = (int) ctorArgs[1].Value,
-				TargetPropertyName = (string) ctorArgs[2].Value,
-				EmitNullCheck = (bool) ctorArgs[3].Value
-			};
+			(
+				type: (BindingType) ctorArgs[0].Value,
+				targetId: (int) ctorArgs[1].Value,
+				targetPropertyName: (string) ctorArgs[2].Value,
+				emitNullCheck: (bool) ctorArgs[3].Value
+			);
 		}
 
 		private static BindingInitializerSettings GetBindingInitializerSettings(CustomAttribute attribute)

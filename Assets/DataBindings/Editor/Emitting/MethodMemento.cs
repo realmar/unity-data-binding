@@ -5,9 +5,17 @@ namespace Realmar.DataBindings.Editor.Emitting
 {
 	internal class MethodMemento
 	{
-		internal List<VariableDefinition> Variables { get; } = new List<VariableDefinition>();
-		internal List<ExceptionHandler> ExceptionHandlers { get; } = new List<ExceptionHandler>();
-		internal List<Instruction> Instructions { get; } = new List<Instruction>();
-		internal bool InitLocals { get; set; }
+		internal IReadOnlyList<VariableDefinition> Variables { get; }
+		internal IReadOnlyList<ExceptionHandler> ExceptionHandlers { get; }
+		internal IReadOnlyList<Instruction> Instructions { get; }
+		internal bool InitLocals { get; }
+
+		internal MethodMemento(IReadOnlyList<VariableDefinition> variables, IReadOnlyList<ExceptionHandler> exceptionHandlers, IReadOnlyList<Instruction> instructions, bool initLocals)
+		{
+			Variables = variables;
+			ExceptionHandlers = exceptionHandlers;
+			Instructions = instructions;
+			InitLocals = initLocals;
+		}
 	}
 }
