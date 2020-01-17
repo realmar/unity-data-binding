@@ -53,12 +53,12 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			RunTest(GetType(), testName, customAssertion);
 		}
 
-		protected void RunTest(Type testType, string testName, Action<IBinding, object> customAssertion)
+		private void RunTest(Type testType, string testName, Action<IBinding, object> customAssertion)
 		{
 			RunTest(testType, testName, RunDefaultAssertions, customAssertion);
 		}
 
-		protected void RunTest(Type testType, string testName, Func<IBinding, object> assertions, Action<IBinding, object> customAssertion)
+		private void RunTest(Type testType, string testName, Func<IBindingSet, IBinding, object> assertions, Action<IBinding, object> customAssertion)
 		{
 			var localAssertions = assertions;
 			var localCustomAssertions = customAssertion;
@@ -69,7 +69,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 
 				foreach (var binding in bindingSet.Bindings)
 				{
-					var expected = localAssertions.Invoke(binding);
+					var expected = localAssertions.Invoke(bindingSet, binding);
 					localCustomAssertions?.Invoke(binding, expected);
 				}
 			});
@@ -80,31 +80,31 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			RunTest(GetType(), testName, bindingSetAssertions);
 		}
 
-		protected void RunTest(Type testType, string testName, Action<IBindingSet> bindingSetAssertion)
+		private void RunTest(Type testType, string testName, Action<IBindingSet> bindingSetAssertions)
 		{
 			YeetIfNull(testName, nameof(testName));
 			var sandbox = _sandboxTestFacade.GetSandboxForTest(testType, testName);
 
 			foreach (var bindingSet in sandbox.BindingCollection.BindingSets)
 			{
-				bindingSetAssertion.Invoke(bindingSet);
+				bindingSetAssertions.Invoke(bindingSet);
 			}
 		}
 
 		protected void RunTest(Action<IBinding> assertions, [CallerMemberName] string testName = null)
 		{
-			RunTest(GetType(), testName, binding =>
+			RunTest(GetType(), testName, (_, binding) =>
 			{
 				assertions.Invoke(binding);
 				return null;
 			}, null);
 		}
 
-		protected void RunTest(Action<IBindingCollection> bindingSetAssertions, [CallerMemberName] string testName = null)
+		protected void RunTest(Action<IBindingCollection> bindingCollectionAssertions, [CallerMemberName] string testName = null)
 		{
 			YeetIfNull(testName, nameof(testName));
 			var sandbox = _sandboxTestFacade.GetSandboxForTest(GetType(), testName);
-			bindingSetAssertions.Invoke(sandbox.BindingCollection);
+			bindingCollectionAssertions.Invoke(sandbox.BindingCollection);
 		}
 
 		protected void RunTestExpectException<TException>([CallerMemberName] string testName = null)
@@ -132,6 +132,23 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 
 			Assert.That(actual, Is.Not.Null, "Test did not throw any exceptions.");
 			Assert.That(actual, Is.TypeOf<TException>());
+		}
+
+		private object RunDefaultAssertions(IBindingSet set, IBinding binding)
+		{
+			object expected;
+			if (binding.BindingAttribute.BindingType == BindingType.OneTime)
+			{
+				expected = SetValue(binding.Source);
+				set.RunBindingInitializer();
+				AssertValue(binding.Target, expected);
+			}
+			else
+			{
+				expected = RunDefaultAssertions(binding);
+			}
+
+			return expected;
 		}
 
 		private object RunDefaultAssertions(IBinding binding)

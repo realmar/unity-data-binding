@@ -43,12 +43,14 @@ namespace Realmar.DataBindings.Editor.Binding
 
 			var oneWayBinder = new OneWayBinder();
 			var fromTargetBinder = new FromTargetBinder();
+			var oneTimeBinder = new OneTimeBinder();
 			var twoWayBinder = new TwoWayBinder(oneWayBinder, fromTargetBinder);
 
 			_options = options;
 			_attributeResolver = new AttributeResolver();
 			_binders = new Dictionary<BindingType, IBinder>
 			{
+				[BindingType.OneTime] = oneTimeBinder,
 				[BindingType.OneWay] = oneWayBinder,
 				[BindingType.OneWayFromTarget] = fromTargetBinder,
 				[BindingType.TwoWay] = twoWayBinder

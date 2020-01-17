@@ -45,6 +45,9 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void OneWay_NullCheck_TargetNotNull() => RunTest();
 
 		[Test]
+		public void OneTime_ManyToOne() => RunTest();
+
+		[Test]
 		public void OneWay_NullCheck_TargetNull() => RunTest(binding =>
 		{
 			binding.Source.BindingValue = GetRandomString();

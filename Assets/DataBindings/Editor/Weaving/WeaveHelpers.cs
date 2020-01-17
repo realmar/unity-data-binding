@@ -7,12 +7,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 		internal static string FormatSetterName(MethodDefinition method)
 		{
 			var name = method.Name;
-			if (name.Length <= 4)
-			{
-				return name;
-			}
-
-			return name.Substring(4);
+			return name.Replace("set_", "");
 		}
 	}
 }
