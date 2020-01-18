@@ -10,17 +10,20 @@ namespace Realmar.DataBindings
 		public int TargetId { get; private set; }
 		public string TargetPropertyName { get; private set; }
 		public bool EmitNullCheck { get; private set; }
+		public Type Converter { get; private set; }
 
 		public BindingAttribute(
 			BindingType bindingType = BindingType.OneWay,
 			int targetId = 0,
 			string targetPropertyName = null,
-			bool emitNullCheck = false)
+			bool emitNullCheck = false,
+			Type converter = null)
 		{
 			BindingType = bindingType;
 			TargetId = targetId;
 			TargetPropertyName = targetPropertyName;
 			EmitNullCheck = emitNullCheck;
+			Converter = converter;
 		}
 	}
 }

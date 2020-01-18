@@ -115,6 +115,7 @@ namespace Realmar.DataBindings.Editor.Binding
 					throw new MissingBindingTargetException(sourceProperty.FullName, settings.TargetId);
 				}
 
+
 				if (_binders.TryGetValue(settings.Type, out var binder))
 				{
 					binder.Bind(sourceProperty, settings, bindingTargets);

@@ -1,3 +1,4 @@
+using System;
 using Realmar.DataBindings.Editor.Shared.Extensions;
 using System.Reflection;
 
@@ -19,5 +20,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			get => Info?.GetFieldOrPropertyValue(Obj);
 			set => Info?.SetFieldOrPropertyValue(Obj, value);
 		}
+
+		public Type BindingValueType => Info?.GetFieldOrPropertyType();
 	}
 }

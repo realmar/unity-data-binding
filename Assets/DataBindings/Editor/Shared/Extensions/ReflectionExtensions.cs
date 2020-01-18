@@ -56,22 +56,15 @@ namespace Realmar.DataBindings.Editor.Shared.Extensions
 		{
 			YeetIfNotPropertyOrField(info);
 
-			object result = null;
-
-			if (info != null)
+			switch (info)
 			{
-				switch (info)
-				{
-					case FieldInfo fieldInfo:
-						result = fieldInfo.GetValue(target);
-						break;
-					case PropertyInfo propertyInfo:
-						result = propertyInfo.GetValue(target);
-						break;
-				}
+				case FieldInfo fieldInfo:
+					return fieldInfo.GetValue(target);
+				case PropertyInfo propertyInfo:
+					return propertyInfo.GetValue(target);
+				default:
+					return null;
 			}
-
-			return result;
 		}
 
 		internal static MemberInfo GetFieldOrPropertyInfo(this Type type, string name, BindingFlags flags = ALL)
@@ -85,6 +78,21 @@ namespace Realmar.DataBindings.Editor.Shared.Extensions
 			}
 
 			return info;
+		}
+
+		internal static Type GetFieldOrPropertyType(this MemberInfo info)
+		{
+			YeetIfNotPropertyOrField(info);
+
+			switch (info)
+			{
+				case FieldInfo fieldInfo:
+					return fieldInfo.FieldType;
+				case PropertyInfo propertyInfo:
+					return propertyInfo.PropertyType;
+				default:
+					return null;
+			}
 		}
 
 		internal static object InvokeMethod(this Type type, string name, object target, params object[] args)

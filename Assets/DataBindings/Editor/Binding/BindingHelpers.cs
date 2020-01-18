@@ -52,12 +52,14 @@ namespace Realmar.DataBindings.Editor.Binding
 		internal static BindingSettings GetBindingSettings(CustomAttribute attribute)
 		{
 			var ctorArgs = attribute.ConstructorArguments;
+
 			return new BindingSettings
 			(
 				type: (BindingType) ctorArgs[0].Value,
 				targetId: (int) ctorArgs[1].Value,
 				targetPropertyName: (string) ctorArgs[2].Value,
-				emitNullCheck: (bool) ctorArgs[3].Value
+				emitNullCheck: (bool) ctorArgs[3].Value,
+				converter: ((TypeReference) ctorArgs[4].Value)?.Resolve()
 			);
 		}
 

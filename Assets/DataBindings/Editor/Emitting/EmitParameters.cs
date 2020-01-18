@@ -12,14 +12,27 @@ namespace Realmar.DataBindings.Editor.Emitting
 		internal MethodDefinition FromSetter { get; }
 		internal MethodDefinition ToSetter { get; }
 		internal bool EmitNullCheck { get; }
+		internal Converter Converter { get; }
 
-		internal EmitParameters(IMemberDefinition bindingTarget, MethodDefinition fromGetter, MethodDefinition fromSetter, MethodDefinition setter, bool emitNullCheck)
+		internal EmitParameters(IMemberDefinition bindingTarget, MethodDefinition fromGetter, MethodDefinition fromSetter, MethodDefinition setter, bool emitNullCheck, Converter converter)
 		{
 			BindingTarget = bindingTarget;
 			FromGetter = fromGetter;
 			FromSetter = fromSetter;
 			ToSetter = setter;
 			EmitNullCheck = emitNullCheck;
+			Converter = converter;
+		}
+
+		internal EmitParameters UsingFromSetter(MethodDefinition fromSetter)
+		{
+			return new EmitParameters(
+				BindingTarget,
+				FromGetter,
+				fromSetter,
+				ToSetter,
+				EmitNullCheck,
+				Converter);
 		}
 
 		/// <exception cref="T:Realmar.DataBindings.Editor.Exceptions.ValidationException">When validation fails.</exception>

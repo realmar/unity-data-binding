@@ -1,43 +1,34 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using System.Collections.Generic;
 using static Realmar.DataBindings.Editor.Emitting.EmitHelpers;
 
 namespace Realmar.DataBindings.Editor.Emitting
 {
-	internal class MethodAppender
+	internal class MethodAppender : MethodExtender
 	{
-		private readonly List<Instruction> _instructions = new List<Instruction>();
-		private readonly MethodDefinition _method;
-
-		public MethodAppender(MethodDefinition method)
+		public MethodAppender(MethodDefinition method) : base(method)
 		{
-			_method = method;
 		}
 
-		internal void AddInstruction(Instruction instruction)
+		internal override void Emit()
 		{
-			_instructions.Add(instruction);
-		}
+			var lastInstruction = GetSucceedingInstruction();
+			var referencingLast = GetInstructionsReferencing(lastInstruction, Method.Body.Instructions);
 
-		internal void Emit()
-		{
-			var methodBody = _method.Body;
-			var ilProcessor = methodBody.GetILProcessor();
-			var methodInstructions = methodBody.Instructions;
-			var lastInstruction = methodInstructions[methodInstructions.Count - 1];
-			var referencingLast = GetInstructionsReferencing(lastInstruction, methodInstructions);
-			var firstInjected = _instructions[0];
+			base.Emit();
 
-			foreach (var instruction in _instructions)
-			{
-				ilProcessor.InsertBefore(lastInstruction, instruction);
-			}
-
+			var firstInjected = Instructions[0];
 			foreach (var instruction in referencingLast)
 			{
 				instruction.Operand = firstInjected;
 			}
+		}
+
+		protected override Instruction GetSucceedingInstruction()
+		{
+			var methodBody = Method.Body;
+			var methodInstructions = methodBody.Instructions;
+			return methodInstructions[methodInstructions.Count - 1];
 		}
 	}
 }

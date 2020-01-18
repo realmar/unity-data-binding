@@ -1,6 +1,5 @@
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
-using Realmar.DataBindings.Editor.IoC;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -61,6 +60,15 @@ namespace Realmar.DataBindings.Editor.Exceptions
 			if (method.IsAbstract)
 			{
 				throw new ArgumentException($"Method cannot be abstract {method.FullName}", nameof(method));
+			}
+		}
+
+		[DebuggerHidden]
+		internal static void YeetIfNotInterface(TypeDefinition type)
+		{
+			if (type.IsInterface == false)
+			{
+				throw new ArgumentException($"Type is not an interface {type.FullName}", nameof(type));
 			}
 		}
 	}

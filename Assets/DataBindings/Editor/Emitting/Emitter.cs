@@ -1,5 +1,6 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +14,12 @@ namespace Realmar.DataBindings.Editor.Emitting
 {
 	internal class Emitter
 	{
+		#region Fields
+
+		private readonly Random _random = new Random();
+
+		#endregion
+
 		#region Accessor Definition
 
 		internal PropertyDefinition EmitAccessor(TypeDefinition targetType, TypeDefinition sourceType, bool isInterfaceImpl)
@@ -251,18 +258,7 @@ namespace Realmar.DataBindings.Editor.Emitting
 		internal EmitBindingCommand CreateEmitCommand(EmitParameters parameters)
 		{
 			parameters.Validate();
-
-			return new EmitBindingCommand(
-				fromSetter =>
-				{
-					EmitBinding(
-						new EmitParameters(
-							parameters.BindingTarget,
-							parameters.FromGetter,
-							fromSetter,
-							parameters.ToSetter,
-							parameters.EmitNullCheck));
-				});
+			return new EmitBindingCommand(fromSetter => EmitBinding(parameters.UsingFromSetter(fromSetter)));
 		}
 
 		internal void EmitBinding(in EmitParameters parameters)
@@ -284,11 +280,68 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 			appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
 			appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(parameters.BindingTarget));
-			appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			appender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.FromGetter), parameters.FromGetter));
+			if (parameters.Converter.ConvertMethod == null)
+			{
+				appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
+				appender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.FromGetter), parameters.FromGetter));
+			}
+			else
+			{
+				EmitConversion(appender, parameters);
+			}
+
 			appender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.ToSetter), parameters.ToSetter));
 
 			appender.Emit();
+		}
+
+		private void EmitConversion(MethodExtender extender, in EmitParameters parameters)
+		{
+			// IL_000e: ldarg.0      // this
+			// IL_000f: ldfld        class ['Assembly-CSharp']Realmar.DataBindings.Converters.StringToIntConverter UnitsUnderTest.Positive_E2E_ConverterTests.OneWay_IntToString.Source::_converter
+			// IL_0014: ldarg.0      // this
+			// IL_0015: call instance string UnitsUnderTest.Positive_E2E_ConverterTests.OneWay_IntToString.Source::get_Text()
+			// IL_001a: callvirt instance int32['Assembly-CSharp'] Realmar.DataBindings.Converters.StringToIntConverter::Convert(string)
+
+			extender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
+			extender.AddInstruction(Instruction.Create(OpCodes.Ldfld, parameters.Converter.ConverterField));
+			extender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
+			extender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.FromGetter), parameters.FromGetter));
+			extender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.Converter.ConvertMethod.Resolve()), parameters.Converter.ConvertMethod));
+		}
+
+		#endregion
+
+		#region Converter
+
+		internal FieldDefinition EmitConverter(TypeReference converterType, MethodReference ctor, TypeDefinition targetType)
+		{
+			YeetIfNull(converterType, nameof(converterType));
+			YeetIfNull(ctor, nameof(ctor));
+			YeetIfNull(targetType, nameof(targetType));
+
+			var field = new FieldDefinition(
+				$"_converter_{converterType.Name}_{_random.Next()}",
+				FieldAttributes.Private | FieldAttributes.InitOnly,
+				converterType);
+			targetType.Fields.Add(field);
+
+			foreach (var constructor in targetType.GetConstructors())
+			{
+				var preppender = new MethodPreppender(constructor);
+
+				// IL_0000: ldarg.0      // this
+				// IL_0001: newobj instance void ['Assembly-CSharp']Realmar.DataBindings.Converters.StringToIntConverter::.ctor()
+				// IL_0006: stfld        class ['Assembly-CSharp']Realmar.DataBindings.Converters.StringToIntConverter UnitsUnderTest.Positive_E2E_ConverterTests.OneWay_IntToString.Source::_converter
+
+				preppender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
+				preppender.AddInstruction(Instruction.Create(OpCodes.Newobj, ctor));
+				preppender.AddInstruction(Instruction.Create(OpCodes.Stfld, field));
+
+				preppender.Emit();
+			}
+
+			return field;
 		}
 
 		#endregion

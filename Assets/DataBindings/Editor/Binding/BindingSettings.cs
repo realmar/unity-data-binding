@@ -1,4 +1,4 @@
-using Realmar.DataBindings;
+using Mono.Cecil;
 
 namespace Realmar.DataBindings.Editor.Binding
 {
@@ -8,13 +8,15 @@ namespace Realmar.DataBindings.Editor.Binding
 		public int TargetId { get; }
 		public string TargetPropertyName { get; }
 		public bool EmitNullCheck { get; }
+		public TypeDefinition Converter { get; }
 
-		public BindingSettings(BindingType type, int targetId, string targetPropertyName, bool emitNullCheck)
+		public BindingSettings(BindingType type, int targetId, string targetPropertyName, bool emitNullCheck, TypeDefinition converter)
 		{
 			Type = type;
 			TargetId = targetId;
 			TargetPropertyName = targetPropertyName;
 			EmitNullCheck = emitNullCheck;
+			Converter = converter;
 		}
 	}
 }

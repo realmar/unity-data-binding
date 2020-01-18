@@ -27,7 +27,8 @@ namespace Realmar.DataBindings.Editor.Binding
 						toType: targetType,
 						toProperty: targetProperty,
 						bindingTarget: bindingTarget.Source,
-						emitNullCheck: settings.EmitNullCheck
+						emitNullCheck: settings.EmitNullCheck,
+						converter: settings.Converter
 					));
 			}
 		}

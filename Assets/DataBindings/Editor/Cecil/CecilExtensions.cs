@@ -83,17 +83,20 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 		internal static MethodDefinition GetMethod(this TypeDefinition instance, string name)
 		{
+			return GetMethods(instance, name).FirstOrDefault();
+		}
+
+		internal static IEnumerable<MethodDefinition> GetMethods(this TypeDefinition instance, string name)
+		{
 			YeetIfNull(name, nameof(name));
 
 			foreach (var methodDef in instance.Methods)
 			{
 				if (string.CompareOrdinal(methodDef.Name, name) == 0)
 				{
-					return methodDef;
+					yield return methodDef;
 				}
 			}
-
-			return null;
 		}
 
 		internal static List<MethodDefinition> GetBaseMethods(this MethodDefinition method)
@@ -197,8 +200,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 		internal static object CreateInstance(this TypeReference typeReference, params object[] ctorArgs)
 		{
-			var type = Type.GetType($"{typeReference.FullName}, {typeReference.Module.Assembly.FullName}");
-			return Activator.CreateInstance(type, ctorArgs);
+			return Activator.CreateInstance(typeReference.GetActualType(), ctorArgs);
 		}
 
 		internal static Attribute CreateInstance(this CustomAttribute attribute)
@@ -277,7 +279,6 @@ namespace Realmar.DataBindings.Editor.Cecil
 			}
 		}
 
-		/*
 		/// <summary>
 		/// Is childTypeDef a subclass of parentTypeDef. Does not test interface inheritance
 		/// </summary>
@@ -300,7 +301,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 		internal static bool DoesAnySubTypeImplementInterface(this TypeDefinition childType,
 			TypeDefinition parentInterfaceDef)
 		{
-			Debug.Assert(parentInterfaceDef.IsInterface);
+			YeetIfNotInterface(parentInterfaceDef);
 			return childType
 				.EnumerateBaseClasses()
 				.Any(typeDefinition => typeDefinition.DoesSpecificTypeImplementInterface(parentInterfaceDef));
@@ -316,7 +317,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 		internal static bool DoesSpecificTypeImplementInterface(this TypeDefinition childTypeDef,
 			TypeDefinition parentInterfaceDef)
 		{
-			Debug.Assert(parentInterfaceDef.IsInterface);
+			YeetIfNotInterface(parentInterfaceDef);
 			return childTypeDef
 				.Interfaces
 				.Any(ifaceDef =>
@@ -331,8 +332,8 @@ namespace Realmar.DataBindings.Editor.Cecil
 		/// <returns></returns>
 		internal static bool DoesSpecificInterfaceImplementInterface(TypeDefinition iface0, TypeDefinition iface1)
 		{
-			Debug.Assert(iface1.IsInterface);
-			Debug.Assert(iface0.IsInterface);
+			YeetIfNotInterface(iface1);
+			YeetIfNotInterface(iface0);
 			return iface0.MetadataToken == iface1.MetadataToken || iface0.DoesAnySubTypeImplementInterface(iface1);
 		}
 
@@ -347,7 +348,6 @@ namespace Realmar.DataBindings.Editor.Cecil
 			   || target.MetadataToken == source.MetadataToken
 			   || source.IsSubclassOf(target)
 			   || target.IsInterface && source.DoesAnySubTypeImplementInterface(target);
-		*/
 
 		/// <summary>
 		/// Enumerate the current type, it's parent and all the way to the top type
@@ -362,6 +362,29 @@ namespace Realmar.DataBindings.Editor.Cecil
 			{
 				yield return typeDefinition;
 			}
+		}
+
+		internal static Type GetActualType(this TypeReference typeReference)
+		{
+			var reflectionName = GetReflectionName(typeReference);
+			return Type.GetType(reflectionName);
+		}
+
+		static string GetReflectionName(TypeReference typeReference)
+		{
+			string typeName;
+
+			if (typeReference.IsGenericInstance)
+			{
+				var genericInstance = (GenericInstanceType) typeReference;
+				typeName = $"{genericInstance.Namespace}.{typeReference.Name}[{string.Join(",", genericInstance.GenericArguments.Select(p => GetReflectionName(p)).ToArray())}]";
+			}
+			else
+			{
+				typeName = typeReference.FullName;
+			}
+
+			return $"{typeName}, {typeReference.Module.Assembly.FullName}";
 		}
 	}
 }

@@ -137,11 +137,13 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 		private object RunDefaultAssertions(IBindingSet set, IBinding binding)
 		{
 			object expected;
-			if (binding.BindingAttribute.BindingType == BindingType.OneTime)
+			var bindingAttribute = binding.BindingAttribute;
+
+			if (bindingAttribute.BindingType == BindingType.OneTime)
 			{
-				expected = SetValue(binding.Source);
+				expected = SetValue(binding.Source, bindingAttribute.Converter);
 				set.RunBindingInitializer();
-				AssertValue(binding.Target, expected);
+				AssertValue(binding.Target, expected, bindingAttribute.Converter);
 			}
 			else
 			{
@@ -154,7 +156,9 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 		private object RunDefaultAssertions(IBinding binding)
 		{
 			object expected;
-			switch (binding.BindingAttribute.BindingType)
+			var bindingAttribute = binding.BindingAttribute;
+
+			switch (bindingAttribute.BindingType)
 			{
 				case BindingType.OneWay:
 					expected = AssertOneWay(binding);
@@ -168,7 +172,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 					break;
 				default:
 					throw new NotSupportedException(
-						$"TestFramework does not support {nameof(BindingType)} {binding.BindingAttribute.BindingType}");
+						$"TestFramework does not support {nameof(BindingType)} {bindingAttribute.BindingType}");
 			}
 
 			return expected;
@@ -177,34 +181,58 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 
 		private object AssertOneWayFromTarget(IBinding binding)
 		{
-			return SetAndAssert(binding.Target, binding.Source);
+			return SetAndAssert(binding.Target, binding.Source, binding.BindingAttribute.Converter);
 		}
 
 		private object AssertOneWay(IBinding binding)
 		{
-			return SetAndAssert(binding.Source, binding.Target);
+			return SetAndAssert(binding.Source, binding.Target, binding.BindingAttribute.Converter);
 		}
 
-		private object SetAndAssert(IUUTBindingObject source, IUUTBindingObject target)
+		private object SetAndAssert(IUUTBindingObject source, IUUTBindingObject target, Type converterType)
 		{
-			var actual = SetValue(source);
-			AssertValue(target, actual);
+			var actual = SetValue(source, converterType);
+			AssertValue(target, actual, converterType);
 
 			return actual;
 		}
 
-		private object SetValue(IUUTBindingObject symbol, object value = null)
+		private object SetValue(IUUTBindingObject symbol, Type converterType, object value = null)
 		{
 			value = value ?? GetRandomString();
+			if (value.GetType() != symbol.BindingValueType)
+			{
+				value = Convert(converterType, value);
+			}
+
 			symbol.BindingValue = value;
 
 			return value;
 		}
 
-		private void AssertValue(IUUTBindingObject symbol, object expected)
+		private void AssertValue(IUUTBindingObject symbol, object expected, Type converterType)
 		{
+			if (expected.GetType() != symbol.BindingValueType)
+			{
+				expected = Convert(converterType, expected);
+			}
+
 			var actual = symbol.BindingValue;
 			Assert.That(actual, Is.EqualTo(expected));
+		}
+
+		private object Convert(Type converterType, object original)
+		{
+			if (converterType == null)
+			{
+				return original;
+			}
+
+			var converter = Activator.CreateInstance(converterType);
+			return converter
+				.GetType()
+				.GetMethod("Convert", new[] { original.GetType() })
+				.Invoke(converter, new[] { original });
 		}
 	}
 }

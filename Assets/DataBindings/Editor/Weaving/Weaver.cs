@@ -8,6 +8,8 @@ using Realmar.DataBindings.Editor.Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Mono.Cecil.Rocks;
+using Realmar.DataBindings.Converters;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 using static Realmar.DataBindings.Editor.Weaving.WeaveHelpers;
@@ -102,20 +104,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
-		private class SetHelperComparer : IEqualityComparer<(MethodDefinition From, MethodDefinition To)>
-		{
-			public bool Equals((MethodDefinition From, MethodDefinition To) x, (MethodDefinition From, MethodDefinition To) y)
-			{
-				return GetHashCode(x) == GetHashCode(y);
-			}
-
-			public int GetHashCode((MethodDefinition From, MethodDefinition To) key)
-			{
-				var (from, to) = key;
-				return HashCode.Combine(from, to);
-			}
-		}
-
 		private readonly struct BindingCommand
 		{
 			internal EmitBindingCommand Command { get; }
@@ -148,7 +136,8 @@ namespace Realmar.DataBindings.Editor.Weaving
 		private readonly Dictionary<MethodDefinition, HashSet<MethodDefinition>> _propertySettingOtherProperties = new Dictionary<MethodDefinition, HashSet<MethodDefinition>>();
 		private readonly HashSet<TypeDefinition> _alreadyCreatedMethodMementos = new HashSet<TypeDefinition>();
 		private readonly Dictionary<MethodDefinition, MethodMemento> _originalSetters = new Dictionary<MethodDefinition, MethodMemento>();
-		private readonly Dictionary<(MethodDefinition From, MethodDefinition To), MethodDefinition> _setHelpers = new Dictionary<(MethodDefinition From, MethodDefinition To), MethodDefinition>(new SetHelperComparer());
+		private readonly Dictionary<(MethodDefinition From, MethodDefinition To), MethodDefinition> _setHelpers = new Dictionary<(MethodDefinition From, MethodDefinition To), MethodDefinition>();
+		private readonly Dictionary<(TypeDefinition WeavedType, TypeDefinition ConverterType), FieldDefinition> _converterFields = new Dictionary<(TypeDefinition WeavedType, TypeDefinition ConverterType), FieldDefinition>();
 
 		#endregion
 
@@ -178,7 +167,8 @@ namespace Realmar.DataBindings.Editor.Weaving
 				fromSetter: parameters.FromProperty.GetSetMethodOrYeet(),
 				toSetter: parameters.ToProperty.GetSetMethodOrYeet(),
 				bindingTarget: parameters.BindingTarget,
-				emitNullCheck: parameters.EmitNullCheck
+				emitNullCheck: parameters.EmitNullCheck,
+				converter: parameters.Converter
 			));
 		}
 
@@ -335,6 +325,54 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
+		private Converter WeaveConverter(TypeDefinition converterType, MethodDefinition fromSetter, MethodDefinition toSetter)
+		{
+			var isConverter = converterType.Interfaces
+				.Any(implementation => implementation.InterfaceType.Name.StartsWith("IValueConverter"));
+
+			if (isConverter == false)
+			{
+				throw new NotAConverterException(converterType, fromSetter);
+			}
+
+			if (converterType.IsInterface)
+			{
+				throw new AbstractConverterException(converterType, fromSetter);
+			}
+
+			var ctor = converterType.GetConstructors().FirstOrDefault(definition => definition.HasParameters == false);
+			if (ctor == null)
+			{
+				throw new MissingDefaultCtorException(converterType.GetActualType());
+			}
+
+			var module = fromSetter.DeclaringType.Module;
+			var fromType = fromSetter.Parameters[0].ParameterType.Resolve();
+			var toType = toSetter.Parameters[0].ParameterType.Resolve();
+
+			MethodReference convertMethod = converterType.GetMethods().FirstOrDefault(definition =>
+				definition.Parameters[0].ParameterType.Resolve() == fromType &&
+				definition.ReturnType.Resolve() == toType);
+
+			if (convertMethod == null)
+			{
+				throw new MismatchingConverterTypesException(converterType, fromSetter);
+			}
+
+			convertMethod = module.ImportReference(convertMethod);
+
+			var key = (fromSetter.DeclaringType, converterType);
+			if (_converterFields.TryGetValue(key, out var converterField) == false)
+			{
+				var importedConverterType = module.ImportReference(converterType);
+				var importedCtor = module.ImportReference(ctor);
+
+				converterField = _emitter.EmitConverter(importedConverterType, importedCtor, fromSetter.DeclaringType);
+			}
+
+			return new Converter(converterField, convertMethod);
+		}
+
 		private void WeaveNonAbstractBinding(in WeaveMethodParameters parameters)
 		{
 			if (_wovenBindings.Contains(parameters) == false)
@@ -344,7 +382,13 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 				_wovenBindings.Add(parameters);
 
-				var emitCommand = _emitter.CreateEmitCommand(new EmitParameters(bindingTarget, parameters.FromGetter, parameters.FromSetter, toSetHelper, parameters.EmitNullCheck));
+				Converter converter = default;
+				if (parameters.Converter != null)
+				{
+					converter = WeaveConverter(parameters.Converter, parameters.FromSetter, parameters.ToSetter);
+				}
+
+				var emitCommand = _emitter.CreateEmitCommand(new EmitParameters(bindingTarget, parameters.FromGetter, parameters.FromSetter, toSetHelper, parameters.EmitNullCheck, converter));
 				emitCommand.Emit(parameters.FromSetter);
 
 				if (_bindingsForProperty.TryGetValue(parameters.FromSetter, out var commands) == false)
