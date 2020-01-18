@@ -87,6 +87,8 @@ namespace Realmar.DataBindings.Editor.Weaving
 		 * --> special set helpers only it is then.
 		 */
 
+		#region Classes
+
 		private class WovenBindingsSetComparer : IEqualityComparer<WeaveMethodParameters>
 		{
 			public bool Equals(WeaveMethodParameters x, WeaveMethodParameters y)
@@ -132,6 +134,10 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
+		#endregion
+
+		#region Fields
+
 		private readonly Random _random = new Random();
 
 		private readonly Emitter _emitter = ServiceLocator.Current.Resolve<Emitter>();
@@ -143,6 +149,8 @@ namespace Realmar.DataBindings.Editor.Weaving
 		private readonly HashSet<TypeDefinition> _alreadyCreatedMethodMementos = new HashSet<TypeDefinition>();
 		private readonly Dictionary<MethodDefinition, MethodMemento> _originalSetters = new Dictionary<MethodDefinition, MethodMemento>();
 		private readonly Dictionary<(MethodDefinition From, MethodDefinition To), MethodDefinition> _setHelpers = new Dictionary<(MethodDefinition From, MethodDefinition To), MethodDefinition>(new SetHelperComparer());
+
+		#endregion
 
 		internal void Weave(in WeaveMethodParameters parameters)
 		{
@@ -251,11 +259,11 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 				if (toSetter.IsVirtual || toSetter.IsAbstract)
 				{
-					foreach (var (property, setHelper) in WeaveSetHelperRecursive(fromSetter, toSetter, setHelperName))
+					foreach (var (derivedToSetter, setHelper) in WeaveSetHelperRecursive(fromSetter, toSetter, setHelperName))
 					{
-						_setHelpers[(fromSetter, toSetter)] = setHelper;
+						_setHelpers[(fromSetter, derivedToSetter)] = setHelper;
 
-						if (property == toSetter)
+						if (derivedToSetter == toSetter)
 						{
 							result = setHelper;
 						}
@@ -310,20 +318,20 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 		private IEnumerable<(MethodDefinition Source, MethodDefinition Helper)> WeaveSetHelperRecursive(MethodDefinition fromSetter, MethodDefinition toSetter, string name)
 		{
-			var originType = toSetter.DeclaringType;
-			var setters = _derivativeResolver
-				.GetDerivedTypes(originType)
+			var toType = toSetter.DeclaringType;
+			var derivedToSetters = _derivativeResolver
+				.GetDerivedTypes(toType)
 				.SelectMany(definition => definition.Properties)
-				.Concat(originType.GetPropertiesInBaseHierarchy())
+				.Concat(toType.GetPropertiesInBaseHierarchy())
 				.Select(definition => definition.SetMethod)
 				.WhereNotNull()
 				.Where(definition => definition.Name == toSetter.Name)
-				.Where(definition => definition.DeclaringType.Module.Assembly.IsSame(originType.Module.Assembly))
+				.Where(definition => definition.DeclaringType.Module.Assembly.IsSame(toType.Module.Assembly))
 				.Distinct();
 
-			foreach (var setter in setters)
+			foreach (var derivedToSetter in derivedToSetters)
 			{
-				yield return (setter, WeaveSetHelper(fromSetter, setter, name));
+				yield return (derivedToSetter, WeaveSetHelper(fromSetter, derivedToSetter, name));
 			}
 		}
 

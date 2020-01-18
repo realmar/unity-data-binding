@@ -694,3 +694,49 @@ namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneTime_PropertyToManyOverri
 		public override string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneWay_CallToCorrectBindingTargetType
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class BaseSource
+	{
+		[BindingTarget, Id(1)] public BaseTarget BindingTarget1 { get; set; }
+		[BindingTarget, Id(2)] public BaseTarget BindingTarget2 { get; set; }
+		[BindingTarget, Id(3)] public BaseTarget BindingTarget3 { get; set; }
+
+		[Binding]
+		public string Text { get; set; }
+	}
+
+	internal abstract class BaseTarget
+	{
+		public abstract string Text { get; set; }
+	}
+
+	[Target, Id(1), Id(2), Id(3)]
+	internal class Target1 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	internal class Target2 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	internal class Target3 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	internal class Target3_1 : Target3
+	{
+		private string _text;
+
+		public new string Text
+		{
+			get => _text;
+			set => _text = value;
+		}
+	}
+}

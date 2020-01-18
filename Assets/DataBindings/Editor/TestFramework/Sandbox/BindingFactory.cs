@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 {
@@ -32,7 +33,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			{
 				foreach (var sourceRunTimeType in sourceRunTimeTypes.Where(type => sourceCompileTimeType.IsAssignableFrom(type)))
 				{
-					var sourceObject = Activator.CreateInstance(sourceRunTimeType);
+					var sourceObject = CreateInstance(sourceRunTimeType);
 					objects.Add(sourceObject);
 
 					var targetObjects = ConfigureTargets(sourceCompileTimeType, sourceObject, targetObjectsToId);
@@ -107,7 +108,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 					}
 					else
 					{
-						targetObject = Activator.CreateInstance(runtimeType);
+						targetObject = CreateInstance(runtimeType);
 						targetObjects.Add(targetObject);
 						targetObjectsToId[id] = targetObject;
 					}
@@ -206,6 +207,26 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 					yield return new Binding(arguments);
 				}
 			}
+		}
+
+		private static object CreateInstance(Type type)
+		{
+			if (type.IsInterface)
+			{
+				throw new ArgumentException($"Type cannot be an interface {type.FullName}", nameof(type));
+			}
+
+			if (type.IsAbstract)
+			{
+				throw new ArgumentException($"Type cannot be abstract {type.FullName}", nameof(type));
+			}
+
+			if (type.GetConstructor(Type.EmptyTypes) == null)
+			{
+				throw new ArgumentException($"Type must have a default constructor {type.FullName}", nameof(type));
+			}
+
+			return Activator.CreateInstance(type);
 		}
 	}
 }
