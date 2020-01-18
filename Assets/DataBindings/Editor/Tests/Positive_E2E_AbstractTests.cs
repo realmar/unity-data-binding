@@ -58,5 +58,8 @@ namespace Realmar.DataBindings.Editor.Tests
 
 		[Test]
 		public void TwoWay_PropertyToManyOverrides() => RunTest();
+
+		[Test]
+		public void OneTime_PropertyToManyOverrides() => RunTest();
 	}
 }

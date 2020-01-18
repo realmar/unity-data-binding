@@ -36,5 +36,10 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void TwoWay_NoNonAbstractBindingInitializer() =>
 			AssertMissingSymbolExceptionThrown<MissingNonAbstractBindingInitializer>(
 				"System.Void UnitsUnderTest.Negative_Weaver_AbstractTests.TwoWay_NoNonAbstractBindingInitializer.AbstractSource::InitializeBindings()");
+
+		[Test]
+		public void OneTime_NoNonAbstractBindingInitializer() =>
+			AssertMissingSymbolExceptionThrown<MissingNonAbstractBindingInitializer>(
+				"System.Void UnitsUnderTest.Negative_Weaver_AbstractTests.OneTime_NoNonAbstractBindingInitializer.AbstractSource::InitializeBindings()");
 	}
 }

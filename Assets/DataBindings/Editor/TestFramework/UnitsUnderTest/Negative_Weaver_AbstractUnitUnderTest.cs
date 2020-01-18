@@ -109,3 +109,22 @@ namespace UnitsUnderTest.Negative_Weaver_AbstractTests.TwoWay_NoNonAbstractBindi
 		public string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Negative_Weaver_AbstractTests.OneTime_NoNonAbstractBindingInitializer
+{
+	internal abstract class AbstractSource
+	{
+		[BindingTarget] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneTime)]
+		public string Text { get; set; }
+
+		[BindingInitializer]
+		public abstract void InitializeBindings();
+	}
+
+	internal class Target
+	{
+		public string Text { get; set; }
+	}
+}

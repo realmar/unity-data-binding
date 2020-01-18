@@ -16,6 +16,9 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void OneWay_InterfaceToInterface() => RunTest();
 
 		[Test]
+		public void OneTime_InterfaceToInterface() => RunTest();
+
+		[Test]
 		public void FromTarget_InterfaceToProperty() => RunTest();
 
 		[Test]

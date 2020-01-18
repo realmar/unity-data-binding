@@ -73,6 +73,41 @@ namespace UnitsUnderTest.Positive_E2E_InterfaceTests.OneWay_InterfaceToInterface
 	}
 }
 
+namespace UnitsUnderTest.Positive_E2E_InterfaceTests.OneTime_InterfaceToInterface
+{
+	[Source, CompileTimeType]
+	internal interface ISource
+	{
+		[BindingTarget, Id(1)] ITarget BindingTarget { get; set; }
+		[Binding(BindingType.OneTime)] string Text { get; set; }
+
+		[BindingInitializer]
+		void InitializeBindings();
+	}
+
+	[Source, RunTimeType]
+	internal class Source : ISource
+	{
+		public ITarget BindingTarget { get; set; }
+		public string Text { get; set; }
+
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	internal interface ITarget
+	{
+		string Text { get; set; }
+	}
+
+	[Target, Id(1)]
+	internal class Target : ITarget
+	{
+		public string Text { get; set; }
+	}
+}
+
 namespace UnitsUnderTest.Positive_E2E_InterfaceTests.FromTarget_InterfaceToProperty
 {
 	[Source, CompileTimeType]

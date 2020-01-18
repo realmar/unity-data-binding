@@ -1,6 +1,6 @@
-using System;
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.TestFramework.BaseTests;
+using System;
 
 namespace Realmar.DataBindings.Editor.Tests
 {

@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.TestFramework.BaseTests;
+using System;
 
 namespace Realmar.DataBindings.Editor.Tests
 {
@@ -8,5 +9,8 @@ namespace Realmar.DataBindings.Editor.Tests
 	{
 		[Test]
 		public void FromTarget_BindingInitializerNotCalled() => RunTestExpectException<BindingTargetNullException>();
+
+		[Test]
+		public void OneTime_Throw_TargetNull() => RunTestExpectException<NullReferenceException>();
 	}
 }

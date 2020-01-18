@@ -58,5 +58,10 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void FromTarget_NoTargetGetter() =>
 			AssertMissingSymbolExceptionThrown<MissingGetterException>(
 				"System.String UnitsUnderTest.Negative_Weaver_NonVirtualTests.FromTarget_NoTargetGetter.Target::Text()");
+
+		[Test]
+		public void OneTime_NoBindingInitializer() =>
+			AssertMissingSymbolExceptionThrown<MissingBindingInitializerException>(
+				"UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneTime_NoBindingInitializer.Source");
 	}
 }

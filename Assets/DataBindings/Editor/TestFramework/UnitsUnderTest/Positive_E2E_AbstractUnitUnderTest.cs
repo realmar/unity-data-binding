@@ -630,3 +630,67 @@ namespace UnitsUnderTest.Positive_E2E_AbstractTests.TwoWay_PropertyToManyOverrid
 		public override string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_AbstractTests.OneTime_PropertyToManyOverrides
+{
+	[Source, CompileTimeType]
+	internal abstract class BaseSource
+	{
+		[BindingTarget, Id(1)] public BaseTarget BindingTarget1 { get; set; }
+		[BindingTarget, Id(2)] public BaseTarget BindingTarget2 { get; set; }
+		[BindingTarget, Id(3)] public BaseTarget BindingTarget3 { get; set; }
+
+		[Binding(BindingType.OneTime)]
+		public string Text { get; set; }
+
+		[BindingInitializer]
+		public abstract void InitializeBindings();
+	}
+
+	[Source, RunTimeType]
+	internal class Source1 : BaseSource
+	{
+		public override void InitializeBindings()
+		{
+		}
+	}
+
+	[Source, RunTimeType]
+	internal class Source2 : BaseSource
+	{
+		public override void InitializeBindings()
+		{
+		}
+	}
+
+	[Source, RunTimeType]
+	internal class Source3 : BaseSource
+	{
+		public override void InitializeBindings()
+		{
+		}
+	}
+
+	internal abstract class BaseTarget
+	{
+		public abstract string Text { get; set; }
+	}
+
+	[Target, Id(1)]
+	internal class Target1 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	[Target, Id(2)]
+	internal class Target2 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+
+	[Target, Id(3)]
+	internal class Target3 : BaseTarget
+	{
+		public override string Text { get; set; }
+	}
+}

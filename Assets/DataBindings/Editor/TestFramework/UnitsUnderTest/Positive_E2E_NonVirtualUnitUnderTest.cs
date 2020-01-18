@@ -628,3 +628,34 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneTime_ManyToOne
 		public string Text3 { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneTime_NoThrow_TargetNull
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1), DoNotConfigure] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneTime, emitNullCheck: true)]
+		public string Text1 { get; set; }
+
+		[Binding(BindingType.OneTime, emitNullCheck: true)]
+		public string Text2 { get; set; }
+
+		[Binding(BindingType.OneTime, emitNullCheck: true)]
+		public string Text3 { get; set; }
+
+		[BindingInitializer]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target, Id(1)]
+	internal class Target
+	{
+		public string Text1 { get; set; }
+		public string Text2 { get; set; }
+		public string Text3 { get; set; }
+	}
+}

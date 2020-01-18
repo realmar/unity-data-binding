@@ -157,3 +157,19 @@ namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoTargetProperty
 		public string Text { get; set; }
 	}
 }
+
+namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneTime_NoBindingInitializer
+{
+	internal class Source
+	{
+		[BindingTarget] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneTime)]
+		public string Text { get; set; }
+	}
+
+	internal class Target
+	{
+		public string Text { get; set; }
+	}
+}

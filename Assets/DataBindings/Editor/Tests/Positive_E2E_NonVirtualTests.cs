@@ -68,6 +68,13 @@ namespace Realmar.DataBindings.Editor.Tests
 		});
 
 		[Test]
+		public void OneTime_NoThrow_TargetNull() => RunTest(set =>
+		{
+			set.RunBindingInitializer();
+			// implicit no throw
+		});
+
+		[Test]
 		public void FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted() => RunTest(binding => AssertCustomSymbol(binding.Source, 42));
 
 		[TestCase(-1, 1)]

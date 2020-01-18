@@ -1,5 +1,6 @@
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
+using Realmar.DataBindings.Editor.IoC;
 using System;
 using System.Diagnostics;
 using System.Linq;
