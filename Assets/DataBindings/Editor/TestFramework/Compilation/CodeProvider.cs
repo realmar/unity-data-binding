@@ -11,9 +11,9 @@ namespace Realmar.DataBindings.Editor.TestFramework.Compilation
 		private const string UUTSuffix = "UnitUnderTest";
 
 		private readonly string UUTFolderPath =
-			Path.Combine(Application.dataPath, "DataBindings", "Editor", "TestFramework", "UnitsUnderTest");
+			Path.Combine(Application.dataPath, "DataBindings", "Editor", "Tests", "UnitsUnderTest");
 
-		private Type _testClass;
+		private readonly Type _testClass;
 
 		internal CodeProvider(Type testClass)
 		{
