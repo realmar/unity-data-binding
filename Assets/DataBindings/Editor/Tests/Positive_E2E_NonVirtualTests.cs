@@ -164,6 +164,15 @@ namespace Realmar.DataBindings.Editor.Tests
 			AssertUUTObjects(bindingCollection, "Text", expected);
 		});
 
+		[Test]
+		public void FromTarget_UseTargetOutsideOfBinding_NoThrow() => RunTest(bindingCollection =>
+		{
+			var target = bindingCollection.CreateSymbol("Target");
+			target.SetValue("Text", GetRandomString());
+
+			// implicit no throw
+		});
+
 		private static void AssertUUTObjects(IBindingCollection bindingCollection, string symbolName, string expected)
 		{
 			foreach (var uutObject in bindingCollection.GetSymbols())

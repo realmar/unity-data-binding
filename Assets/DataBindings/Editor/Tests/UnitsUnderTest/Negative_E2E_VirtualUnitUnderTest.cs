@@ -7,7 +7,9 @@ namespace UnitsUnderTest.Negative_E2E_VirtualTests.TwoWay_OverrideBindingInitial
 	internal class BaseSource
 	{
 		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
-		[Binding(BindingType.TwoWay)] public virtual string Text { get; set; }
+
+		[Binding(BindingType.TwoWay, nullCheckBehavior: NullCheckBehavior.DisableNullCheck)]
+		public virtual string Text { get; set; }
 
 		[BindingInitializer]
 		protected virtual void InitializeBindings()

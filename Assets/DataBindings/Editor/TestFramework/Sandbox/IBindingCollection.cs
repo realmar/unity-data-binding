@@ -10,5 +10,6 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 		IReadOnlyCollection<IUUTObject> GetSymbols();
 		IReadOnlyCollection<IUUTObject> GetSymbols(string className);
 		IUUTObject GetSymbol(string className);
+		IUUTObject CreateSymbol(string className);
 	}
 }

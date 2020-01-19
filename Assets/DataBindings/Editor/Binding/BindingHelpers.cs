@@ -1,3 +1,4 @@
+using System;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
@@ -58,7 +59,7 @@ namespace Realmar.DataBindings.Editor.Binding
 				type: (BindingType) ctorArgs[0].Value,
 				targetId: (int) ctorArgs[1].Value,
 				targetPropertyName: (string) ctorArgs[2].Value,
-				emitNullCheck: (bool) ctorArgs[3].Value,
+				nullCheckBehavior: (NullCheckBehavior) ctorArgs[3].Value,
 				converter: ((TypeReference) ctorArgs[4].Value)?.Resolve()
 			);
 		}
@@ -70,6 +71,31 @@ namespace Realmar.DataBindings.Editor.Binding
 			(
 				throwOnFailure: (bool) ctorArgs[0].Value
 			);
+		}
+
+		internal static bool ResolveNullCheckBehavior(NullCheckBehavior behavior, bool autoBehavior)
+		{
+			if (behavior == NullCheckBehavior.Auto)
+			{
+				return autoBehavior;
+			}
+			else
+			{
+				return NullCheckBehaviorToBool(behavior);
+			}
+		}
+
+		internal static bool NullCheckBehaviorToBool(NullCheckBehavior behavior)
+		{
+			switch (behavior)
+			{
+				case NullCheckBehavior.EnableNullCheck:
+					return true;
+				case NullCheckBehavior.DisableNullCheck:
+					return false;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null);
+			}
 		}
 	}
 }

@@ -7,15 +7,15 @@ namespace Realmar.DataBindings.Editor.Binding
 		public BindingType Type { get; }
 		public int TargetId { get; }
 		public string TargetPropertyName { get; }
-		public bool EmitNullCheck { get; }
+		public NullCheckBehavior NullCheckBehavior { get; }
 		public TypeDefinition Converter { get; }
 
-		public BindingSettings(BindingType type, int targetId, string targetPropertyName, bool emitNullCheck, TypeDefinition converter)
+		public BindingSettings(BindingType type, int targetId, string targetPropertyName, NullCheckBehavior nullCheckBehavior, TypeDefinition converter)
 		{
 			Type = type;
 			TargetId = targetId;
 			TargetPropertyName = targetPropertyName;
-			EmitNullCheck = emitNullCheck;
+			NullCheckBehavior = nullCheckBehavior;
 			Converter = converter;
 		}
 	}

@@ -34,7 +34,7 @@ namespace Realmar.DataBindings.Editor.Binding
 						fromSetter: bindingInitializer,
 						toSetter: targetProperty.GetSetMethodOrYeet(),
 						bindingTarget: bindingTargetProperty,
-						emitNullCheck: settings.EmitNullCheck,
+						emitNullCheck: ResolveNullCheckBehavior(settings.NullCheckBehavior, false),
 						converter: settings.Converter
 					));
 			}

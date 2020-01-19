@@ -46,7 +46,7 @@ namespace Realmar.DataBindings.Editor.Binding
 						toType: sourceProperty.DeclaringType,
 						toProperty: sourceProperty,
 						bindingTarget: accessorProperty.GetMethod,
-						emitNullCheck: settings.EmitNullCheck,
+						emitNullCheck: ResolveNullCheckBehavior(settings.NullCheckBehavior, true),
 						converter: settings.Converter
 					));
 			}

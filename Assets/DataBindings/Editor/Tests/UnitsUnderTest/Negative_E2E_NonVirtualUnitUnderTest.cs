@@ -8,7 +8,7 @@ namespace UnitsUnderTest.Negative_E2E_NonVirtualTests.FromTarget_BindingInitiali
 	{
 		[BindingTarget, Id(1), DoNotConfigure] public Target BindingTarget { get; set; }
 
-		[Binding(BindingType.OneWayFromTarget, emitNullCheck: true)]
+		[Binding(BindingType.OneWayFromTarget, nullCheckBehavior: NullCheckBehavior.EnableNullCheck)]
 		public string Text { get; set; }
 
 		[BindingInitializer]
@@ -31,7 +31,7 @@ namespace UnitsUnderTest.Negative_E2E_NonVirtualTests.OneTime_Throw_TargetNull
 	{
 		[BindingTarget, Id(1), DoNotConfigure] public Target BindingTarget { get; set; }
 
-		[Binding(BindingType.OneTime, emitNullCheck: false)]
+		[Binding(BindingType.OneTime, nullCheckBehavior: NullCheckBehavior.DisableNullCheck)]
 		public string Text { get; set; }
 
 		[BindingInitializer]

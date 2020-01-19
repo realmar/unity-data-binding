@@ -228,5 +228,21 @@ namespace Realmar.DataBindings.Editor.Shared.Extensions
 
 			return list;
 		}
+
+		internal static IEnumerable<Type> GetBaseTypes(this Type type)
+		{
+			var current = type;
+
+			while (current != null)
+			{
+				yield return current;
+				current = current.BaseType;
+			}
+
+			foreach (var iface in type.GetInterfaces())
+			{
+				yield return iface;
+			}
+		}
 	}
 }
