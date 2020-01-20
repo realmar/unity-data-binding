@@ -279,6 +279,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 			}
 		}
 
+		/*
 		/// <summary>
 		/// Is childTypeDef a subclass of parentTypeDef. Does not test interface inheritance
 		/// </summary>
@@ -348,6 +349,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 			   || target.MetadataToken == source.MetadataToken
 			   || source.IsSubclassOf(target)
 			   || target.IsInterface && source.DoesAnySubTypeImplementInterface(target);
+		*/
 
 		/// <summary>
 		/// Enumerate the current type, it's parent and all the way to the top type
@@ -370,7 +372,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 			return Type.GetType(reflectionName);
 		}
 
-		static string GetReflectionName(TypeReference typeReference)
+		private static string GetReflectionName(TypeReference typeReference)
 		{
 			string typeName;
 
@@ -385,6 +387,25 @@ namespace Realmar.DataBindings.Editor.Cecil
 			}
 
 			return $"{typeName}, {typeReference.Module.Assembly.FullName}";
+		}
+
+		internal static MethodReference CreateReference(this MethodDefinition definition, TypeReference declaringType)
+		{
+			var reference = new MethodReference(definition.Name, definition.ReturnType, declaringType);
+			foreach (var parameter in definition.Parameters)
+			{
+				reference.Parameters.Add(parameter);
+			}
+
+			foreach (var parameter in definition.GenericParameters)
+			{
+				reference.GenericParameters.Add(parameter);
+			}
+
+			reference.ExplicitThis = definition.ExplicitThis;
+			reference.HasThis = definition.HasThis;
+
+			return reference;
 		}
 	}
 }

@@ -8,10 +8,10 @@ namespace Realmar.DataBindings.Editor.Exceptions
 	[Serializable]
 	internal class NotAConverterException : Exception
 	{
-		public TypeDefinition ConverterType { get; }
+		public TypeReference ConverterType { get; }
 		public MethodDefinition BindingSymbol { get; }
 
-		public NotAConverterException(TypeDefinition converterType, MethodDefinition bindingSymbol)
+		public NotAConverterException(TypeReference converterType, MethodDefinition bindingSymbol)
 		{
 			ConverterType = converterType;
 			BindingSymbol = bindingSymbol;

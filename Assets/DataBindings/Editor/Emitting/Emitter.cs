@@ -14,12 +14,6 @@ namespace Realmar.DataBindings.Editor.Emitting
 {
 	internal class Emitter
 	{
-		#region Fields
-
-		private readonly Random _random = new Random();
-
-		#endregion
-
 		#region Accessor Definition
 
 		internal PropertyDefinition EmitAccessor(TypeDefinition targetType, TypeDefinition sourceType, bool isInterfaceImpl)
@@ -303,25 +297,35 @@ namespace Realmar.DataBindings.Editor.Emitting
 			// IL_0015: call instance string UnitsUnderTest.Positive_E2E_ConverterTests.OneWay_IntToString.Source::get_Text()
 			// IL_001a: callvirt instance int32['Assembly-CSharp'] Realmar.DataBindings.Converters.StringToIntConverter::Convert(string)
 
+			// generic type
+
+			// IL_0007: ldarg.0      // this
+			// IL_0008: ldfld class ['Assembly-CSharp'] Realmar.DataBindings.Converters.CastConverter`2<float64, int32> UnitsUnderTest.Positive_E2E_ConverterTests.TwoWay_GenericConverter.Source::s
+			// IL_000d: ldarg.0      // this
+			// IL_000e: call instance float64 UnitsUnderTest.Positive_E2E_ConverterTests.TwoWay_GenericConverter.Source::get_Text(
+			// IL_0013: callvirt instance !1/*int32*/ class ['Assembly-CSharp'] Realmar.DataBindings.Converters.CastConverter`2<float64, int32>::Convert(!0/*float64*/)
+
 			extender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
 			extender.AddInstruction(Instruction.Create(OpCodes.Ldfld, parameters.Converter.ConverterField));
 			extender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
 			extender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.FromGetter), parameters.FromGetter));
-			extender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.Converter.ConvertMethod.Resolve()), parameters.Converter.ConvertMethod));
+			// TODO: maybe not use callvirt, probably not (safer)
+			extender.AddInstruction(Instruction.Create(OpCodes.Callvirt, parameters.Converter.ConvertMethod));
 		}
 
 		#endregion
 
 		#region Converter
 
-		internal FieldDefinition EmitConverter(TypeReference converterType, MethodReference ctor, TypeDefinition targetType)
+		internal FieldDefinition EmitConverter(TypeReference converterType, MethodReference ctor, TypeDefinition targetType, string fieldName)
 		{
 			YeetIfNull(converterType, nameof(converterType));
 			YeetIfNull(ctor, nameof(ctor));
 			YeetIfNull(targetType, nameof(targetType));
+			YeetIfEmptyOrNull(fieldName, nameof(fieldName));
 
 			var field = new FieldDefinition(
-				$"_converter_{converterType.Name}_{_random.Next()}",
+				fieldName,
 				FieldAttributes.Private | FieldAttributes.InitOnly,
 				converterType);
 			targetType.Fields.Add(field);
@@ -333,6 +337,10 @@ namespace Realmar.DataBindings.Editor.Emitting
 				// IL_0000: ldarg.0      // this
 				// IL_0001: newobj instance void ['Assembly-CSharp']Realmar.DataBindings.Converters.StringToIntConverter::.ctor()
 				// IL_0006: stfld        class ['Assembly-CSharp']Realmar.DataBindings.Converters.StringToIntConverter UnitsUnderTest.Positive_E2E_ConverterTests.OneWay_IntToString.Source::_converter
+
+				// generic type
+
+				// IL_0007: newobj       instance void class ['Assembly-CSharp']Realmar.DataBindings.Converters.CastConverter`2<float64, int32>::.ctor()
 
 				preppender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
 				preppender.AddInstruction(Instruction.Create(OpCodes.Newobj, ctor));

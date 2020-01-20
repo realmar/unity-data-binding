@@ -5,6 +5,7 @@ using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
+using static Realmar.DataBindings.Editor.Shared.UnsafeHelpers;
 using Assert = NUnit.Framework.Assert;
 
 namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
@@ -12,7 +13,6 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 	internal class SandboxedTest
 	{
 		private readonly SandboxTestFacade _sandboxTestFacade = new SandboxTestFacade();
-		private readonly Random _random = new Random();
 
 		[OneTimeSetUp]
 		public virtual void SetupFixture()
@@ -27,7 +27,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 
 		protected string GetRandomString()
 		{
-			return _random.Next().ToString();
+			return (string) GetRandomObjectOfType(typeof(string));
 		}
 
 		protected IUnitUnderTestSandbox GetSandboxForTest([CallerMemberName] string testName = null, Type testType = null)
@@ -197,14 +197,9 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			return actual;
 		}
 
-		private object SetValue(IUUTBindingObject symbol, Type converterType, object value = null)
+		private object SetValue(IUUTBindingObject symbol, Type converterType)
 		{
-			value = value ?? GetRandomString();
-			if (value.GetType() != symbol.BindingValueType)
-			{
-				value = Convert(converterType, value);
-			}
-
+			var value = GetRandomObjectOfType(symbol.BindingValueType);
 			symbol.BindingValue = value;
 
 			return value;

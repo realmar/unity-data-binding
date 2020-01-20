@@ -11,5 +11,8 @@ namespace Realmar.DataBindings.Editor.Tests
 
 		[Test]
 		public void TwoWay_IntToString() => RunTest();
+
+		[Test]
+		public void TwoWay_GenericConverter() => RunTest();
 	}
 }

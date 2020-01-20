@@ -8,9 +8,9 @@ namespace Realmar.DataBindings.Editor.Binding
 		public int TargetId { get; }
 		public string TargetPropertyName { get; }
 		public NullCheckBehavior NullCheckBehavior { get; }
-		public TypeDefinition Converter { get; }
+		public TypeReference Converter { get; }
 
-		public BindingSettings(BindingType type, int targetId, string targetPropertyName, NullCheckBehavior nullCheckBehavior, TypeDefinition converter)
+		public BindingSettings(BindingType type, int targetId, string targetPropertyName, NullCheckBehavior nullCheckBehavior, TypeReference converter)
 		{
 			Type = type;
 			TargetId = targetId;

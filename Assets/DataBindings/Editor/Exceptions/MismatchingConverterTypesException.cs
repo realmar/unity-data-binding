@@ -8,10 +8,10 @@ namespace Realmar.DataBindings.Editor.Exceptions
 	[Serializable]
 	internal class MismatchingConverterTypesException : Exception
 	{
-		public TypeDefinition ConverterType { get; }
+		public TypeReference ConverterType { get; }
 		public MethodDefinition BindingSymbol { get; }
 
-		public MismatchingConverterTypesException(TypeDefinition converterType, MethodDefinition bindingSymbol)
+		public MismatchingConverterTypesException(TypeReference converterType, MethodDefinition bindingSymbol)
 		{
 			ConverterType = converterType;
 			BindingSymbol = bindingSymbol;

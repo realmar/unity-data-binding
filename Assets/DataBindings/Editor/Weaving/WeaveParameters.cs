@@ -10,9 +10,9 @@ namespace Realmar.DataBindings.Editor.Weaving
 		internal PropertyDefinition ToProperty { get; }
 		internal IMemberDefinition BindingTarget { get; }
 		internal bool EmitNullCheck { get; }
-		internal TypeDefinition Converter { get; }
+		internal TypeReference Converter { get; }
 
-		public WeaveParameters(PropertyDefinition fromProperty, TypeDefinition toType, PropertyDefinition toProperty, IMemberDefinition bindingTarget, bool emitNullCheck, TypeDefinition converter)
+		public WeaveParameters(PropertyDefinition fromProperty, TypeDefinition toType, PropertyDefinition toProperty, IMemberDefinition bindingTarget, bool emitNullCheck, TypeReference converter)
 		{
 			FromProperty = fromProperty;
 			ToType = toType;

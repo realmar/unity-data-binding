@@ -29,6 +29,10 @@ namespace Realmar.DataBindings.Editor.Emitting
 		{
 			YeetIfNull(method, nameof(method));
 
+			// TODO: CRITICAL callvirt is not always applicable even is if not virtual.
+			// ie. callvirt is used as a fast way to check if reference is null and then throw a nullref
+			// there is quite complicated logic in the compiler source to determine if call or callvirt should be emitted
+			// https://github.com/dotnet/roslyn/blob/master/src/Compilers/CSharp/Portable/CodeGen/EmitExpression.cs#L1342
 			var isVirtual = method.IsVirtual || method.IsAbstract;
 			return isVirtual ? OpCodes.Callvirt : OpCodes.Call;
 		}

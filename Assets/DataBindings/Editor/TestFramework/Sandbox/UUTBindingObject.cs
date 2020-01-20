@@ -1,5 +1,5 @@
-using System;
 using Realmar.DataBindings.Editor.Shared.Extensions;
+using System;
 using System.Reflection;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox

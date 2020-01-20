@@ -46,6 +46,15 @@ namespace Realmar.DataBindings.Editor.Exceptions
 		}
 
 		[DebuggerHidden]
+		internal static void YeetIfEmptyOrNull(string str, string name)
+		{
+			if (string.IsNullOrEmpty(str))
+			{
+				throw new ArgumentException("Argument cannot be empty or null", name);
+			}
+		}
+
+		[DebuggerHidden]
 		internal static void YeetIfNotPropertyOrField(MemberInfo info)
 		{
 			if (info is FieldInfo == false && info is PropertyInfo == false)
