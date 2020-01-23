@@ -106,7 +106,7 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void Verify_BindingTargetNotConfigured()
 		{
-			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull), _testType);
+			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull_Cgt_Un), _testType);
 			var bindingSet = sandbox.BindingCollection.BindingSets.First();
 			var binding = bindingSet.Bindings.First();
 			var btValue = binding.Source.GetValue("BindingTarget");
@@ -117,7 +117,7 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void Verify_NoClassesMarkedAsTargets()
 		{
-			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull), _testType);
+			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull_Cgt_Un), _testType);
 			var bindingSet = sandbox.BindingCollection.BindingSets.First();
 			var binding = bindingSet.Bindings.First();
 			var btValue = binding.Source.GetValue("BindingTarget");

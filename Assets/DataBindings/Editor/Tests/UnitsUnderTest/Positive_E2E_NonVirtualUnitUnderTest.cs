@@ -251,7 +251,7 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNot
 	}
 }
 
-namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull_Cgt_Un
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -268,6 +268,33 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNul
 	}
 }
 
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull_op_Equality
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
+
+		[Binding(nullCheckBehavior: NullCheckBehavior.EnableNullCheck)]
+		public string Text { get; set; }
+	}
+
+	internal class Target
+	{
+		public string Text { get; set; }
+
+		public static bool operator ==(Target a, Target b)
+		{
+			return ReferenceEquals(a, b);
+		}
+
+		public static bool operator !=(Target a, Target b)
+		{
+			return !(a == b);
+		}
+	}
+}
+
 namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_Throw_TargetNotNull
 {
 	[Source, CompileTimeType, RunTimeType]
@@ -275,7 +302,7 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_Throw_TargetNot
 	{
 		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
 
-		[Binding(BindingType.OneWayFromTarget, nullCheckBehavior: NullCheckBehavior.EnableNullCheck)]
+		[Binding(BindingType.OneWayFromTarget, nullCheckBehavior: NullCheckBehavior.DisableNullCheck)]
 		public string Text { get; set; }
 
 		[BindingInitializer]
@@ -291,7 +318,7 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_Throw_TargetNot
 	}
 }
 
-namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull_Cgt_Un
 {
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
@@ -311,6 +338,39 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetN
 	internal class Target
 	{
 		public string Text { get; set; }
+	}
+}
+
+namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull_op_Equality
+{
+	[Source, CompileTimeType, RunTimeType]
+	internal class Source
+	{
+		[BindingTarget, Id(1), DoNotConfigure] public Target BindingTarget { get; set; }
+
+		[Binding(BindingType.OneWayFromTarget, nullCheckBehavior: NullCheckBehavior.EnableNullCheck)]
+		public string Text { get; set; }
+
+		[BindingInitializer(throwOnFailure: false)]
+		public void InitializeBindings()
+		{
+		}
+	}
+
+	[Target, Id(1)]
+	internal class Target
+	{
+		public string Text { get; set; }
+
+		public static bool operator ==(Target a, Target b)
+		{
+			return ReferenceEquals(a, b);
+		}
+
+		public static bool operator !=(Target a, Target b)
+		{
+			return !(a == b);
+		}
 	}
 }
 
@@ -387,7 +447,7 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.FromTarget_Throw_TargetNul
 	{
 		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
 
-		[Binding(BindingType.OneWayFromTarget, nullCheckBehavior: NullCheckBehavior.EnableNullCheck)]
+		[Binding(BindingType.OneWayFromTarget, nullCheckBehavior: NullCheckBehavior.DisableNullCheck)]
 		public string Text { get; set; }
 
 
@@ -444,7 +504,7 @@ namespace UnitsUnderTest.Positive_E2E_NonVirtualTests.TwoWay_Binding_CustomLogic
 
 		[BindingTarget, Id(1)] public Target BindingTarget { get; set; }
 
-		[Binding(BindingType.TwoWay, nullCheckBehavior: NullCheckBehavior.EnableNullCheck)]
+		[Binding(BindingType.TwoWay)]
 		public string Text
 		{
 			get => _text;

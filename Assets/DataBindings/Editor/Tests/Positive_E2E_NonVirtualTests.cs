@@ -48,7 +48,14 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void OneTime_ManyToOne() => RunTest();
 
 		[Test]
-		public void OneWay_NullCheck_TargetNull() => RunTest(binding =>
+		public void OneWay_NullCheck_TargetNull_Cgt_Un() => RunTest(binding =>
+		{
+			binding.Source.BindingValue = GetRandomString();
+			// implicit no throw
+		});
+
+		[Test]
+		public void OneWay_NullCheck_TargetNull_op_Equality() => RunTest(binding =>
 		{
 			binding.Source.BindingValue = GetRandomString();
 			// implicit no throw
@@ -58,7 +65,17 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void FromTarget_Throw_TargetNotNull() => RunTest();
 
 		[Test]
-		public void FromTarget_NoThrow_TargetNull() => RunTest(binding =>
+		public void FromTarget_NoThrow_TargetNull_Cgt_Un() => RunTest(binding =>
+		{
+			binding.Target.BindingValue = GetRandomString();
+			// implicit no throw
+
+			var sourceValue = binding.Source.BindingValue;
+			Assert.That(sourceValue, Is.Null);
+		});
+
+		[Test]
+		public void FromTarget_NoThrow_TargetNull_op_Equality() => RunTest(binding =>
 		{
 			binding.Target.BindingValue = GetRandomString();
 			// implicit no throw

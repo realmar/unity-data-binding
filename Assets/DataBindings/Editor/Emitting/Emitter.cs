@@ -358,15 +358,15 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		private void EmitJumpToIfNull(MethodAppender appender, IMemberDefinition toBeChecked, Instruction jumpTarget)
 		{
-			EmitNullBranching(appender, toBeChecked, jumpTarget, OpCodes.Brfalse_S);
+			EmitNullBranching(appender, toBeChecked, jumpTarget, true);
 		}
 
 		private void EmitJumpToIfNotNull(MethodAppender appender, IMemberDefinition toBeChecked, Instruction jumpTarget)
 		{
-			EmitNullBranching(appender, toBeChecked, jumpTarget, OpCodes.Brtrue_S);
+			EmitNullBranching(appender, toBeChecked, jumpTarget, false);
 		}
 
-		private void EmitNullBranching(MethodAppender appender, IMemberDefinition toToBeChecked, Instruction skipBranch, OpCode branchingOpCode)
+		private void EmitNullBranching(MethodAppender appender, IMemberDefinition toToBeChecked, Instruction skipBranch, bool jumpIfNull)
 		{
 			appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
 			appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(toToBeChecked));
@@ -375,13 +375,16 @@ namespace Realmar.DataBindings.Editor.Emitting
 			var returnType = GetReturnType(toToBeChecked);
 			var op = returnType.GetEqualityOperator();
 
+			OpCode branchingOpCode;
 			if (op != null)
 			{
+				branchingOpCode = jumpIfNull ? OpCodes.Brtrue_S : OpCodes.Brfalse_S;
 				var opReference = toToBeChecked.DeclaringType.Module.ImportReference(op);
 				appender.AddInstruction(Instruction.Create(OpCodes.Call, opReference));
 			}
 			else
 			{
+				branchingOpCode = jumpIfNull ? OpCodes.Brfalse_S : OpCodes.Brtrue_S;
 				appender.AddInstruction(Instruction.Create(OpCodes.Cgt_Un));
 			}
 
