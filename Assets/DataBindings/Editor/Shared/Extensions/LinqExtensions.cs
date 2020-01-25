@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,6 +14,14 @@ namespace Realmar.DataBindings.Editor.Shared.Extensions
 		internal static IEnumerable<T> Yield<T>(this T self)
 		{
 			yield return self;
+		}
+
+		internal static void ForEach<T>(this IEnumerable<T> self, Action<T> action)
+		{
+			foreach (var element in self)
+			{
+				action.Invoke(element);
+			}
 		}
 	}
 }

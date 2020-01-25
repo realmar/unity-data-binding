@@ -41,7 +41,7 @@ namespace Realmar.DataBindings.Examples.NonVirtual
 
 		private void Print([CallerMemberName] string name = null)
 		{
-			Debug.Log($"{name} = {GetType().GetProperty(name).GetValue(this)}");
+			Debug.Log($"{nameof(Model)}::{name} = {GetType().GetProperty(name).GetValue(this)}");
 		}
 	}
 }

@@ -9,7 +9,12 @@ namespace Realmar.DataBindings.Converters
 
 		public int Convert(string @from)
 		{
-			return int.Parse(@from);
+			if (int.TryParse(@from, out var i) == false)
+			{
+				i = default;
+			}
+
+			return i;
 		}
 	}
 }

@@ -18,6 +18,13 @@ namespace Realmar.DataBindings.Editor.Binding
 		internal struct Options
 		{
 			internal bool WeaveDebugSymbols { get; set; }
+
+			// TODO this is actually a big hack
+			// the issue is that when doing ImportReference Cecil will add bogus references: 1 reference to the assembly itself and some to mscorlib
+			// when actually the assembly already has a reference to netstandard or a reference to a newer version of mscorlib. The issue is definitely deeper,
+			// I currently dont understand why Cecil is doing this. However, by definition unity already needs to add references to any assembly required,
+			// so we can just ignore all references added by Cecil. (Even with ADFs)
+			internal bool RestoreOriginalReferences { get; set; }
 		}
 
 		private readonly UnityAssemblyResolver _assemblyResolver;
@@ -29,7 +36,8 @@ namespace Realmar.DataBindings.Editor.Binding
 
 		public BindingFacade() : this(new Options
 		{
-			WeaveDebugSymbols = true
+			WeaveDebugSymbols = true,
+			RestoreOriginalReferences = true
 		})
 		{
 		}
@@ -59,7 +67,7 @@ namespace Realmar.DataBindings.Editor.Binding
 
 		public void Dispose()
 		{
-			_assemblyResolver.Dispose();
+			_assemblyResolver?.Dispose();
 		}
 
 		// TODO support multiple assemblies
@@ -68,7 +76,7 @@ namespace Realmar.DataBindings.Editor.Binding
 			var assemblyResolver = ServiceLocator.Current.Resolve<IAssemblyResolver>();
 			var metadataResolver = ServiceLocator.Current.Resolve<IMetadataResolver>();
 
-			using (var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters
+			using (var assembly = AssemblyDefinition.ReadAssembly(assemblyPath, new ReaderParameters
 			{
 				ReflectionImporterProvider = ServiceLocator.Current.Resolve<IReflectionImporterProvider>(),
 				AssemblyResolver = assemblyResolver,
@@ -78,11 +86,17 @@ namespace Realmar.DataBindings.Editor.Binding
 				ReadSymbols = _options.WeaveDebugSymbols,
 				ReadWrite = _options.WeaveDebugSymbols,
 
-				// TODO PROPER SOLUTION REQUIRED
-				ThrowIfSymbolsAreNotMatching = false
+				ThrowIfSymbolsAreNotMatching = true
 			}))
 			{
-				foreach (var type in module.GetAllTypes())
+				// this is a big hack, see options
+				Dictionary<ModuleDefinition, List<AssemblyNameReference>> originalReferences = null;
+				if (_options.RestoreOriginalReferences)
+				{
+					originalReferences = assembly.Modules.ToDictionary(definition => definition, definition => definition.AssemblyReferences.ToList());
+				}
+
+				foreach (var type in assembly.Modules.SelectMany(definition => definition.GetAllTypes()))
 				{
 					foreach (var property in type.Properties)
 					{
@@ -90,13 +104,42 @@ namespace Realmar.DataBindings.Editor.Binding
 					}
 				}
 
+				// this is a big hack, see options
+				if (_options.RestoreOriginalReferences)
+				{
+					foreach (var module in assembly.Modules)
+					{
+						if (originalReferences.TryGetValue(module, out var references))
+						{
+							// TODO massive hack, also clean code pls
+							var originals = new List<AssemblyNameReference>();
+							foreach (var reference in references)
+							{
+								var temp = module.AssemblyReferences.FirstOrDefault(r => r.FullName == reference.FullName);
+								if (temp != null)
+								{
+									originals.Add(temp);
+								}
+							}
+
+							module.AssemblyReferences.Clear();
+							originals.ForEach(module.AssemblyReferences.Add);
+						}
+					}
+				}
+
+				var writeParameters = new WriterParameters
+				{
+					WriteSymbols = _options.WeaveDebugSymbols,
+				};
+
 				if (outputPath != null)
 				{
-					module.Write(outputPath);
+					assembly.Write(outputPath, writeParameters);
 				}
 				else
 				{
-					module.Write();
+					assembly.Write(writeParameters);
 				}
 			}
 		}

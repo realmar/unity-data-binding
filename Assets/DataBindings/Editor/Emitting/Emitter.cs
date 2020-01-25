@@ -57,7 +57,7 @@ namespace Realmar.DataBindings.Editor.Emitting
 			var accessor = new PropertyDefinition(injectedSourceName, PropertyAttributes.None, sourceType);
 			accessor.GetMethod = new MethodDefinition(GetGetterName(injectedSourceName), attributes, sourceType);
 			accessor.SetMethod =
-				new MethodDefinition(GetSetterName(injectedSourceName), attributes, module.ImportReference(typeof(void)));
+				new MethodDefinition(GetSetterName(injectedSourceName), attributes, module.ImportReference(module.TypeSystem.Void));
 
 			var accessorSetMethod = accessor.SetMethod;
 			var accessorGetMethod = accessor.GetMethod;
@@ -189,11 +189,7 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		internal MethodDefinition EmitSetHelper(string targetSetHelperMethodName, MethodDefinition setMethod, MethodMemento memento)
 		{
-			if (string.IsNullOrEmpty(targetSetHelperMethodName))
-			{
-				throw new ArgumentNullException(nameof(targetSetHelperMethodName), "Set helper name cannot be null.");
-			}
-
+			YeetIfEmptyOrNull(targetSetHelperMethodName, nameof(targetSetHelperMethodName));
 			YeetIfNull(setMethod, nameof(setMethod));
 			YeetIfNull(memento, nameof(memento));
 			YeetIfAbstract(setMethod);
@@ -206,11 +202,12 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		private MethodDefinition EmitSetHelperMethodDefinition(string targetSetHelperMethodName, MethodDefinition setMethod)
 		{
+			var module = setMethod.Module;
 			var attributes = setMethod.Attributes & ~MethodAttributes.SpecialName;
 			var targetSetHelperMethod = new MethodDefinition(
 				targetSetHelperMethodName,
 				attributes,
-				setMethod.Module.ImportReference(typeof(void)));
+				module.ImportReference(module.TypeSystem.Void));
 			targetSetHelperMethod.Parameters.Add(
 				new ParameterDefinition(
 					"value",
@@ -420,6 +417,9 @@ namespace Realmar.DataBindings.Editor.Emitting
 			params object[] ctorArgs)
 			where TAttribute : Attribute
 		{
+			// TODO Fix that
+			return;
+
 			YeetIfNull(target, nameof(target));
 			YeetIfNull(module, nameof(module));
 

@@ -67,15 +67,13 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 		private AssemblyDefinition FindAssemblyDefinition(string fullName, ReaderParameters parameters)
 		{
-			if (parameters == null)
-			{
-				parameters = new ReaderParameters
-				{
-					ReflectionImporterProvider = ServiceLocator.Current.Resolve<IReflectionImporterProvider>(),
-					AssemblyResolver = ServiceLocator.Current.Resolve<IAssemblyResolver>(),
-					MetadataResolver = ServiceLocator.Current.Resolve<IMetadataResolver>()
-				};
-			}
+			parameters = parameters ?? new ReaderParameters();
+			parameters.InMemory = true;
+			parameters.ReadSymbols = false;
+			parameters.ReadWrite = false;
+			parameters.ReflectionImporterProvider = ServiceLocator.Current.Resolve<IReflectionImporterProvider>();
+			parameters.AssemblyResolver = ServiceLocator.Current.Resolve<IAssemblyResolver>();
+			parameters.MetadataResolver = ServiceLocator.Current.Resolve<IMetadataResolver>();
 
 			if (_assemblyDefinitionCache.TryGetValue(fullName, out var assemblyDefinition) == false)
 			{

@@ -6,8 +6,6 @@ namespace Realmar.DataBindings.Examples.NonVirtual
 	{
 		public override void InstallBindings()
 		{
-			Container.BindInterfacesAndSelfTo<View>().FromComponentsInHierarchy().AsSingle();
-			Container.BindInterfacesAndSelfTo<ViewModel>().AsSingle();
 			Container.BindInterfacesAndSelfTo<Model>().AsSingle();
 		}
 	}
