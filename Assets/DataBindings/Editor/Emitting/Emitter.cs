@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using static Realmar.DataBindings.Editor.Emitting.EmitHelpers;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 
@@ -246,16 +245,31 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		#region Binding
 
-		internal EmitBindingCommand CreateEmitCommand(EmitParameters parameters)
+		internal EmitBindingCommand CreateEmitCommand(EmitParameters parameters, IMemberDefinition fromGetter)
 		{
-			parameters.Validate();
-			return new EmitBindingCommand(fromSetter => EmitBinding(parameters.UsingFromSetter(fromSetter)));
+			var localFromGetter = fromGetter;
+			return new EmitBindingCommand(fromSetter => EmitBinding(parameters.UsingFromSetter(fromSetter), localFromGetter));
 		}
 
-		internal void EmitBinding(in EmitParameters parameters)
+		internal EmitBindingCommand CreateEmitCommand(EmitParameters parameters, ushort methodParameterIndex)
 		{
-			parameters.Validate();
+			return new EmitBindingCommand(fromSetter => EmitBinding(parameters.UsingFromSetter(fromSetter), methodParameterIndex));
+		}
 
+		internal void EmitBinding(in EmitParameters parameters, IMemberDefinition fromGetter)
+		{
+			var fromGetterLoad = GetLoadFromFieldOrCallableInstruction(fromGetter);
+			EmitBinding(parameters, fromGetterLoad);
+		}
+
+		internal void EmitBinding(in EmitParameters parameters, ushort methodParameterIndex)
+		{
+			var fromGetterLoad = GetLdArgInstruction(parameters.FromSetter, methodParameterIndex);
+			EmitBinding(parameters, fromGetterLoad);
+		}
+
+		private void EmitBinding(in EmitParameters parameters, Instruction fromGetterInstruction)
+		{
 			var appender = new MethodAppender(parameters.FromSetter);
 
 			if (parameters.EmitNullCheck)
@@ -269,16 +283,20 @@ namespace Realmar.DataBindings.Editor.Emitting
 			// IL_000e: call instance int32 Realmar.UnityMVVM.Example.ExampleViewModel::get_Value3()
 			// IL_0013: call instance void Realmar.UnityMVVM.Example.ExampleView::set_Value3(int32)
 
-			appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(parameters.BindingTarget));
+			if (parameters.BindingTarget != null)
+			{
+				appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
+				appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(parameters.BindingTarget));
+			}
+
 			if (parameters.Converter.ConvertMethod == null)
 			{
 				appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-				appender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.FromGetter), parameters.FromGetter));
+				appender.AddInstruction(fromGetterInstruction);
 			}
 			else
 			{
-				EmitConversion(appender, parameters);
+				EmitConversion(appender, parameters, fromGetterInstruction);
 			}
 
 			appender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.ToSetter), parameters.ToSetter));
@@ -286,7 +304,7 @@ namespace Realmar.DataBindings.Editor.Emitting
 			appender.Emit();
 		}
 
-		private void EmitConversion(MethodExtender extender, in EmitParameters parameters)
+		private void EmitConversion(MethodExtender extender, in EmitParameters parameters, Instruction fromGetterInstruction)
 		{
 			// IL_000e: ldarg.0      // this
 			// IL_000f: ldfld        class ['Assembly-CSharp']Realmar.DataBindings.Converters.StringToIntConverter UnitsUnderTest.Positive_E2E_ConverterTests.OneWay_IntToString.Source::_converter
@@ -305,7 +323,7 @@ namespace Realmar.DataBindings.Editor.Emitting
 			extender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
 			extender.AddInstruction(Instruction.Create(OpCodes.Ldfld, parameters.Converter.ConverterField));
 			extender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			extender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.FromGetter), parameters.FromGetter));
+			extender.AddInstruction(fromGetterInstruction);
 			// TODO: maybe not use callvirt, probably not (safer)
 			extender.AddInstruction(Instruction.Create(OpCodes.Callvirt, parameters.Converter.ConvertMethod));
 		}
@@ -438,6 +456,89 @@ namespace Realmar.DataBindings.Editor.Emitting
 					new CustomAttributeArgument(module.ImportReference(type).Resolve(), value));
 			}
 		}
+
+		#endregion
+
+		#region Instructions
+
+		private static Instruction GetLoadFromFieldOrCallableInstruction(IMemberDefinition bindingTarget)
+		{
+			YeetIfNull(bindingTarget, nameof(bindingTarget));
+
+			switch (bindingTarget)
+			{
+				case FieldDefinition field:
+					return Instruction.Create(OpCodes.Ldfld, field);
+				case MethodDefinition method:
+					return Instruction.Create(GetCallInstruction(method), method);
+				default:
+					throw new NotSupportedException("BindingTarget can only be field or method");
+			}
+		}
+
+		private static OpCode GetCallInstruction(MethodDefinition method)
+		{
+			YeetIfNull(method, nameof(method));
+
+			// TODO: CRITICAL callvirt is not always applicable even is if not virtual.
+			// ie. callvirt is used as a fast way to check if reference is null and then throw a nullref
+			// there is quite complicated logic in the compiler source to determine if call or callvirt should be emitted
+			// https://github.com/dotnet/roslyn/blob/master/src/Compilers/CSharp/Portable/CodeGen/EmitExpression.cs#L1342
+			var isVirtual = method.IsVirtual || method.IsAbstract;
+			return isVirtual ? OpCodes.Callvirt : OpCodes.Call;
+		}
+
+		private static Instruction GetLastInstruction(MethodDefinition method)
+		{
+			YeetIfNull(method, nameof(method));
+			YeetIfAbstract(method);
+
+			var methodBody = method.Body;
+			var lastInstruction = methodBody.Instructions.Last();
+
+			return lastInstruction;
+		}
+
+		private static Instruction GetLdArgInstruction(IMethodSignature signature, ushort parameterPosition)
+		{
+			if (signature.Parameters.Count <= parameterPosition)
+			{
+				throw new ArgumentOutOfRangeException(nameof(parameterPosition), $"{nameof(parameterPosition)} must be lower than {signature.Parameters.Count}, signature: {signature}");
+			}
+
+			Instruction result;
+
+			if (parameterPosition == 0)
+			{
+				result = Instruction.Create(OpCodes.Ldarg_1);
+			}
+			else if (parameterPosition == 1)
+			{
+				result = Instruction.Create(OpCodes.Ldarg_2);
+			}
+			else if (parameterPosition == 2)
+			{
+				result = Instruction.Create(OpCodes.Ldarg_3);
+			}
+			else if (parameterPosition <= byte.MaxValue)
+			{
+				result = Instruction.Create(OpCodes.Ldarg_S, signature.Parameters[parameterPosition]);
+			}
+			else
+			{
+				result = Instruction.Create(OpCodes.Ldarg, signature.Parameters[parameterPosition]);
+			}
+
+			return result;
+		}
+
+		#endregion
+
+		#region Naming
+
+		private static string GetBackingFieldName(string normalName) => $"\u003C{normalName}\u003Ek__BackingField";
+		private static string GetGetterName(string normalName) => $"get_{normalName}";
+		private static string GetSetterName(string normalName) => $"set_{normalName}";
 
 		#endregion
 	}

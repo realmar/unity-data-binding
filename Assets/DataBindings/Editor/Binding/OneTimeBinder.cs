@@ -30,13 +30,13 @@ namespace Realmar.DataBindings.Editor.Binding
 
 				_weaver.Weave(
 					new WeaveMethodParameters(
-						fromGetter: sourceProperty.GetGetMethodOrYeet(),
 						fromSetter: bindingInitializer,
 						toSetter: targetProperty.GetSetMethodOrYeet(),
 						bindingTarget: bindingTargetProperty,
 						emitNullCheck: ResolveNullCheckBehavior(settings.NullCheckBehavior, false),
 						converter: settings.Converter
-					));
+					),
+					sourceProperty.GetGetMethodOrYeet());
 			}
 		}
 

@@ -49,21 +49,6 @@ namespace Realmar.DataBindings.Editor.Binding
 			return (initializer, settings);
 		}
 
-
-		internal static BindingSettings GetBindingSettings(CustomAttribute attribute)
-		{
-			var ctorArgs = attribute.ConstructorArguments;
-
-			return new BindingSettings
-			(
-				type: (BindingType) ctorArgs[0].Value,
-				targetId: (int) ctorArgs[1].Value,
-				targetPropertyName: (string) ctorArgs[2].Value,
-				nullCheckBehavior: (NullCheckBehavior) ctorArgs[3].Value,
-				converter: (TypeReference) ctorArgs[4].Value
-			);
-		}
-
 		private static BindingInitializerSettings GetBindingInitializerSettings(CustomAttribute attribute)
 		{
 			var ctorArgs = attribute.ConstructorArguments;

@@ -71,7 +71,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 			foreach (var preopertyDef in instance.Properties)
 			{
-				// Properties can only have one argument or they are an indexer. 
+				// Properties can only have one argument or they are an indexer.
 				if (string.CompareOrdinal(preopertyDef.Name, name) == 0 && preopertyDef.Parameters.Count == 0)
 				{
 					return preopertyDef;
@@ -121,7 +121,7 @@ namespace Realmar.DataBindings.Editor.Cecil
 		{
 			YeetIfNull(getter, nameof(getter));
 
-			var types = GetInInterfaces(type, getter).Concat(GetInBaseClassHierarchy(type, getter));
+			var types = GetInBaseClassHierarchy(type, getter).Concat(GetInInterfaces(type, getter));
 			if (name != null)
 			{
 				return types.Where(definition => definition.Name == name);

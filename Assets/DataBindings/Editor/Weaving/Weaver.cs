@@ -90,19 +90,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 		#region Classes
 
-		private class WovenBindingsSetComparer : IEqualityComparer<WeaveMethodParameters>
-		{
-			public bool Equals(WeaveMethodParameters x, WeaveMethodParameters y)
-			{
-				return GetHashCode(x) == GetHashCode(y);
-			}
-
-			public int GetHashCode(WeaveMethodParameters parameters)
-			{
-				return HashCode.Combine(parameters.FromGetter, parameters.FromSetter, parameters.ToSetter, parameters.BindingTarget);
-			}
-		}
-
 		private readonly struct BindingCommand
 		{
 			internal EmitBindingCommand Command { get; }
@@ -126,11 +113,9 @@ namespace Realmar.DataBindings.Editor.Weaving
 		#region Fields
 
 		private readonly Random _random = new Random();
-
 		private readonly Emitter _emitter = ServiceLocator.Current.Resolve<Emitter>();
 		private readonly DerivativeResolver _derivativeResolver = ServiceLocator.Current.Resolve<DerivativeResolver>();
-
-		private readonly HashSet<WeaveMethodParameters> _wovenBindings = new HashSet<WeaveMethodParameters>(new WovenBindingsSetComparer());
+		private readonly HashSet<int> _wovenBindings = new HashSet<int>();
 		private readonly Dictionary<MethodDefinition, List<BindingCommand>> _bindingsForProperty = new Dictionary<MethodDefinition, List<BindingCommand>>();
 		private readonly Dictionary<MethodDefinition, HashSet<MethodDefinition>> _propertySettingOtherProperties = new Dictionary<MethodDefinition, HashSet<MethodDefinition>>();
 		private readonly HashSet<TypeDefinition> _alreadyCreatedMethodMementos = new HashSet<TypeDefinition>();
@@ -140,35 +125,58 @@ namespace Realmar.DataBindings.Editor.Weaving
 
 		#endregion
 
-		internal void Weave(in WeaveMethodParameters parameters)
+		internal void Weave(in WeaveMethodParameters parameters, ParameterDefinition fromParameter)
+		{
+			var fromSetter = parameters.FromSetter;
+			var parameterIndex = fromSetter.Parameters.IndexOf(fromParameter);
+
+			if (parameterIndex < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(fromParameter), $"Cannot find parameter {fromParameter.Name} on method {fromSetter.FullName}");
+			}
+
+			Weave(parameters, (ushort) parameterIndex);
+		}
+
+		internal void Weave(in WeaveMethodParameters parameters, MethodDefinition fromGetter)
+		{
+			Weave(parameters, (object) fromGetter);
+		}
+
+		private void Weave<TFromGetter>(in WeaveMethodParameters parameters, TFromGetter fromGetter)
 		{
 			var fromPropertyDeclaringType = parameters.FromSetter.DeclaringType;
 			YeetIfInaccessible(parameters.ToSetter, fromPropertyDeclaringType);
-			YeetIfInaccessible(parameters.BindingTarget, fromPropertyDeclaringType);
+
+			if (parameters.BindingTarget != null)
+			{
+				YeetIfInaccessible(parameters.BindingTarget, fromPropertyDeclaringType);
+			}
 
 			CreateMethodMemento(parameters.ToSetter.DeclaringType);
 			CreateMethodMemento(parameters.FromSetter.DeclaringType);
 
 			if (parameters.FromSetter.IsVirtual == false)
 			{
-				WeaveNonAbstractBinding(parameters);
+				WeaveNonAbstractBinding(parameters, fromGetter);
 			}
 			else
 			{
-				WeaveBindingInHierarchy(parameters);
+				WeaveBindingInHierarchy(parameters, fromGetter);
 			}
 		}
 
 		internal void Weave(in WeaveParameters parameters)
 		{
-			Weave(new WeaveMethodParameters(
-				fromGetter: parameters.FromProperty.GetGetMethodOrYeet(),
-				fromSetter: parameters.FromProperty.GetSetMethodOrYeet(),
-				toSetter: parameters.ToProperty.GetSetMethodOrYeet(),
-				bindingTarget: parameters.BindingTarget,
-				emitNullCheck: parameters.EmitNullCheck,
-				converter: parameters.Converter
-			));
+			Weave(
+				new WeaveMethodParameters(
+					fromSetter: parameters.FromProperty.GetSetMethodOrYeet(),
+					toSetter: parameters.ToProperty.GetSetMethodOrYeet(),
+					bindingTarget: parameters.BindingTarget,
+					emitNullCheck: parameters.EmitNullCheck,
+					converter: parameters.Converter
+				),
+				parameters.FromProperty.GetGetMethodOrYeet());
 		}
 
 		internal PropertyDefinition WeaveTargetToSourceAccessorCommand(in AccessorSymbolParameters parameters)
@@ -280,10 +288,12 @@ namespace Realmar.DataBindings.Editor.Weaving
 			{
 				if (toSetter.IsAbstract == false)
 				{
-					throw new BigOOFException($"ToSetter is not abstract but has no method memento. {toSetter.FullName}");
+					return toSetter;
 				}
-
-				setHelper = _emitter.EmitSetHelper(name, toSetter);
+				else
+				{
+					setHelper = _emitter.EmitSetHelper(name, toSetter);
+				}
 			}
 			else
 			{
@@ -399,14 +409,14 @@ namespace Realmar.DataBindings.Editor.Weaving
 			return new Converter(converterField, convertMethod);
 		}
 
-		private void WeaveNonAbstractBinding(in WeaveMethodParameters parameters)
+		private void WeaveNonAbstractBinding<TFromGetter>(in WeaveMethodParameters parameters, TFromGetter fromGetter)
 		{
-			if (_wovenBindings.Contains(parameters) == false)
+			var wovenBindingsHash = GetHashCode(parameters, fromGetter);
+			if (_wovenBindings.Contains(wovenBindingsHash) == false)
 			{
-				var bindingTarget = parameters.BindingTarget;
 				var toSetHelper = WeaveSetHelper(parameters.FromSetter, parameters.ToSetter);
 
-				_wovenBindings.Add(parameters);
+				_wovenBindings.Add(wovenBindingsHash);
 
 				Converter converter = default;
 				if (parameters.Converter != null)
@@ -414,7 +424,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 					converter = WeaveConverter(parameters.Converter, parameters.FromSetter, parameters.ToSetter);
 				}
 
-				var emitCommand = _emitter.CreateEmitCommand(new EmitParameters(bindingTarget, parameters.FromGetter, parameters.FromSetter, toSetHelper, parameters.EmitNullCheck, converter));
+				var emitCommand = CreateEmitCommand(new EmitParameters(parameters.BindingTarget, parameters.FromSetter, toSetHelper, parameters.EmitNullCheck, converter), fromGetter);
 				emitCommand.Emit(parameters.FromSetter);
 
 				if (_bindingsForProperty.TryGetValue(parameters.FromSetter, out var commands) == false)
@@ -462,7 +472,21 @@ namespace Realmar.DataBindings.Editor.Weaving
 			}
 		}
 
-		private void WeaveBindingInHierarchy(in WeaveMethodParameters parameters)
+		private EmitBindingCommand CreateEmitCommand<TFromGetter>(in EmitParameters parameters, TFromGetter rawFromGetter)
+		{
+			switch (rawFromGetter)
+			{
+				case ushort index:
+					return _emitter.CreateEmitCommand(parameters, index);
+
+				case MethodDefinition fromGetter:
+					return _emitter.CreateEmitCommand(parameters, fromGetter);
+				default:
+					throw new NotSupportedException($"{rawFromGetter.GetType()} is not a valid FromGetter type");
+			}
+		}
+
+		private void WeaveBindingInHierarchy<TFromGetter>(in WeaveMethodParameters parameters, TFromGetter fromGetter)
 		{
 			var foundNonAbstract = false;
 			var fromSetterName = parameters.FromSetter.Name;
@@ -473,7 +497,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 				var derivedFromSetter = typeDefinition.GetMethod(fromSetterName);
 				if (derivedFromSetter != null && derivedFromSetter.IsAbstract == false)
 				{
-					WeaveNonAbstractBinding(parameters.UsingFromSetter(derivedFromSetter));
+					WeaveNonAbstractBinding(parameters.UsingFromSetter(derivedFromSetter), fromGetter);
 					foundNonAbstract = true;
 				}
 			}
@@ -482,6 +506,11 @@ namespace Realmar.DataBindings.Editor.Weaving
 			{
 				throw new MissingNonAbstractSymbolException(parameters.FromSetter.FullName);
 			}
+		}
+
+		private int GetHashCode<TFromGetter>(in WeaveMethodParameters parameters, TFromGetter fromGetter)
+		{
+			return HashCode.Combine(fromGetter, parameters.FromSetter, parameters.ToSetter, parameters.BindingTarget);
 		}
 
 		private void WeaveAbstractAccessorInitialization(MethodDefinition accessorSymbol, in AccessorSymbolParameters parameters)

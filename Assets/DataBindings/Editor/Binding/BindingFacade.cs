@@ -2,14 +2,11 @@ using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Emitting;
-using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Weaving;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
-using static UnityEngine.Debug;
 
 namespace Realmar.DataBindings.Editor.Binding
 {
@@ -27,16 +24,15 @@ namespace Realmar.DataBindings.Editor.Binding
 			internal bool RestoreOriginalReferences { get; set; }
 		}
 
+		private readonly IPropertyProcessor[] _propertyProcessors;
 		private readonly UnityAssemblyResolver _assemblyResolver;
 		private readonly CachedMetadataResolver _metadataResolver;
-		private readonly AttributeResolver _attributeResolver;
 
-		private readonly Dictionary<BindingType, IBinder> _binders;
 		private readonly Options _options;
 
 		public BindingFacade() : this(new Options
 		{
-			WeaveDebugSymbols = true,
+			WeaveDebugSymbols = false,
 			RestoreOriginalReferences = true
 		})
 		{
@@ -44,6 +40,8 @@ namespace Realmar.DataBindings.Editor.Binding
 
 		public BindingFacade(Options options)
 		{
+			options.WeaveDebugSymbols = false;
+			_options = options;
 			_assemblyResolver = new UnityAssemblyResolver();
 			_metadataResolver = new CachedMetadataResolver(_assemblyResolver);
 
@@ -53,15 +51,18 @@ namespace Realmar.DataBindings.Editor.Binding
 			var fromTargetBinder = new FromTargetBinder();
 			var oneTimeBinder = new OneTimeBinder();
 			var twoWayBinder = new TwoWayBinder(oneWayBinder, fromTargetBinder);
-
-			_options = options;
-			_attributeResolver = new AttributeResolver();
-			_binders = new Dictionary<BindingType, IBinder>
+			var binders = new Dictionary<BindingType, IBinder>
 			{
 				[BindingType.OneTime] = oneTimeBinder,
 				[BindingType.OneWay] = oneWayBinder,
 				[BindingType.OneWayFromTarget] = fromTargetBinder,
 				[BindingType.TwoWay] = twoWayBinder
+			};
+
+			_propertyProcessors = new IPropertyProcessor[]
+			{
+				new PropertyBindingProcessor(binders),
+				new InvokeMethodOnChangeProcessor()
 			};
 		}
 
@@ -73,10 +74,23 @@ namespace Realmar.DataBindings.Editor.Binding
 		// TODO support multiple assemblies
 		public void CreateBindingsInAssembly(string assemblyPath, string outputPath = null)
 		{
+			using (var assembly = AssemblyDefinition.ReadAssembly(assemblyPath, CreateReaderParameters()))
+			{
+				// this is a big hack, see options
+				var originalReferences = MementifyReferences(assembly);
+				ProcessAssembly(assembly);
+				// this is a big hack, see options
+				RestoreReferences(assembly, originalReferences);
+				WriteAssembly(assembly, outputPath);
+			}
+		}
+
+		private ReaderParameters CreateReaderParameters()
+		{
 			var assemblyResolver = ServiceLocator.Current.Resolve<IAssemblyResolver>();
 			var metadataResolver = ServiceLocator.Current.Resolve<IMetadataResolver>();
 
-			using (var assembly = AssemblyDefinition.ReadAssembly(assemblyPath, new ReaderParameters
+			return new ReaderParameters
 			{
 				ReflectionImporterProvider = ServiceLocator.Current.Resolve<IReflectionImporterProvider>(),
 				AssemblyResolver = assemblyResolver,
@@ -84,123 +98,78 @@ namespace Realmar.DataBindings.Editor.Binding
 
 				// PDB, MDB
 				ReadSymbols = _options.WeaveDebugSymbols,
-				ReadWrite = _options.WeaveDebugSymbols,
+				ReadWrite = true,
 
 				ThrowIfSymbolsAreNotMatching = true
-			}))
-			{
-				// this is a big hack, see options
-				Dictionary<ModuleDefinition, List<AssemblyNameReference>> originalReferences = null;
-				if (_options.RestoreOriginalReferences)
-				{
-					originalReferences = assembly.Modules.ToDictionary(definition => definition, definition => definition.AssemblyReferences.ToList());
-				}
+			};
+		}
 
-				foreach (var type in assembly.Modules.SelectMany(definition => definition.GetAllTypes()))
+		private void ProcessAssembly(AssemblyDefinition assembly)
+		{
+			foreach (var type in assembly.Modules.SelectMany(definition => definition.GetAllTypes()))
+			{
+				foreach (var property in type.Properties)
 				{
-					foreach (var property in type.Properties)
+					foreach (var processor in _propertyProcessors)
 					{
-						BindProperty(property);
+						processor.Process(property);
 					}
 				}
+			}
+		}
 
-				// this is a big hack, see options
-				if (_options.RestoreOriginalReferences)
+		private Dictionary<ModuleDefinition, List<AssemblyNameReference>> MementifyReferences(AssemblyDefinition assembly)
+		{
+			Dictionary<ModuleDefinition, List<AssemblyNameReference>> originalReferences = null;
+			if (_options.RestoreOriginalReferences)
+			{
+				originalReferences = assembly.Modules.ToDictionary(definition => definition, definition => definition.AssemblyReferences.ToList());
+			}
+
+			return originalReferences;
+		}
+
+		private void RestoreReferences(AssemblyDefinition assembly, Dictionary<ModuleDefinition, List<AssemblyNameReference>> originalReferences)
+		{
+			if (_options.RestoreOriginalReferences)
+			{
+				foreach (var module in assembly.Modules)
 				{
-					foreach (var module in assembly.Modules)
+					if (originalReferences.TryGetValue(module, out var references))
 					{
-						if (originalReferences.TryGetValue(module, out var references))
+						// TODO massive hack, also clean code pls
+						var originals = new List<AssemblyNameReference>();
+						foreach (var reference in references)
 						{
-							// TODO massive hack, also clean code pls
-							var originals = new List<AssemblyNameReference>();
-							foreach (var reference in references)
+							var temp = module.AssemblyReferences.FirstOrDefault(r => r.FullName == reference.FullName);
+							if (temp != null)
 							{
-								var temp = module.AssemblyReferences.FirstOrDefault(r => r.FullName == reference.FullName);
-								if (temp != null)
-								{
-									originals.Add(temp);
-								}
+								originals.Add(temp);
 							}
-
-							module.AssemblyReferences.Clear();
-							originals.ForEach(module.AssemblyReferences.Add);
 						}
+
+						module.AssemblyReferences.Clear();
+						originals.ForEach(module.AssemblyReferences.Add);
 					}
 				}
-
-				var writeParameters = new WriterParameters
-				{
-					WriteSymbols = _options.WeaveDebugSymbols,
-				};
-
-				if (outputPath != null)
-				{
-					assembly.Write(outputPath, writeParameters);
-				}
-				else
-				{
-					assembly.Write(writeParameters);
-				}
 			}
 		}
 
-		private void BindProperty(PropertyDefinition sourceProperty)
+		private void WriteAssembly(AssemblyDefinition assembly, string outputPath = null)
 		{
-			foreach (var bindingAttribute in sourceProperty.GetCustomAttributes<BindingAttribute>())
+			var writeParameters = new WriterParameters
 			{
-				var declaringType = sourceProperty.DeclaringType;
-				var settings = GetBindingSettings(bindingAttribute);
-				var allBindingTargets = GetBindingTargets(declaringType);
-				var bindingTargets = FilterBindingsTargets(settings, allBindingTargets);
+				WriteSymbols = _options.WeaveDebugSymbols,
+			};
 
-				if (bindingTargets.Length == 0)
-				{
-					throw new MissingBindingTargetException(sourceProperty.FullName, settings.TargetId);
-				}
-
-
-				if (_binders.TryGetValue(settings.Type, out var binder))
-				{
-					binder.Bind(sourceProperty, settings, bindingTargets);
-				}
-				else
-				{
-					LogError($"Cannot find a binder for {settings.Type} binding. Property = {sourceProperty.FullName}");
-				}
-			}
-		}
-
-		private BindingTarget[] GetBindingTargets(TypeDefinition originType)
-		{
-			var targets = new List<BindingTarget>();
-
-			foreach (var type in originType.EnumerateBaseClasses())
+			if (outputPath != null)
 			{
-				var bindingTargets =
-					_attributeResolver.GetCustomAttributesOfSymbolsInType<BindingTargetAttribute>(type);
-				foreach (var target in bindingTargets)
-				{
-					var source = (IMemberDefinition) target.Source;
-					if (source is PropertyDefinition propertyDefinition)
-					{
-						source = propertyDefinition.GetMethod;
-					}
-
-					var ctorArgs = target.Attribute.ConstructorArguments;
-					targets.Add(new BindingTarget
-					{
-						Source = source,
-						Id = (int) ctorArgs[0].Value
-					});
-				}
+				assembly.Write(outputPath, writeParameters);
 			}
-
-			return targets.ToArray();
-		}
-
-		private BindingTarget[] FilterBindingsTargets(BindingSettings settings, BindingTarget[] targets)
-		{
-			return targets.Where(bindingTarget => bindingTarget.Id == settings.TargetId).ToArray();
+			else
+			{
+				assembly.Write(writeParameters);
+			}
 		}
 
 		private void ConfigureServiceLocator()

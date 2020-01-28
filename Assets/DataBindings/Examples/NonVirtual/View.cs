@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using Zenject;
 
 namespace Realmar.DataBindings.Examples.NonVirtual
 {
@@ -9,6 +8,7 @@ namespace Realmar.DataBindings.Examples.NonVirtual
 		[SerializeField] private TMP_InputField _surnameInput;
 		[SerializeField] private TMP_InputField _lastnameInput;
 		[SerializeField] private TMP_InputField _ageInput;
+		[SerializeField] private TMP_Text _summaryText;
 
 		private string _surname;
 		private string _lastname;
@@ -42,6 +42,11 @@ namespace Realmar.DataBindings.Examples.NonVirtual
 				_age = value;
 				Debug.Log($"Set {GetType().Name}::{nameof(Age)} = {Age}");
 			}
+		}
+
+		public string Summary
+		{
+			set => _summaryText.text = value;
 		}
 
 		private void Start()
