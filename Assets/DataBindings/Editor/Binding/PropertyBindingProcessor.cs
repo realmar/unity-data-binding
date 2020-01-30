@@ -87,7 +87,8 @@ namespace Realmar.DataBindings.Editor.Binding
 				targetId: (int) ctorArgs[1].Value,
 				targetPropertyName: (string) ctorArgs[2].Value,
 				nullCheckBehavior: (NullCheckBehavior) ctorArgs[3].Value,
-				converter: (TypeReference) ctorArgs[4].Value
+				dataSource: (DataSource) ctorArgs[4].Value,
+				converter: (TypeReference) ctorArgs[5].Value
 			);
 		}
 	}

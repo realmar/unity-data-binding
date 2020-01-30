@@ -1,8 +1,8 @@
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.TestFramework.Facades;
 using System;
 using System.Runtime.CompilerServices;
-using Realmar.DataBindings.Editor.TestFramework.Facades;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 using Assert = NUnit.Framework.Assert;
 

@@ -1,3 +1,4 @@
+using System;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
@@ -30,25 +31,30 @@ namespace Realmar.DataBindings.Editor.Binding
 					throw new MissingTargetPropertyException(sourceType.FullName, targetPropertyName);
 				}
 
-				var accessorProperty = _weaver.WeaveTargetToSourceAccessorCommand(new AccessorSymbolParameters
-				(
-					sourceType: sourceType,
-					targetType: targetProperty.DeclaringType,
-					bindingTarget: bindingTarget,
-					bindingInitializer: bindingInitializer,
-					settings: bindingInitializerSettings
-				));
-
-				_weaver.Weave(
-					new WeaveParameters
+				var accessorProperty = _weaver.WeaveTargetToSourceAccessorCommand(
+					new AccessorSymbolParameters
 					(
-						fromProperty: targetProperty,
-						toType: sourceProperty.DeclaringType,
-						toProperty: sourceProperty,
-						bindingTarget: accessorProperty.GetMethod,
-						emitNullCheck: ResolveNullCheckBehavior(settings.NullCheckBehavior, true),
-						converter: settings.Converter
+						sourceType: sourceType,
+						targetType: targetProperty.DeclaringType,
+						bindingTarget: bindingTarget,
+						bindingInitializer: bindingInitializer,
+						settings: bindingInitializerSettings
 					));
+				var fromSetter = targetProperty.GetSetMethodOrYeet();
+				var toSetter = sourceProperty.GetSetMethodOrYeet();
+
+				DispatchUsingDataSource(
+					_weaver,
+					new DataSourceConfiguration(
+						dataSource: settings.DataSource,
+						fromGetter: new Lazy<MethodDefinition>(targetProperty.GetGetMethodOrYeet),
+						methodParameter: new Lazy<ParameterDefinition>(() => fromSetter.Parameters[0])),
+					new WeaveMethodParameters(
+						fromSetter: fromSetter,
+						toSetter: toSetter,
+						bindingTarget: accessorProperty.GetGetMethodOrYeet(),
+						emitNullCheck: ResolveNullCheckBehavior(settings.NullCheckBehavior, true),
+						converter: settings.Converter));
 			}
 		}
 	}

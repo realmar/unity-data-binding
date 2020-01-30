@@ -153,10 +153,10 @@ namespace Realmar.DataBindings.Editor.Emitting
 				EmitJumpToIfNull(appender, bindingTarget, GetLastInstruction(bindingInitializer));
 			}
 
-			appender.AddInstruction(first);
-			appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(bindingTarget));
-			appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			appender.AddInstruction(Instruction.Create(GetCallInstruction(accessorSymbol), accessorSymbol));
+			appender.AddInstructions(first);
+			appender.AddInstructions(GetLoadFromFieldOrCallableInstruction(bindingTarget));
+			appender.AddInstructions(Instruction.Create(OpCodes.Ldarg_0));
+			appender.AddInstructions(Instruction.Create(GetCallInstruction(accessorSymbol), accessorSymbol));
 
 			appender.Emit();
 		}
@@ -259,16 +259,22 @@ namespace Realmar.DataBindings.Editor.Emitting
 		internal void EmitBinding(in EmitParameters parameters, IMemberDefinition fromGetter)
 		{
 			var fromGetterLoad = GetLoadFromFieldOrCallableInstruction(fromGetter);
-			EmitBinding(parameters, fromGetterLoad);
+			EmitBinding(
+				parameters,
+				new[]
+				{
+					Instruction.Create(OpCodes.Ldarg_0),
+					fromGetterLoad
+				});
 		}
 
 		internal void EmitBinding(in EmitParameters parameters, ushort methodParameterIndex)
 		{
 			var fromGetterLoad = GetLdArgInstruction(parameters.FromSetter, methodParameterIndex);
-			EmitBinding(parameters, fromGetterLoad);
+			EmitBinding(parameters, new[] { fromGetterLoad });
 		}
 
-		private void EmitBinding(in EmitParameters parameters, Instruction fromGetterInstruction)
+		private void EmitBinding(in EmitParameters parameters, Instruction[] fromGetterInstructions)
 		{
 			var appender = new MethodAppender(parameters.FromSetter);
 
@@ -285,26 +291,25 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 			if (parameters.BindingTarget != null)
 			{
-				appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-				appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(parameters.BindingTarget));
+				appender.AddInstructions(Instruction.Create(OpCodes.Ldarg_0));
+				appender.AddInstructions(GetLoadFromFieldOrCallableInstruction(parameters.BindingTarget));
 			}
 
 			if (parameters.Converter.ConvertMethod == null)
 			{
-				appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-				appender.AddInstruction(fromGetterInstruction);
+				appender.AddInstructions(fromGetterInstructions);
 			}
 			else
 			{
-				EmitConversion(appender, parameters, fromGetterInstruction);
+				EmitConversion(appender, parameters, fromGetterInstructions);
 			}
 
-			appender.AddInstruction(Instruction.Create(GetCallInstruction(parameters.ToSetter), parameters.ToSetter));
+			appender.AddInstructions(Instruction.Create(GetCallInstruction(parameters.ToSetter), parameters.ToSetter));
 
 			appender.Emit();
 		}
 
-		private void EmitConversion(MethodExtender extender, in EmitParameters parameters, Instruction fromGetterInstruction)
+		private void EmitConversion(MethodExtender extender, in EmitParameters parameters, Instruction[] fromGetterInstructions)
 		{
 			// IL_000e: ldarg.0      // this
 			// IL_000f: ldfld        class ['Assembly-CSharp']Realmar.DataBindings.Converters.StringToIntConverter UnitsUnderTest.Positive_E2E_ConverterTests.OneWay_IntToString.Source::_converter
@@ -320,12 +325,11 @@ namespace Realmar.DataBindings.Editor.Emitting
 			// IL_000e: call instance float64 UnitsUnderTest.Positive_E2E_ConverterTests.TwoWay_GenericConverter.Source::get_Text(
 			// IL_0013: callvirt instance !1/*int32*/ class ['Assembly-CSharp'] Realmar.DataBindings.Converters.CastConverter`2<float64, int32>::Convert(!0/*float64*/)
 
-			extender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			extender.AddInstruction(Instruction.Create(OpCodes.Ldfld, parameters.Converter.ConverterField));
-			extender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			extender.AddInstruction(fromGetterInstruction);
+			extender.AddInstructions(Instruction.Create(OpCodes.Ldarg_0));
+			extender.AddInstructions(Instruction.Create(OpCodes.Ldfld, parameters.Converter.ConverterField));
+			extender.AddInstructions(fromGetterInstructions);
 			// TODO: maybe not use callvirt, probably not (safer)
-			extender.AddInstruction(Instruction.Create(OpCodes.Callvirt, parameters.Converter.ConvertMethod));
+			extender.AddInstructions(Instruction.Create(OpCodes.Callvirt, parameters.Converter.ConvertMethod));
 		}
 
 		#endregion
@@ -357,9 +361,9 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 				// IL_0007: newobj       instance void class ['Assembly-CSharp']Realmar.DataBindings.Converters.CastConverter`2<float64, int32>::.ctor()
 
-				preppender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-				preppender.AddInstruction(Instruction.Create(OpCodes.Newobj, ctor));
-				preppender.AddInstruction(Instruction.Create(OpCodes.Stfld, field));
+				preppender.AddInstructions(Instruction.Create(OpCodes.Ldarg_0));
+				preppender.AddInstructions(Instruction.Create(OpCodes.Newobj, ctor));
+				preppender.AddInstructions(Instruction.Create(OpCodes.Stfld, field));
 
 				preppender.Emit();
 			}
@@ -383,9 +387,9 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 		private void EmitNullBranching(MethodAppender appender, IMemberDefinition toToBeChecked, Instruction skipBranch, bool jumpIfNull)
 		{
-			appender.AddInstruction(Instruction.Create(OpCodes.Ldarg_0));
-			appender.AddInstruction(GetLoadFromFieldOrCallableInstruction(toToBeChecked));
-			appender.AddInstruction(Instruction.Create(OpCodes.Ldnull));
+			appender.AddInstructions(Instruction.Create(OpCodes.Ldarg_0));
+			appender.AddInstructions(GetLoadFromFieldOrCallableInstruction(toToBeChecked));
+			appender.AddInstructions(Instruction.Create(OpCodes.Ldnull));
 
 			var returnType = GetReturnType(toToBeChecked);
 			var op = returnType.GetEqualityOperator();
@@ -395,15 +399,15 @@ namespace Realmar.DataBindings.Editor.Emitting
 			{
 				branchingOpCode = jumpIfNull ? OpCodes.Brtrue_S : OpCodes.Brfalse_S;
 				var opReference = toToBeChecked.DeclaringType.Module.ImportReference(op);
-				appender.AddInstruction(Instruction.Create(OpCodes.Call, opReference));
+				appender.AddInstructions(Instruction.Create(OpCodes.Call, opReference));
 			}
 			else
 			{
 				branchingOpCode = jumpIfNull ? OpCodes.Brfalse_S : OpCodes.Brtrue_S;
-				appender.AddInstruction(Instruction.Create(OpCodes.Cgt_Un));
+				appender.AddInstructions(Instruction.Create(OpCodes.Cgt_Un));
 			}
 
-			appender.AddInstruction(Instruction.Create(branchingOpCode, skipBranch));
+			appender.AddInstructions(Instruction.Create(branchingOpCode, skipBranch));
 		}
 
 		#endregion
@@ -418,11 +422,11 @@ namespace Realmar.DataBindings.Editor.Emitting
 
 			if (message != null)
 			{
-				appender.AddInstruction(Instruction.Create(OpCodes.Ldstr, message));
+				appender.AddInstructions(Instruction.Create(OpCodes.Ldstr, message));
 			}
 
-			appender.AddInstruction(Instruction.Create(OpCodes.Newobj, exceptionCtor));
-			appender.AddInstruction(Instruction.Create(OpCodes.Throw));
+			appender.AddInstructions(Instruction.Create(OpCodes.Newobj, exceptionCtor));
+			appender.AddInstructions(Instruction.Create(OpCodes.Throw));
 		}
 
 		#endregion

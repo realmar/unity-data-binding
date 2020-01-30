@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using Mono.Cecil;
 
 namespace Realmar.DataBindings.Editor.Weaving
 {
+	[DebuggerStepThrough]
 	internal readonly struct WeaveMethodParameters
 	{
 		internal MethodDefinition FromSetter { get; }

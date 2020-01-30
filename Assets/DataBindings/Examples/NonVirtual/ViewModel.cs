@@ -74,10 +74,5 @@ namespace Realmar.DataBindings.Examples.NonVirtual
 
 			Summary = sb.ToString();
 		}
-
-		[BindMethod]
-		private void Example(string a, [BindingParameter] string b, string c)
-		{
-		}
 	}
 }

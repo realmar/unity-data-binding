@@ -1,6 +1,7 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System.Collections.Generic;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 
 namespace Realmar.DataBindings.Editor.Emitting
 {
@@ -14,9 +15,14 @@ namespace Realmar.DataBindings.Editor.Emitting
 			Method = method;
 		}
 
-		internal void AddInstruction(Instruction instruction)
+		internal void AddInstructions(Instruction instruction)
 		{
 			Instructions.Add(instruction);
+		}
+
+		internal void AddInstructions(IEnumerable<Instruction> instructions)
+		{
+			instructions.ForEach(AddInstructions);
 		}
 
 		internal virtual void Emit()

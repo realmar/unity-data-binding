@@ -17,6 +17,7 @@ namespace Realmar.DataBindings
 			int targetId = 0,
 			string targetPropertyName = null,
 			NullCheckBehavior nullCheckBehavior = NullCheckBehavior.Auto,
+			DataSource dataSource = DataSource.Value,
 			Type converter = null)
 		{
 			BindingType = bindingType;

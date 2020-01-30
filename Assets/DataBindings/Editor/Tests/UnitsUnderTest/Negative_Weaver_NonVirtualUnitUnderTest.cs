@@ -22,7 +22,7 @@ namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.OneWay_NoGetterSource
 
 		[BindingTarget] public Target BindingTarget { get; set; }
 
-		[Binding]
+		[Binding(dataSource: DataSource.Getter)]
 		public string TextNoGetter
 		{
 			set => _text = value;
@@ -78,7 +78,7 @@ namespace UnitsUnderTest.Negative_Weaver_NonVirtualTests.FromTarget_NoTargetGett
 	{
 		[BindingTarget] public Target BindingTarget { get; set; }
 
-		[Binding(BindingType.OneWayFromTarget)]
+		[Binding(BindingType.OneWayFromTarget, dataSource: DataSource.Getter)]
 		public string Text { get; set; }
 
 		[BindingInitializer]

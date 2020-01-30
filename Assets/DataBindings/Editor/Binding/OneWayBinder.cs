@@ -1,6 +1,8 @@
 using Mono.Cecil;
+using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Weaving;
+using System;
 using System.Collections.Generic;
 using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
@@ -16,20 +18,25 @@ namespace Realmar.DataBindings.Editor.Binding
 			foreach (var bindingTarget in targets)
 			{
 				var bindingTargetProperty = bindingTarget.Source;
-
 				var targetType = GetReturnType(bindingTargetProperty);
 				var targetProperty = GetTargetProperty(sourceProperty, targetType, settings.TargetPropertyName);
+				var fromSetter = sourceProperty.GetSetMethodOrYeet();
+				var toSetter = targetProperty.GetSetMethodOrYeet();
 
-				_weaver.Weave(
-					new WeaveParameters
+				DispatchUsingDataSource(
+					_weaver,
+					new DataSourceConfiguration
 					(
-						fromProperty: sourceProperty,
-						toType: targetType,
-						toProperty: targetProperty,
+						dataSource: settings.DataSource,
+						fromGetter: new Lazy<MethodDefinition>(sourceProperty.GetGetMethodOrYeet),
+						methodParameter: new Lazy<ParameterDefinition>(() => fromSetter.Parameters[0])
+					),
+					new WeaveMethodParameters(
+						fromSetter: fromSetter,
+						toSetter: toSetter,
 						bindingTarget: bindingTarget.Source,
 						emitNullCheck: ResolveNullCheckBehavior(settings.NullCheckBehavior, false),
-						converter: settings.Converter
-					));
+						converter: settings.Converter));
 			}
 		}
 	}

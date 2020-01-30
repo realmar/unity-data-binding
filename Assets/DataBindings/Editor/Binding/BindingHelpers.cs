@@ -1,8 +1,8 @@
-using System;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.Weaving;
+using System;
 using System.Linq;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
@@ -80,6 +80,22 @@ namespace Realmar.DataBindings.Editor.Binding
 					return false;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null);
+			}
+		}
+
+		internal static void DispatchUsingDataSource(Weaver weaver, in DataSourceConfiguration configuration, in WeaveMethodParameters parameters)
+		{
+			var dataSource = configuration.DataSource;
+			switch (dataSource)
+			{
+				case DataSource.Value:
+					weaver.Weave(parameters, configuration.MethodParameter.Value);
+					break;
+				case DataSource.Getter:
+					weaver.Weave(parameters, configuration.FromGetter.Value);
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(dataSource), dataSource, null);
 			}
 		}
 	}
