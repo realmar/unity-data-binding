@@ -1,6 +1,3 @@
-using System;
-using Unity.Collections.LowLevel.Unsafe;
-
 namespace Realmar.DataBindings.Converters
 {
 	public class CastConverter<TFrom, TTo> : IValueConverter<TFrom, TTo>

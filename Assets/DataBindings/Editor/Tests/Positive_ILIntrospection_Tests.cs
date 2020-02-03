@@ -1,10 +1,10 @@
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.TestFramework.Facades;
-using System.Linq;
 
 namespace Realmar.DataBindings.Editor.Tests
 {

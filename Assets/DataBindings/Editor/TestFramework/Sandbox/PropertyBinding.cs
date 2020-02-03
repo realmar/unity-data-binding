@@ -1,10 +1,12 @@
-using JetBrains.Annotations;
 using System;
 using System.Reflection;
+using JetBrains.Annotations;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox.UUT;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 {
-	internal class Binding : MarshalByRefObject, IBinding
+	internal class PropertyBinding : MarshalByRefObject, IPropertyBinding
 	{
 		internal class Arguments
 		{
@@ -15,18 +17,20 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			[CanBeNull] internal object Target { get; set; }
 		}
 
-		private Arguments _arguments;
+		private readonly Arguments _arguments;
 
 		[CanBeNull] public IUUTBindingObject Target { get; }
 		[NotNull] public IUUTBindingObject Source { get; }
 		[NotNull] public BindingAttribute BindingAttribute => _arguments.BindingAttribute;
 
 
-		internal Binding(Arguments arguments)
+		internal PropertyBinding(Arguments arguments)
 		{
 			_arguments = arguments;
 			Target = new UUTBindingObject(_arguments.TargetProperty, _arguments.Target);
 			Source = new UUTBindingObject(_arguments.SourceProperty, _arguments.Source);
 		}
+
+		public void Accept(IBindingVisitor visitor) => visitor.Visit(this);
 	}
 }

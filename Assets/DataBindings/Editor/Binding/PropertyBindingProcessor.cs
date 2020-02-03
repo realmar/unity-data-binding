@@ -1,8 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
-using System.Collections.Generic;
-using System.Linq;
 using static UnityEngine.Debug;
 
 namespace Realmar.DataBindings.Editor.Binding

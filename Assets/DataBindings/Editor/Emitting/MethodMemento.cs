@@ -1,5 +1,5 @@
-using Mono.Cecil.Cil;
 using System.Collections.Generic;
+using Mono.Cecil.Cil;
 
 namespace Realmar.DataBindings.Editor.Emitting
 {

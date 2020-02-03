@@ -1,9 +1,9 @@
-using Realmar.DataBindings.Editor.Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;

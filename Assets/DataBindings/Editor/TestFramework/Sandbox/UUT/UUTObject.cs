@@ -1,7 +1,7 @@
-using Realmar.DataBindings.Editor.Shared.Extensions;
 using System;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 
-namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
+namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.UUT
 {
 	internal class UUTObject : MarshalByRefObject, IUUTObject
 	{

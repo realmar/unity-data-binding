@@ -1,8 +1,8 @@
+using System;
+using System.Linq;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
-using System;
-using System.Linq;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Shared

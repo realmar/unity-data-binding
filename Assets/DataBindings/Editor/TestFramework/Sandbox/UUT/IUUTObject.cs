@@ -1,4 +1,4 @@
-namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
+namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.UUT
 {
 	internal interface IUUTObject
 	{

@@ -5,7 +5,7 @@ namespace Realmar.DataBindings.Editor.Weaving
 {
 	internal static class WeaveHelpers
 	{
-		private readonly static Regex _nonAlphaNumeric = new Regex("[^a-zA-Z0-9 -]", RegexOptions.Compiled);
+		private static readonly Regex _nonAlphaNumeric = new Regex("[^a-zA-Z0-9 -]", RegexOptions.Compiled);
 
 		internal static string FormatSetterName(MethodDefinition method)
 		{

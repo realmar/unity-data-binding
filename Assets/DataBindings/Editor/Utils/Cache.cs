@@ -1,6 +1,6 @@
-using Realmar.DataBindings.Editor.BCL.System;
 using System;
 using System.Collections.Generic;
+using Realmar.DataBindings.Editor.BCL.System;
 
 namespace Realmar.DataBindings.Editor.Utils
 {

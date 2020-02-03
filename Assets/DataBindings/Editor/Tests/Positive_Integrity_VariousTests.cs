@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.TestFramework.BaseTests;
 using Realmar.DataBindings.Editor.TestFramework.Sandbox;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox.UUT;
 
 namespace Realmar.DataBindings.Editor.Tests
 {
@@ -8,9 +9,11 @@ namespace Realmar.DataBindings.Editor.Tests
 	internal class Positive_Integrity_VariousTests : SandboxedTest
 	{
 		[Test]
-		public void TwoWay_SingleSetterCalls_Overrides() => RunTest((binding, o) =>
+		public void TwoWay_SingleSetterCalls_Overrides() => RunTest<IPropertyBinding>((binding, toolbox) =>
 		{
-			// 2 calls because of TwoWay binding
+			toolbox.BindingSet.RunBindingInitializer();
+			toolbox.RunDefaultAssertions(binding);
+
 			AssertSetCounter(binding.Source, 2);
 			AssertSetCounter(binding.Target, 2);
 		});

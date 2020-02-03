@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.TestFramework.BaseTests;
 using Realmar.DataBindings.Editor.TestFramework.Sandbox;
-using System.Linq;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox.UUT;
 
 namespace Realmar.DataBindings.Editor.Tests
 {
@@ -48,14 +48,14 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void OneTime_ManyToOne() => RunTest();
 
 		[Test]
-		public void OneWay_NullCheck_TargetNull_Cgt_Un() => RunTest(binding =>
+		public void OneWay_NullCheck_TargetNull_Cgt_Un() => RunTest<IPropertyBinding>((binding, _) =>
 		{
 			binding.Source.BindingValue = GetRandomString();
 			// implicit no throw
 		});
 
 		[Test]
-		public void OneWay_NullCheck_TargetNull_op_Equality() => RunTest(binding =>
+		public void OneWay_NullCheck_TargetNull_op_Equality() => RunTest<IPropertyBinding>((binding, _) =>
 		{
 			binding.Source.BindingValue = GetRandomString();
 			// implicit no throw
@@ -65,7 +65,7 @@ namespace Realmar.DataBindings.Editor.Tests
 		public void FromTarget_Throw_TargetNotNull() => RunTest();
 
 		[Test]
-		public void FromTarget_NoThrow_TargetNull_Cgt_Un() => RunTest(binding =>
+		public void FromTarget_NoThrow_TargetNull_Cgt_Un() => RunTest<IPropertyBinding>((binding, _) =>
 		{
 			binding.Target.BindingValue = GetRandomString();
 			// implicit no throw
@@ -75,7 +75,7 @@ namespace Realmar.DataBindings.Editor.Tests
 		});
 
 		[Test]
-		public void FromTarget_NoThrow_TargetNull_op_Equality() => RunTest(binding =>
+		public void FromTarget_NoThrow_TargetNull_op_Equality() => RunTest<IPropertyBinding>((binding, _) =>
 		{
 			binding.Target.BindingValue = GetRandomString();
 			// implicit no throw
@@ -92,13 +92,19 @@ namespace Realmar.DataBindings.Editor.Tests
 		});
 
 		[Test]
-		public void FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted() => RunTest(binding => AssertCustomSymbol(binding.Source, 42));
+		public void FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted() =>
+			RunTest<IPropertyBinding>((binding, toolbox) =>
+			{
+				toolbox.BindingSet.RunBindingInitializer();
+				AssertCustomSymbol(binding.Source, 42);
+			});
 
 		[TestCase(-1, 1)]
 		[TestCase(0, 2)]
 		[TestCase(1, 3)]
-		public void FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted_Branching(int setValue, int expected) => RunTest(binding =>
+		public void FromTarget_NullCheck_NoThrow_VerifyCustomCodeExecuted_Branching(int setValue, int expected) => RunTest<IPropertyBinding>((binding, toolbox) =>
 		{
+			toolbox.BindingSet.RunBindingInitializer();
 			binding.Source.SetValue("_sample", setValue);
 			binding.Source.Invoke("InitializeBindings");
 			var actual = binding.Source.GetValue("_result");
@@ -107,24 +113,25 @@ namespace Realmar.DataBindings.Editor.Tests
 		});
 
 		[Test]
-		public void FromTarget_Throw_TargetNull_VerifyCustomCodeExecuted() => RunTest(bindingSet =>
+		public void FromTarget_Throw_TargetNull_VerifyCustomCodeExecuted() => RunTest<IPropertyBinding>((binding, toolbox) =>
 		{
-			RunMethodExpectException<BindingTargetNullException>(bindingSet.RunBindingInitializer);
-
-			var binding = bindingSet.Bindings.First();
+			RunMethodExpectException<BindingTargetNullException>(toolbox.BindingSet.RunBindingInitializer);
 			AssertCustomSymbol(binding.Source, 42);
 		});
 
 		[Test]
-		public void OneWay_Binding_NullCheck_CustomLogicExecuted() => RunTest(binding =>
+		public void OneWay_Binding_NullCheck_CustomLogicExecuted() => RunTest<IPropertyBinding>((binding, _) =>
 		{
 			binding.Source.BindingValue = GetRandomString();
 			AssertCustomSymbol(binding.Source, 42);
 		});
 
 		[Test]
-		public void TwoWay_Binding_CustomLogicExecuted() => RunTest((binding, o) =>
+		public void TwoWay_Binding_CustomLogicExecuted() => RunTest<IPropertyBinding>((binding, toolbox) =>
 		{
+			toolbox.BindingSet.RunBindingInitializer();
+			toolbox.RunDefaultAssertions(binding);
+
 			AssertCustomSymbol(binding.Source, 42);
 			AssertCustomSymbol(binding.Target, 69);
 		});
@@ -143,8 +150,9 @@ namespace Realmar.DataBindings.Editor.Tests
 		});
 
 		[Test]
-		public void TwoWay_PropertyToProperty_Ensure_Setter_Called_Once() => RunTest(binding =>
+		public void TwoWay_PropertyToProperty_Ensure_Setter_Called_Once() => RunTest<IPropertyBinding>((binding, toolbox) =>
 		{
+			toolbox.BindingSet.RunBindingInitializer();
 			var expected = GetRandomString();
 
 			binding.Source.BindingValue = expected;
@@ -190,7 +198,7 @@ namespace Realmar.DataBindings.Editor.Tests
 			// implicit no throw
 		});
 
-		private static void AssertUUTObjects(IBindingCollection bindingCollection, string symbolName, string expected)
+		private static void AssertUUTObjects(IReadOnlyBindingCollection bindingCollection, string symbolName, string expected)
 		{
 			foreach (var uutObject in bindingCollection.GetSymbols())
 			{

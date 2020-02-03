@@ -1,26 +1,24 @@
-using Realmar.DataBindings.Editor.Shared.Extensions;
-using Realmar.DataBindings.Editor.TestFramework.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Realmar.DataBindings.Editor.Shared.Extensions;
+using Realmar.DataBindings.Editor.TestFramework.Attributes;
 using static Realmar.DataBindings.Editor.TestFramework.Sandbox.SandboxHelpers;
 
-namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
+namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Factories
 {
-	internal class BindingFactory
+	internal class PropertyBindingFactory : IBindingFactory
 	{
-		private readonly Type[] _types;
+		private readonly IReadOnlyCollection<Type> _types;
 
-		internal BindingFactory(Type[] types)
+		internal PropertyBindingFactory(IReadOnlyCollection<Type> types)
 		{
 			_types = types;
 		}
 
-		internal IBindingCollection CreateBindings()
+		public void CreateBindings(IBindingCollection collection)
 		{
-			var bindingSets = new List<BindingSet>();
-			var objects = new List<object>();
 			var targetObjectsToId = new Dictionary<int, object>();
 
 			var sourceCompileTimeTypes =
@@ -33,6 +31,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			{
 				foreach (var sourceRunTimeType in sourceRunTimeTypes.Where(type => sourceCompileTimeType.IsAssignableFrom(type)))
 				{
+					var objects = new List<object>();
 					var sourceObject = CreateInstance(sourceRunTimeType);
 					objects.Add(sourceObject);
 
@@ -40,20 +39,19 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 					objects.AddRange(targetObjects);
 
 					var bindingSymbols = sourceCompileTimeType.GetMembersWithAttributeInType<BindingAttribute>();
-					var bindings = new List<IBinding>();
+					var bindings = new List<IPropertyBinding>();
+
 					foreach (var bindingSymbol in bindingSymbols)
 					{
 						bindings.AddRange(CreateBindingsFrom(sourceCompileTimeType, sourceObject, bindingSymbol));
 					}
 
-					var bindingInitializer =
-						(MethodInfo) sourceCompileTimeType.GetMemberWithAttributeInType<BindingInitializerAttribute>();
+					var bindingInitializer = (MethodInfo) sourceCompileTimeType.GetMemberWithAttributeInType<BindingInitializerAttribute>();
+					var bindingSet = new BindingSet(bindings.ToArray(), bindingInitializer, sourceObject);
 
-					bindingSets.Add(new BindingSet(bindings.ToArray(), bindingInitializer, sourceObject));
+					collection.AddBindingSet(bindingSet, objects);
 				}
 			}
-
-			return new BindingCollection(bindingSets, objects);
 		}
 
 		private IReadOnlyCollection<object> ConfigureTargets(Type sourceType, object sourceObject, Dictionary<int, object> targetObjectsToId)
@@ -174,7 +172,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 			return validTargetId && validMappingId;
 		}
 
-		private IEnumerable<Binding> CreateBindingsFrom(Type sourceType, object sourceObject, MemberInfo bindingSymbol)
+		private IEnumerable<PropertyBinding> CreateBindingsFrom(Type sourceType, object sourceObject, MemberInfo bindingSymbol)
 		{
 			var bindingAttributes = bindingSymbol.GetCustomAttributes<BindingAttribute>().ToArray();
 			foreach (var bindingAttribute in bindingAttributes)
@@ -195,7 +193,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 						bindingTargetSymbol.SetFieldOrPropertyValue(sourceObject, null);
 					}
 
-					var arguments = new Binding.Arguments
+					var arguments = new PropertyBinding.Arguments
 					{
 						BindingAttribute = bindingAttribute,
 						SourceProperty = bindingSymbol,
@@ -204,7 +202,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 						Target = targetObject
 					};
 
-					yield return new Binding(arguments);
+					yield return new PropertyBinding(arguments);
 				}
 			}
 		}

@@ -1,8 +1,8 @@
-using Realmar.DataBindings.Editor.Utils;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Realmar.DataBindings.Editor.Utils;
 
 namespace Realmar.DataBindings.Editor.Shared
 {
@@ -32,7 +32,7 @@ namespace Realmar.DataBindings.Editor.Shared
 			var size = Marshal.SizeOf(type);
 			var data = stackalloc byte[size];
 
-			for (int i = size - 1; i >= 0; i--)
+			for (var i = size - 1; i >= 0; i--)
 			{
 				*(data + i) = (byte) Random.Next();
 			}
@@ -40,7 +40,7 @@ namespace Realmar.DataBindings.Editor.Shared
 			return Marshal.PtrToStructure((IntPtr) data, type);
 		}
 
-		internal static bool IsUnmanaged(this Type t)
+		private static bool IsUnmanaged(this Type t)
 		{
 			return UnmanagedTypes.Get(t, type =>
 			{

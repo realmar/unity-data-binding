@@ -6,18 +6,18 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 {
 	internal class BindingSet : MarshalByRefObject, IBindingSet
 	{
-		private MethodInfo _bindingInitializer;
+		private readonly MethodInfo _bindingInitializer;
 
-		private object _bindingInitializerObject;
+		private readonly object _bindingInitializerObject;
 
-		internal BindingSet(IBinding[] bindings, MethodInfo bindingInitializer, object bindingInitializerObject)
+		internal BindingSet(IReadOnlyCollection<IBinding<Attribute>> bindings, MethodInfo bindingInitializer, object bindingInitializerObject)
 		{
 			Bindings = bindings;
 			_bindingInitializer = bindingInitializer;
 			_bindingInitializerObject = bindingInitializerObject;
 		}
 
-		public IReadOnlyCollection<IBinding> Bindings { get; }
+		public IReadOnlyCollection<IBinding<Attribute>> Bindings { get; }
 
 		public void RunBindingInitializer()
 		{

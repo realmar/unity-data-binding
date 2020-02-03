@@ -1,6 +1,6 @@
-using Mono.Cecil;
 using System;
 using System.Diagnostics;
+using Mono.Cecil;
 
 namespace Realmar.DataBindings.Editor.Binding
 {

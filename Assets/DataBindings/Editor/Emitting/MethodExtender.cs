@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using System.Collections.Generic;
 using Realmar.DataBindings.Editor.Shared.Extensions;
 
 namespace Realmar.DataBindings.Editor.Emitting

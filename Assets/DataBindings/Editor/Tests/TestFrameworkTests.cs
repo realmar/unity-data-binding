@@ -1,9 +1,9 @@
-using NUnit.Framework;
-using Realmar.DataBindings.Editor.TestFramework.BaseTests;
-using Realmar.DataBindings.Editor.TestFramework.Sandbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
+using Realmar.DataBindings.Editor.TestFramework.BaseTests;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox;
 
 namespace Realmar.DataBindings.Editor.Tests
 {
@@ -39,8 +39,7 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void VerifyBindingCount_MultipleBinding_CompileTime_Sources()
 		{
-			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings), _testType);
-			var collection = sandbox.BindingCollection;
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings), _testType);
 
 			Assert.That(collection.BindingSets.Count, Is.EqualTo(2));
 			Assert.That(collection.BindingSets.SelectMany(set => set.Bindings).Count(), Is.EqualTo(4));
@@ -50,23 +49,24 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void VerifyBindingCount_MultipleSourceImplementations()
 		{
-			var sandbox = AssertBindingCount(
+			var collection = AssertBindingCount(
 				nameof(Positive_E2E_InterfaceTests.TwoWay_InterfaceToProperty_MultipleSources),
 				3,
 				typeof(Positive_E2E_InterfaceTests));
 
-			Assert.That(sandbox.BindingCollection.BindingSets.Count, Is.EqualTo(3));
+			Assert.That(collection.BindingSets.Count, Is.EqualTo(3));
 		}
 
 		[Test]
 		public void VerifyBindingCount_MultipleSourceImplementations_CheckNames()
 		{
-			var sandbox = GetSandboxForTest(
+			var collection = GetBindingCollectionForTest(
 				nameof(Positive_E2E_InterfaceTests.TwoWay_InterfaceToProperty_MultipleSources),
 				typeof(Positive_E2E_InterfaceTests));
 
-			var sourceTypeCount = sandbox.BindingCollection.BindingSets
+			var sourceTypeCount = collection.BindingSets
 				.SelectMany(set => set.Bindings)
+				.Cast<IPropertyBinding>()
 				.Select(binding => binding.Source.DeclaringTypeFQDN)
 				.Count();
 
@@ -76,28 +76,28 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void VerifyDifferentBindingTargetObjects_OneToMany_CheckHashCode()
 		{
-			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_OneToMany), _testType);
-			AssertDifferentBindingTargetObjects(FlattenBindings(sandbox.BindingCollection.BindingSets));
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_OneToMany), _testType);
+			AssertDifferentBindingTargetObjects(FlattenBindings(collection.BindingSets).Cast<IPropertyBinding>());
 		}
 
 		[Test]
 		public void VerifyBindingSetup_MultipleBindings()
 		{
-			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_ManyToMany), _testType);
-			var bindings = FlattenBindings(sandbox.BindingCollection.BindingSets).ToArray();
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_ManyToMany), _testType);
+			var bindings = FlattenBindings(collection.BindingSets).Cast<IPropertyBinding>().ToArray();
 
 			Assert.That(bindings.Count, Is.EqualTo(3));
 			AssertDifferentBindingTargetObjects(bindings);
 
 			for (var i = 0; i < bindings.Length; i++)
 			{
-				var binding = bindings[i];
+				var binding = (IPropertyBinding) bindings[i];
 				binding.Source.BindingValue = string.Empty;
 				Assert.That(binding.Target.BindingValue, Is.EqualTo(string.Empty));
 
 				for (var j = i + 1; j < bindings.Length; j++)
 				{
-					var otherBinding = bindings[j];
+					var otherBinding = (IPropertyBinding) bindings[j];
 					Assert.That(otherBinding.Target.BindingValue, Is.Null);
 				}
 			}
@@ -106,9 +106,9 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void Verify_BindingTargetNotConfigured()
 		{
-			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull_Cgt_Un), _testType);
-			var bindingSet = sandbox.BindingCollection.BindingSets.First();
-			var binding = bindingSet.Bindings.First();
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull_Cgt_Un), _testType);
+			var bindingSet = collection.BindingSets.First();
+			var binding = (IPropertyBinding) bindingSet.Bindings.First();
 			var btValue = binding.Source.GetValue("BindingTarget");
 
 			Assert.That(btValue, Is.Null);
@@ -117,9 +117,9 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void Verify_NoClassesMarkedAsTargets()
 		{
-			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull_Cgt_Un), _testType);
-			var bindingSet = sandbox.BindingCollection.BindingSets.First();
-			var binding = bindingSet.Bindings.First();
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_NonVirtualTests.OneWay_NullCheck_TargetNull_Cgt_Un), _testType);
+			var bindingSet = collection.BindingSets.First();
+			var binding = (IPropertyBinding) bindingSet.Bindings.First();
 			var btValue = binding.Source.GetValue("BindingTarget");
 
 			Assert.That(btValue, Is.Null);
@@ -128,14 +128,13 @@ namespace Realmar.DataBindings.Editor.Tests
 		[Test]
 		public void Verify_ReuseTargetInstanceWithSameId()
 		{
-			var sandbox = GetSandboxForTest(nameof(Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings), _testType);
-			var collection = sandbox.BindingCollection;
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings), _testType);
 			var symbols = collection.GetSymbols();
 
 			Assert.That(symbols.Count, Is.EqualTo(5));
 		}
 
-		private static void AssertDifferentBindingTargetObjects(IEnumerable<IBinding> bindings)
+		private static void AssertDifferentBindingTargetObjects(IEnumerable<IPropertyBinding> bindings)
 		{
 			var targets = new HashSet<int>();
 
@@ -147,17 +146,17 @@ namespace Realmar.DataBindings.Editor.Tests
 			}
 		}
 
-		private IUnitUnderTestSandbox AssertBindingCount(string testName, int expected, Type testType = null)
+		private IReadOnlyBindingCollection AssertBindingCount(string testName, int expected, Type testType = null)
 		{
-			var sandbox = GetSandboxForTest(testName, testType ?? _testType);
-			var bindings = FlattenBindings(sandbox.BindingCollection.BindingSets);
+			var collection = GetBindingCollectionForTest(testName, testType ?? _testType);
+			var bindings = FlattenBindings(collection.BindingSets);
 
 			Assert.That(bindings.Count, Is.EqualTo(expected));
 
-			return sandbox;
+			return collection;
 		}
 
-		private IEnumerable<IBinding> FlattenBindings(IReadOnlyCollection<IBindingSet> bindingSets)
+		private IEnumerable<IBinding<Attribute>> FlattenBindings(IReadOnlyCollection<IBindingSet> bindingSets)
 			=> bindingSets.SelectMany(set => set.Bindings);
 	}
 }

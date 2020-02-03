@@ -2,14 +2,15 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox.Factories;
 
-namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
+namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.UUT
 {
 	internal class AppDomainUUTSandbox : MarshalByRefObject, IUnitUnderTestSandbox
 	{
 		private Assembly _context;
 
-		public IBindingCollection BindingCollection { get; private set; }
+		public IReadOnlyBindingCollection BindingCollection { get; private set; }
 
 		public void InitializeSandbox(string assemblyPath)
 		{
@@ -32,7 +33,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 				.Where(type => type.Namespace != null && type.Namespace == @namespace)
 				.ToArray();
 
-			var bindingFactory = new BindingFactory(types);
+			var bindingFactory = new BindingFactoryFacade(types);
 			BindingCollection = bindingFactory.CreateBindings();
 		}
 	}

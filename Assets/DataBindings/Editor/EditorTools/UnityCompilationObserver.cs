@@ -1,5 +1,5 @@
-using Realmar.DataBindings.Editor.Binding;
 using System.Diagnostics;
+using Realmar.DataBindings.Editor.Binding;
 using UnityEditor;
 using UnityEditor.Compilation;
 

@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
-using System.Collections.Generic;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 
 namespace Realmar.DataBindings.Editor.Emitting

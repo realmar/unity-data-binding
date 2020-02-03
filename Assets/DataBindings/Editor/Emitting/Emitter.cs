@@ -1,11 +1,11 @@
-using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 using static Realmar.DataBindings.Editor.Exceptions.YeetHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 

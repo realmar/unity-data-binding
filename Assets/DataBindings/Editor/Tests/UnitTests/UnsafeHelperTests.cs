@@ -1,9 +1,9 @@
-using NUnit.Framework;
-using Realmar.DataBindings.Editor.Shared;
-using Realmar.DataBindings.Editor.Shared.Extensions;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using NUnit.Framework;
+using Realmar.DataBindings.Editor.Shared;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 
 namespace Realmar.DataBindings.Editor.Tests.UnitTests
 {

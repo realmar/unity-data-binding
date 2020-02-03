@@ -1,9 +1,9 @@
+using System.Linq;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Weaving;
-using System.Linq;
 
 namespace Realmar.DataBindings.Editor.Binding
 {

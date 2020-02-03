@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Mono.Cecil;
 using Realmar.DataBindings.Editor.Cecil;
 using Realmar.DataBindings.Editor.Exceptions;
 using Realmar.DataBindings.Editor.IoC;
 using Realmar.DataBindings.Editor.Weaving;
-using System.Collections.Generic;
-using System.Linq;
 using static Realmar.DataBindings.Editor.Binding.BindingHelpers;
 using static Realmar.DataBindings.Editor.Shared.SharedHelpers;
 

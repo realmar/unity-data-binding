@@ -1,9 +1,9 @@
-using Realmar.DataBindings.Editor.Exceptions;
-using Realmar.DataBindings.Editor.Shared.Extensions;
 using System;
 using System.CodeDom.Compiler;
 using System.Linq;
 using System.Reflection;
+using Realmar.DataBindings.Editor.Exceptions;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Compilation
 {

@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Realmar.DataBindings.Editor.Shared.Extensions;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox.UUT;
 
-namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
+namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Factories
 {
 	internal class UUTSandboxFactory : IDisposable
 	{
