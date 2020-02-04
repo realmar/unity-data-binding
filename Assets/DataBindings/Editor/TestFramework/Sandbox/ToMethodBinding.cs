@@ -6,6 +6,12 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox
 {
 	internal class ToMethodBinding : MarshalByRefObject, IToMethodBinding
 	{
+		public ToMethodBinding(InvokeOnChangeAttribute bindingAttribute, IUUTBindingObject source)
+		{
+			BindingAttribute = bindingAttribute;
+			Source = source;
+		}
+
 		public InvokeOnChangeAttribute BindingAttribute { get; }
 		public IUUTBindingObject Source { get; }
 

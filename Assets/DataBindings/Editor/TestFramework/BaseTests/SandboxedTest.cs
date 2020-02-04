@@ -52,11 +52,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 
 		private void RunTest(Type testType, string testName)
 		{
-			RunTestUsingVisitorFactory(testType, testName, set =>
-			{
-				set.RunBindingInitializer();
-				return new DefaultBindingVisitor(set);
-			});
+			RunTestUsingVisitorFactory(testType, testName, set => new DefaultBindingVisitor(set));
 		}
 
 		protected void RunTest(Action<IBindingSet> bindingSetAssertions, [CallerMemberName] string testName = null)
@@ -110,7 +106,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			}
 			catch (TargetInvocationException e)
 			{
-				actual = e.InnerException;
+				actual = UnwrapException(e);
 			}
 			catch (Exception e)
 			{
@@ -134,6 +130,17 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 					binding.Accept(visitor);
 				}
 			}
+		}
+
+		private Exception UnwrapException(TargetInvocationException e)
+		{
+			var result = e.InnerException;
+			if (result is TargetInvocationException wrapped)
+			{
+				result = UnwrapException(wrapped);
+			}
+
+			return result;
 		}
 	}
 }

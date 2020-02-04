@@ -6,6 +6,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors
 	{
 		public DefaultBindingVisitor(IBindingSet bindingSet) : base(bindingSet)
 		{
+			bindingSet.RunBindingInitializer();
 		}
 
 		public override void Visit(IPropertyBinding binding)
