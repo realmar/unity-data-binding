@@ -347,9 +347,14 @@ namespace Realmar.DataBindings.Editor.Weaving
 				throw new NotAConverterException(converterType, fromSetter);
 			}
 
-			if (converterTypeDefinition.IsInterface)
+			if (converterTypeDefinition.IsAbstract)
 			{
 				throw new AbstractConverterException(converterType, fromSetter);
+			}
+
+			if (converterType.IsGenericInstance == false && converterType.HasGenericParameters)
+			{
+				throw new OpenGenericConverterNotSupported(converterType, fromSetter);
 			}
 
 			var ctor = converterTypeDefinition.GetConstructors().FirstOrDefault(definition => definition.HasParameters == false);
@@ -368,7 +373,6 @@ namespace Realmar.DataBindings.Editor.Weaving
 				var genericConverterType = (GenericInstanceType) converterType;
 				var genericConstrainedFromType = genericConverterType.GenericArguments[0].Resolve();
 				var genericConstrainedToType = genericConverterType.GenericArguments[1].Resolve();
-
 
 				foreach (var definition in converterTypeDefinition.GetMethods())
 				{

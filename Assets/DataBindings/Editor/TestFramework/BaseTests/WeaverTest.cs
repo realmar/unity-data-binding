@@ -44,6 +44,12 @@ namespace Realmar.DataBindings.Editor.TestFramework.BaseTests
 			customAssertions?.Invoke(exception);
 		}
 
+		protected void AssertExceptionThrown<TException>([CallerMemberName] string testName = null)
+			where TException : Exception
+		{
+			Assert.Throws<TException>(() => _weaverTestFacade.CompileAndWeave(GetType(), testName));
+		}
+
 		protected void AssetNoThrow([CallerMemberName] string testName = null)
 		{
 			_weaverTestFacade.CompileAndWeave(GetType(), testName);
