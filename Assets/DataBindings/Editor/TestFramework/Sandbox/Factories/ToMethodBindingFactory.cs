@@ -8,7 +8,7 @@ using Realmar.DataBindings.Editor.TestFramework.Sandbox.UUT;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Factories
 {
-	internal class ToMethodBindingFactory : BaseBindingFactoryBase
+	internal class ToMethodBindingFactory : BindingFactoryBase
 	{
 		public ToMethodBindingFactory(IReadOnlyCollection<Type> types) : base(types)
 		{

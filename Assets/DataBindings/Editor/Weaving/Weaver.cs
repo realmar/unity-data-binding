@@ -288,10 +288,12 @@ namespace Realmar.DataBindings.Editor.Weaving
 			{
 				if (toSetter.IsAbstract == false)
 				{
-					return toSetter;
+					throw new BigOOFException($"Could not find original setter for non-abstract {toSetter.FullName}");
 				}
 				else
 				{
+					// If we did not find any original setter, then it's because the setter is abstract,
+					// so we don't need to weave the method body (using a MethodMemento)
 					setHelper = _emitter.EmitSetHelper(name, toSetter);
 				}
 			}
@@ -320,13 +322,13 @@ namespace Realmar.DataBindings.Editor.Weaving
 			var toType = toSetter.DeclaringType;
 			var derivedToSetters = _derivativeResolver
 				.GetDerivedTypes(toType)
-				.SelectMany(definition => definition.Properties)
-				.Concat(toType.GetPropertiesInBaseHierarchy())
-				.Select(definition => definition.SetMethod)
+				.SelectMany(definition => definition.GetMethods())
+				.Concat(toType.GetMethodsInBaseHierarchy())
 				.WhereNotNull()
 				.Where(definition => definition.Name == toSetter.Name)
 				.Where(definition => definition.DeclaringType.Module.Assembly.IsSame(toType.Module.Assembly))
-				.Distinct();
+				.Distinct()
+				.ToArray();
 
 			foreach (var derivedToSetter in derivedToSetters)
 			{
@@ -414,7 +416,16 @@ namespace Realmar.DataBindings.Editor.Weaving
 			var wovenBindingsHash = GetHashCode(parameters, fromGetter);
 			if (_wovenBindings.Contains(wovenBindingsHash) == false)
 			{
-				var toSetHelper = WeaveSetHelper(parameters.FromSetter, parameters.ToSetter);
+				MethodDefinition toSetHelper;
+				if (BelongsToProperty(parameters.ToSetter))
+				{
+					// This means that its a ToMethodBinding and thus does not require a set helper.
+					toSetHelper = WeaveSetHelper(parameters.FromSetter, parameters.ToSetter);
+				}
+				else
+				{
+					toSetHelper = parameters.ToSetter;
+				}
 
 				_wovenBindings.Add(wovenBindingsHash);
 
@@ -572,6 +583,14 @@ namespace Realmar.DataBindings.Editor.Weaving
 					yield return nonAbstractMethod;
 				}
 			}
+		}
+
+		private bool BelongsToProperty(MethodDefinition method)
+		{
+			return method.DeclaringType.Properties
+				.Select(definition => definition.SetMethod)
+				.WhereNotNull()
+				.Any(definition => definition.Name == method.Name);
 		}
 	}
 }

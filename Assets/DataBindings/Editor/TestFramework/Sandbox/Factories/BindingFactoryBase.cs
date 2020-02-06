@@ -7,11 +7,11 @@ using Realmar.DataBindings.Editor.TestFramework.Attributes;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Factories
 {
-	internal abstract class BaseBindingFactoryBase : IBindingFactory
+	internal abstract class BindingFactoryBase : IBindingFactory
 	{
 		private readonly IReadOnlyCollection<Type> _types;
 
-		internal BaseBindingFactoryBase(IReadOnlyCollection<Type> types)
+		internal BindingFactoryBase(IReadOnlyCollection<Type> types)
 		{
 			_types = types;
 		}

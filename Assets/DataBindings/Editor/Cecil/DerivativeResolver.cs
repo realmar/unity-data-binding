@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using Realmar.DataBindings.Editor.Utils;
 
 namespace Realmar.DataBindings.Editor.Cecil
@@ -22,18 +23,22 @@ namespace Realmar.DataBindings.Editor.Cecil
 
 		private List<TypeDefinition> GetDerivedTypes_Internal(TypeDefinition originType)
 		{
-			var types = new List<TypeDefinition>();
+			var types = new HashSet<TypeDefinition>();
 
 			// TODO resolve across assembly boundaries
 			foreach (var typeDefinition in originType.Module.Types)
 			{
-				if (typeDefinition.EnumerateBaseClasses().Any(definition => TypeInBaseHierarchy(definition, originType)))
+				if (typeDefinition
+					.EnumerateBaseClasses()
+					.Concat(typeDefinition.Interfaces.Select(implementation => implementation.InterfaceType.Resolve()))
+					.WhereNotNull()
+					.Any(definition => TypeInBaseHierarchy(definition, originType)))
 				{
 					types.Add(typeDefinition);
 				}
 			}
 
-			return types;
+			return types.ToList();
 		}
 
 		private List<TypeDefinition> GetDirectlyDerivedTypes_Internal(TypeDefinition originType)

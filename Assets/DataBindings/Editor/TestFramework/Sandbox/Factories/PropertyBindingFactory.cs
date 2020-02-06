@@ -6,7 +6,7 @@ using Realmar.DataBindings.Editor.TestFramework.Attributes;
 
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Factories
 {
-	internal class PropertyBindingFactory : BaseBindingFactoryBase
+	internal class PropertyBindingFactory : BindingFactoryBase
 	{
 		internal PropertyBindingFactory(IReadOnlyCollection<Type> types) : base(types)
 		{
