@@ -4,6 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using Realmar.DataBindings.Editor.TestFramework.BaseTests;
 using Realmar.DataBindings.Editor.TestFramework.Sandbox;
+using Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors;
 
 namespace Realmar.DataBindings.Editor.Tests
 {
@@ -11,14 +12,6 @@ namespace Realmar.DataBindings.Editor.Tests
 	internal class TestFrameworkTests : SandboxedTest
 	{
 		private readonly Type _testType = typeof(Positive_E2E_NonVirtualTests);
-
-		[Test]
-		public void DindDong()
-		{
-			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_NonVirtualTests.TwoWay_ChainedBindings), _testType);
-			var set = (BindingSet)collection.BindingSets.First();
-			var b = set.Bindings;
-		}
 
 		[Test]
 		public void VerifyBindingCount_OneToOne()
@@ -99,13 +92,13 @@ namespace Realmar.DataBindings.Editor.Tests
 
 			for (var i = 0; i < bindings.Length; i++)
 			{
-				var binding = (IPropertyBinding) bindings[i];
+				var binding = bindings[i];
 				binding.Source.BindingValue = string.Empty;
 				Assert.That(binding.Target.BindingValue, Is.EqualTo(string.Empty));
 
 				for (var j = i + 1; j < bindings.Length; j++)
 				{
-					var otherBinding = (IPropertyBinding) bindings[j];
+					var otherBinding = bindings[j];
 					Assert.That(otherBinding.Target.BindingValue, Is.Null);
 				}
 			}
@@ -116,11 +109,10 @@ namespace Realmar.DataBindings.Editor.Tests
 		{
 			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_NonVirtualTests.FromTarget_NoThrow_TargetNull_Cgt_Un), _testType);
 			var bindingSet = collection.BindingSets.First();
-			var b = bindingSet.Bindings;
+			var binding = bindingSet.Bindings.Cast<IPropertyBinding>().First();
+			var btValue = binding.Source.GetValue("BindingTarget");
 
-			// var binding = bindingSet.Bindings.Cast<IPropertyBinding>().First();
-			// var btValue = binding.Source.GetValue("BindingTarget");
-			// Assert.That(btValue, Is.Null);
+			Assert.That(btValue, Is.Null);
 		}
 
 		[Test]
@@ -141,6 +133,35 @@ namespace Realmar.DataBindings.Editor.Tests
 			var symbols = collection.GetSymbols();
 
 			Assert.That(symbols.Count, Is.EqualTo(5));
+		}
+
+		[Test]
+		public void CreatesInvokeMethodBinding()
+		{
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_InvokeOnChangeTests.NonAbstract_NoBindings), typeof(Positive_E2E_InvokeOnChangeTests));
+
+			Assert.That(collection.BindingSets.Count, Is.EqualTo(1));
+			Assert.That(collection.BindingSets.First().Bindings.Count, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void CreatesPropertyAndInvokeMethodBindings()
+		{
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_InvokeOnChangeTests.NonAbstract_WithBindings), typeof(Positive_E2E_InvokeOnChangeTests));
+
+			Assert.That(collection.BindingSets.Count, Is.EqualTo(2));
+			foreach (var set in collection.BindingSets)
+			{
+				Assert.That(set.Bindings.Count, Is.EqualTo(1));
+			}
+
+			var count = collection.BindingSets
+				.SelectMany(set => set.Bindings)
+				.GroupBy(binding => binding.GetType())
+				.ToDictionary(bindings => bindings.Key, bindings => bindings.Count());
+
+			Assert.That(count[typeof(PropertyBinding)], Is.EqualTo(1));
+			Assert.That(count[typeof(ToMethodBinding)], Is.EqualTo(1));
 		}
 
 		private static void AssertDifferentBindingTargetObjects(IEnumerable<IPropertyBinding> bindings)
