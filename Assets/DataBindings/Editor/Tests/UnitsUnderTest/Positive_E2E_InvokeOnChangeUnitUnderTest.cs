@@ -6,9 +6,9 @@ namespace UnitsUnderTest.Positive_E2E_InvokeOnChangeTests.NonAbstract_NoBindings
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
 	{
-		private string _result;
+		[Result, Id(1)] private string _result;
 
-		[InvokeOnChange(nameof(OnChange))]
+		[InvokeOnChange(nameof(OnChange)), Id(1)]
 		public string Text { get; set; }
 
 		private void OnChange(string result)
@@ -23,9 +23,9 @@ namespace UnitsUnderTest.Positive_E2E_InvokeOnChangeTests.NonAbstract_NoBindings
 	[Source, CompileTimeType, RunTimeType]
 	internal class Source
 	{
-		private int _result;
+		[Result(Expected = 42), Id(1)] private int _result;
 
-		[InvokeOnChange(nameof(OnChange))]
+		[InvokeOnChange(nameof(OnChange)), Id(1)]
 		public string Text { get; set; }
 
 		private void OnChange()

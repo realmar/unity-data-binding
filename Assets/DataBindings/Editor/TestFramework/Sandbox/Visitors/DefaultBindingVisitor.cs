@@ -16,7 +16,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors
 
 		public override void Visit(IToMethodBinding binding)
 		{
-			throw new NotImplementedException();
+			RunDefaultAssertions(binding);
 		}
 	}
 }

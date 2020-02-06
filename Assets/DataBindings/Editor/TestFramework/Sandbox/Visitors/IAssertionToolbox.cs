@@ -4,5 +4,6 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors
 	{
 		IBindingSet BindingSet { get; }
 		object RunDefaultAssertions(IPropertyBinding binding);
+		object RunDefaultAssertions(IToMethodBinding binding);
 	}
 }

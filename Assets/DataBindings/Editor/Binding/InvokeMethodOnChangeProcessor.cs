@@ -19,7 +19,8 @@ namespace Realmar.DataBindings.Editor.Binding
 				var targetMethodNames = attributeValues.Select(argument => (string) argument.Value);
 				var declaringType = sourceProperty.DeclaringType;
 				var fromSetter = sourceProperty.GetSetMethodOrYeet();
-				var fromGetter = sourceProperty.GetGetMethodOrYeet();
+				// var fromGetter = sourceProperty.GetGetMethodOrYeet();
+				var fromGetter = fromSetter.Parameters[0];
 
 				foreach (var targetMethodName in targetMethodNames)
 				{

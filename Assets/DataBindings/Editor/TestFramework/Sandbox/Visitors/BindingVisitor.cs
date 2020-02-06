@@ -25,7 +25,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors
 
 			if (bindingAttribute.BindingType == BindingType.OneTime)
 			{
-				expected = SetValue(binding.Source, bindingAttribute.Converter);
+				expected = SetRandomValue(binding.Source, bindingAttribute.Converter);
 				BindingSet.RunBindingInitializer();
 				AssertValue(binding.Target, expected, bindingAttribute.Converter);
 			}
@@ -52,6 +52,18 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors
 			return expected;
 		}
 
+		public object RunDefaultAssertions(IToMethodBinding binding)
+		{
+			var setValue = SetRandomValue(binding.Source);
+			var resultExpected = binding.ResultAttribute.Expected;
+			var result = binding.ResultObject.BindingValue;
+			var expected = resultExpected ?? setValue;
+
+			Assert.That(result, Is.EqualTo(expected));
+
+			return expected;
+		}
+
 		private object AssertOneWayFromTarget(IPropertyBinding binding)
 		{
 			return SetAndAssert(binding.Target, binding.Source, binding.BindingAttribute.Converter);
@@ -62,15 +74,15 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors
 			return SetAndAssert(binding.Source, binding.Target, binding.BindingAttribute.Converter);
 		}
 
-		private object SetAndAssert(IUUTBindingObject source, IUUTBindingObject target, Type converterType)
+		private object SetAndAssert(IUUTBindingObject source, IUUTBindingObject target, Type converterType = null)
 		{
-			var actual = SetValue(source, converterType);
+			var actual = SetRandomValue(source, converterType);
 			AssertValue(target, actual, converterType);
 
 			return actual;
 		}
 
-		private object SetValue(IUUTBindingObject symbol, Type converterType)
+		private object SetRandomValue(IUUTBindingObject symbol, Type converterType = null)
 		{
 			var value = GetRandomObjectOfType(symbol.BindingValueType);
 			symbol.BindingValue = value;
@@ -78,7 +90,7 @@ namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors
 			return value;
 		}
 
-		private void AssertValue(IUUTBindingObject symbol, object expected, Type converterType)
+		private void AssertValue(IUUTBindingObject symbol, object expected, Type converterType = null)
 		{
 			if (expected.GetType() != symbol.BindingValueType)
 			{

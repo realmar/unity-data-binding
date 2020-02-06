@@ -289,19 +289,22 @@ namespace Realmar.DataBindings.Editor.Emitting
 			// IL_000e: call instance int32 Realmar.UnityMVVM.Example.ExampleViewModel::get_Value3()
 			// IL_0013: call instance void Realmar.UnityMVVM.Example.ExampleView::set_Value3(int32)
 
+			appender.AddInstructions(Instruction.Create(OpCodes.Ldarg_0));
 			if (parameters.BindingTarget != null)
 			{
-				appender.AddInstructions(Instruction.Create(OpCodes.Ldarg_0));
 				appender.AddInstructions(GetLoadFromFieldOrCallableInstruction(parameters.BindingTarget));
 			}
 
-			if (parameters.Converter.ConvertMethod == null)
+			if (parameters.ToSetter.Parameters.Count > 0)
 			{
-				appender.AddInstructions(fromGetterInstructions);
-			}
-			else
-			{
-				EmitConversion(appender, parameters, fromGetterInstructions);
+				if (parameters.Converter.ConvertMethod == null)
+				{
+					appender.AddInstructions(fromGetterInstructions);
+				}
+				else
+				{
+					EmitConversion(appender, parameters, fromGetterInstructions);
+				}
 			}
 
 			appender.AddInstructions(Instruction.Create(GetCallInstruction(parameters.ToSetter), parameters.ToSetter));
