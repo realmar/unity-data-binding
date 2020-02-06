@@ -1,5 +1,3 @@
-using System;
-
 namespace Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors
 {
 	internal class DefaultBindingVisitor : BindingVisitor

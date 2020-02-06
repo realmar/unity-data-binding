@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Realmar.DataBindings.Editor.Shared.Extensions;
 using Realmar.DataBindings.Editor.TestFramework.BaseTests;
 using Realmar.DataBindings.Editor.TestFramework.Sandbox;
 using Realmar.DataBindings.Editor.TestFramework.Sandbox.Visitors;
@@ -11,6 +12,16 @@ namespace Realmar.DataBindings.Editor.Tests
 	[TestFixture]
 	internal class TestFrameworkTests : SandboxedTest
 	{
+		private class CallCounterBindingVisitor : MarshalByRefObject, IBindingVisitor
+		{
+			internal int PropertyCounter { get; private set; }
+			internal int ToMethodCounter { get; private set; }
+
+			public void Visit(IPropertyBinding binding) => PropertyCounter++;
+
+			public void Visit(IToMethodBinding binding) => ToMethodCounter++;
+		}
+
 		private readonly Type _testType = typeof(Positive_E2E_NonVirtualTests);
 
 		[Test]
@@ -162,6 +173,18 @@ namespace Realmar.DataBindings.Editor.Tests
 
 			Assert.That(count[typeof(PropertyBinding)], Is.EqualTo(1));
 			Assert.That(count[typeof(ToMethodBinding)], Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Verify_BindingVisitorCalled()
+		{
+			var collection = GetBindingCollectionForTest(nameof(Positive_E2E_InvokeOnChangeTests.NonAbstract_WithBindings), typeof(Positive_E2E_InvokeOnChangeTests));
+			var visitor = new CallCounterBindingVisitor();
+
+			collection.BindingSets.SelectMany(set => set.Bindings).ForEach(binding => binding.Accept(visitor));
+
+			Assert.That(visitor.PropertyCounter, Is.EqualTo(1));
+			Assert.That(visitor.ToMethodCounter, Is.EqualTo(1));
 		}
 
 		private static void AssertDifferentBindingTargetObjects(IEnumerable<IPropertyBinding> bindings)
