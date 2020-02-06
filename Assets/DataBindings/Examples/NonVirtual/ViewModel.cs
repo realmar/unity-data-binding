@@ -1,7 +1,8 @@
-using System.Text;
 using Realmar.DataBindings.Converters;
-using UnityEngine;
+using System.Diagnostics;
+using System.Text;
 using Zenject;
+using Debug = UnityEngine.Debug;
 
 namespace Realmar.DataBindings.Examples.NonVirtual
 {
@@ -13,58 +14,38 @@ namespace Realmar.DataBindings.Examples.NonVirtual
 		[Inject, BindingTarget(2)]
 		private Model _model;
 
-		private string _surname;
-		private string _lastname;
-		private string _age;
-
-		[InvokeOnChange(nameof(OnPropertyChanged))]
+		[InvokeOnChange(nameof(OnPropertyChanged), nameof(LogPropertyChanged))]
 		[Binding(BindingType.OneWayFromTarget)]
 		[Binding(BindingType.TwoWay, 2)]
-		public string Surname
-		{
-			get => _surname;
-			set
-			{
-				_surname = value;
-				Debug.Log($"Set {GetType().Name}::{nameof(Surname)} = {Surname}");
-			}
-		}
+		public string Surname { get; set; }
 
-		[InvokeOnChange(nameof(OnPropertyChanged))]
+		[InvokeOnChange(nameof(OnPropertyChanged), nameof(LogPropertyChanged))]
 		[Binding(BindingType.OneWayFromTarget)]
 		[Binding(BindingType.TwoWay, 2)]
-		public string Lastname
-		{
-			get => _lastname;
-			set
-			{
-				_lastname = value;
-				Debug.Log($"Set {GetType().Name}::{nameof(Lastname)} = {Lastname}");
-			}
-		}
+		public string Lastname { get; set; }
 
-		[InvokeOnChange(nameof(OnPropertyChanged))]
+		[InvokeOnChange(nameof(OnPropertyChanged), nameof(LogPropertyChanged))]
 		[Binding(BindingType.OneWayFromTarget)]
 		[Binding(BindingType.TwoWay, 2, converter: typeof(StringToIntConverter))]
-		public string Age
-		{
-			get => _age;
-			set
-			{
-				_age = value;
-				Debug.Log($"Set {GetType().Name}::{nameof(Age)} = {Age}");
-			}
-		}
+		public string Age { get; set; }
 
 		[Binding]
 		public string Summary { get; set; }
 
-		[BindingInitializer(throwOnFailure: true)]
+		[BindingInitializer]
 		public void Initialize()
 		{
 		}
 
-		private void OnPropertyChanged(string _)
+		private void LogPropertyChanged(string value)
+		{
+			var frame = new StackFrame(2);
+			var methodName = frame.GetMethod().Name;
+
+			Debug.Log($"Set {GetType().Name}::{methodName} = {value}");
+		}
+
+		private void OnPropertyChanged()
 		{
 			var sb = new StringBuilder();
 
